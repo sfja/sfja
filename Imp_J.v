@@ -7,7 +7,7 @@
     studying Coq itself, but from now on we'll mostly be using Coq to
     formalize other things.
     
-    はじめ例は、Imp と呼ばれる _単純な命令型プログラミング言語_ です。
+    はじめの例は、Imp と呼ばれる _単純な命令型プログラミング言語_ です。
     下の例は、おなじみの数学的関数を Imp で書いたものです。
 [[
      Z ::= X;
