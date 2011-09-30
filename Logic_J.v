@@ -1,4 +1,5 @@
-(** * Logic: Logic in Coq *)
+(* * Logic: Logic in Coq *)
+(** * Logic: Coqの論理 *)
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
 
@@ -18,7 +19,7 @@ Require Export "Prop_J".
 
 (* ########################################################### *)
 (* * Quantification and Implication *)
-(** * 存在記号とならば *)
+(** * 全称記号 と ならば *)
 
 (* In fact, [->] and [forall] are the _same_ primitive!  Coq's [->]
     notation is actually just a shorthand for [forall].  The [forall]
