@@ -98,14 +98,6 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (fst_swap_is_snd) *)
-Theorem fst_swap_is_snd : forall (p : natprod),
-  fst (swap_pair p) = snd p.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
-
 (** * 数値のリスト *)
 
 (** ペアの定義より一般化させると、数値のリスト型を以下のように表すことができます。”リストは、空のリストであるか、数値とリストのペアである” *)
