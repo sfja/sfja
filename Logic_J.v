@@ -1,5 +1,5 @@
+(** * Logic_J : Coqの論理 *)
 (* * Logic: Logic in Coq *)
-(** * Logic: Coqの論理 *)
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
 
