@@ -4,38 +4,63 @@
 
 Require Export "Prop_J".
 
-(** Coq's built-in logic is extremely small: [Inductive] definitions,
+(* Coq's built-in logic is extremely small: [Inductive] definitions,
     universal quantification ([forall]), and implication ([->]) are
     primitive, but all the other familiar logical connectives --
     conjunction, disjunction, negation, existential quantification,
     even equality -- can be defined using just these. *)
+(**
+   Coqの組み込み論理は非常に小さく、帰納的定義([Inductive])、
+   全称記号([forall])、ならば([->])だけです。その他の論理演算子(
+   かつ、または、否定、存在量化子、等号)は組み込みのものから
+   定義できます。
+*)
 
 (* ########################################################### *)
-(** * Quantification and Implication *)
+(* * Quantification and Implication *)
+(** * 存在記号とならば *)
 
-(** In fact, [->] and [forall] are the _same_ primitive!  Coq's [->]
+(* In fact, [->] and [forall] are the _same_ primitive!  Coq's [->]
     notation is actually just a shorthand for [forall].  The [forall]
     notation is more general, because it allows us to _name_ the
     hypothesis. *)
+(**
+   実は、[->]と[forall]は 同じものです! Coqの[->]記法は[forall]の
+   短縮記法です。[forall]記法の方がより一般的で、仮定に名前をつけることができます。
+*)
 
-(** For example, consider this proposition: *)
+(* For example, consider this proposition: *)
+(** 例えば次の命題を考えてみましょう。 *)
 
 Definition funny_prop1 := forall n, forall (E : ev n), ev (n+4).
 
-(** If we had a proof term inhabiting this proposition, it would be a
+(* If we had a proof term inhabiting this proposition, it would be a
     function with two arguments: a number [n] and some evidence that
     [n] is even.  But the name [E] for this evidence is not used in
     the rest of the statement of [funny_prop1], so it's a bit silly to
     bother making up a name.  We could write it like this instead: *)
 
+(**
+   もしもこの命題の証明項があったら、それは二つの引数を持つ関数になるでしょう。
+   数字[n]と[n]が偶数であることの証拠[E]を引数として持ちます。
+   でも証拠となる[E]は[funny_prop1]の中では使われていません。
+   なので[E]という名前をつけることはちょっと無意味です。
+   この場合、次のように書くこともできます。
+*)
+
 Definition funny_prop1' := forall n, forall (_ : ev n), ev (n+4).
 
-(** Or we can write it in more familiar notation: *)
+(* Or we can write it in more familiar notation: *)
+(** また、より親しみ深い記法で次のようにも書けます。 *)
 
 Definition funny_prop1'' := forall n, ev n -> ev (n+4).
 
-(** This illustrates that "[P -> Q]" is just syntactic sugar for
+(* This illustrates that "[P -> Q]" is just syntactic sugar for
     "[forall (_:P), Q]". *)
+
+(** これはつまり "[P -> Q]" は単に "[forall (_:P), Q]" の構文糖衣であるということです。 *)
+
+    
 
 (* ########################################################### *)
 (** * Conjunction *)
