@@ -6,10 +6,9 @@
     continue for the rest of the course: up to now we've been mostly
     studying Coq itself, but from now on we'll mostly be using Coq to
     formalize other things.
-
-    Our first case study is a _simple imperative programming language_
-    called Imp.  Here is a familiar mathematical function written in
-    Imp.
+    
+    はじめ例は、Imp と呼ばれる _単純な命令型プログラミング言語_ です。
+    下の例は、おなじみの数学的関数を Imp で書いたものです。
 [[
      Z ::= X;
      Y ::= 1;
