@@ -146,8 +146,7 @@ gallina: $(GFILES)
 html: $(GLOBFILES) $(VFILES)
 	- mkdir -p html
 	$(COQDOC) --with-header header.html --with-footer footer.html -toc -html $(COQDOCLIBS) -d html $(VFILES)
-	cp coqdoc.css html/
-	cd html/; mv toc.html index.html
+	cp index.html coqdoc.css html/
 
 gallinahtml: $(GLOBFILES) $(VFILES)
 	- mkdir -p html
