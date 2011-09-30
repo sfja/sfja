@@ -4,18 +4,18 @@
 
 (** 次の行を実行すると、前の章で定義したものを一度にインポートすることができます。 *)
 
-Require Export Basics.
+Require Export Basics_J.
 
 (** ただしこれを使うには、[coqc]を使って[Basics.v]をコンパイルし、[Basics.vo]を作成しておく必要があります。（これは、.javaファイルから.classファイルを作ったり、.cファイルから.oファイルを作ったりするのと同じことです。）
-  
+
     あなたの環境でコードをコンパイルするには、以下の二つの方法があります。
-  
+
      - CoqIDEで行う
-   
+
          CoqIDEの"Compile"メニューから"Basics.v"を開き、"Compile" メニューの "Compile Buffer"をクリックする。
-   
+
      - コマンドラインから
-   
+
          [coqc Basics.v]を実行する。
 
 このファイルには、[Module]機能でラップされた数値のペアやリストに関する多くの定義が収録されています。そのためこれ以降、同じ名前の機能が、よりすぐれたバージョンで、同じ操作により利用できるようになります。 *)
@@ -34,11 +34,11 @@ Inductive natprod : Type :=
 
 次に示すのは、二つの引数を持つコンストラクタでパターンマッチングを行う簡単な定義です。 *)
 
-Definition fst (p : natprod) : nat := 
+Definition fst (p : natprod) : nat :=
   match p with
   | pair x y => x
   end.
-Definition snd (p : natprod) : nat := 
+Definition snd (p : natprod) : nat :=
   match p with
   | pair x y => y
   end.
@@ -51,16 +51,16 @@ Notation "( x , y )" := (pair x y).
 
 Eval simpl in (fst (3,4)).
 
-Definition fst' (p : natprod) : nat := 
+Definition fst' (p : natprod) : nat :=
   match p with
   | (x,y) => x
   end.
-Definition snd' (p : natprod) : nat := 
+Definition snd' (p : natprod) : nat :=
   match p with
   | (x,y) => y
   end.
 
-Definition swap_pair (p : natprod) : natprod := 
+Definition swap_pair (p : natprod) : natprod :=
   match p with
   | (x,y) => (y,x)
   end.
@@ -132,9 +132,9 @@ Definition l_123'   := 1 :: (2 :: (3 :: nil)).
 Definition l_123''  := 1 :: 2 :: 3 :: nil.
 Definition l_123''' := [1,2,3].
 
-(** [at level 60]は、[::]が他の演算子と一緒使われた際、どのような優先順で展開、評価するかを指定します。例えば、"[+]"という中置演算子をレベル50で定義するには以下のようにします。 
+(** [at level 60]は、[::]が他の演算子と一緒使われた際、どのような優先順で展開、評価するかを指定します。例えば、"[+]"という中置演算子をレベル50で定義するには以下のようにします。
 [[
-Notation "x + y" := (plus x y)  
+Notation "x + y" := (plus x y)
                     (at level 50, left associativity).
 ]]
    このように定義された[+]演算子は、::よりも強い結びつきを持つことになります。このため [1 + 2 :: [3]]という式は[1 + (2 :: [3])]ではなく[(1 + 2) :: [3]]と解釈されるでしょう。
@@ -150,7 +150,7 @@ Notation "x + y" := (plus x y)
 
 (** リストを操作するための関数がいくつか用意されています。例えば、[repeat]関数は数[n]と[count]を引数に取り、[n]が[count]個並んだリストを返します。 *)
 
-Fixpoint repeat (n count : nat) : natlist := 
+Fixpoint repeat (n count : nat) : natlist :=
   match count with
   | O => nil
   | S count' => n :: (repeat n count')
@@ -158,7 +158,7 @@ Fixpoint repeat (n count : nat) : natlist :=
 
 (** [length]関数はリストの要素数を返します。 *)
 
-Fixpoint length (l:natlist) : nat := 
+Fixpoint length (l:natlist) : nat :=
   match l with
   | nil => O
   | h :: t => S (length t)
@@ -166,7 +166,7 @@ Fixpoint length (l:natlist) : nat :=
 
 (** [app] ("append")関数は二つのリストを結合します。 *)
 
-Fixpoint app (l1 l2 : natlist) : natlist := 
+Fixpoint app (l1 l2 : natlist) : natlist :=
   match l1 with
   | nil    => l2
   | h :: t => h :: (app t l2)
@@ -174,7 +174,7 @@ Fixpoint app (l1 l2 : natlist) : natlist :=
 
 (** [app]の使用頻度は高いため、中置演算子が用意されています。 *)
 
-Notation "x ++ y" := (app x y) 
+Notation "x ++ y" := (app x y)
                      (right associativity, at level 60).
 
 Example test_app1:             [1,2,3] ++ [4,5] = [1,2,3,4,5].
@@ -194,7 +194,7 @@ Definition hd (default:nat) (l:natlist) : nat :=
 
 Definition tail (l:natlist) : natlist :=
   match l with
-  | nil => nil  
+  | nil => nil
   | h :: t => t
   end.
 
@@ -247,7 +247,7 @@ Example test_alternate2:        alternate [1] [4,5,6] = [1,4,5,6].
 Example test_alternate3:        alternate [1,2,3] [4] = [1,4,2,3].
  (* FILL IN HERE *) Admitted.
 Example test_alternate4:        alternate [] [20,30] = [20,30].
- (* FILL IN HERE *) Admitted. 
+ (* FILL IN HERE *) Admitted.
 (** [] *)
 
 
@@ -255,12 +255,12 @@ Example test_alternate4:        alternate [] [20,30] = [20,30].
 
 (** バッグ（[bag]）もしくはマルチセット ([multiset])と呼ばれるものは、いわゆる"集合"のようなものですが、それぞれの要素が「ただ一度しか現れない」のではなく「同じものが何回現れてもよい」ようなもののことをいいます。 *)
 
-Definition bag := natlist.  
+Definition bag := natlist.
 
 (** **** 練習問題: 星三つ (bag_functions) *)
 (** バッグを操作する、[count], [sum], [add], [member]関数の定義を完成させなさい *)
 
-Fixpoint count (v:nat) (s:bag) : nat := 
+Fixpoint count (v:nat) (s:bag) : nat :=
   (* FILL IN HERE *) admit.
 
 (** これらすべての証明は、[reflexivity]だけでできるはずです。 *)
@@ -272,13 +272,13 @@ Example test_count2:              count 6 [1,2,3,1,4,1] = 0.
 
 (** マルチセットの[sum]は、集合の[union]（和集合）と同じようなものです。[sum a b]は、[a]と[b]の要素を全て併せ持つ集合です（数学者は普通マルチセットの[union]という言葉を少し違うものの意味で使っています。それが、この関数の名前を"union"としなかった理由です）。sum関数のために、引数に名前をつけていないヘッダーを用意しました。さらにそのヘッダーは[Fixpoint]ではなく[Definition]で定義されています。こうしておけば、もし引数に名前を与えていたとしても再帰的な処理はできないからです。このような制限を課すことで、あなたは何とか他の方法で（たぶん、これまでに定義してきた関数を使用するといった方法）で[sum]を実現しようとがんばるでしょう。  *)
 
-Definition sum : bag -> bag -> bag := 
+Definition sum : bag -> bag -> bag :=
   (* FILL IN HERE *) admit.
 
 Example test_sum1:              count 1 (sum [1,2,3] [1,4,1]) = 3.
  (* FILL IN HERE *) Admitted.
 
-Definition add (v:nat) (s:bag) : bag := 
+Definition add (v:nat) (s:bag) : bag :=
   (* FILL IN HERE *) admit.
 
 Example test_add1:                count 1 (add 1 [1,4,1]) = 3.
@@ -286,7 +286,7 @@ Example test_add1:                count 1 (add 1 [1,4,1]) = 3.
 Example test_add2:                count 5 (add 1 [1,4,1]) = 0.
  (* FILL IN HERE *) Admitted.
 
-Definition member (v:nat) (s:bag) : bool := 
+Definition member (v:nat) (s:bag) : bool :=
   (* FILL IN HERE *) admit.
 
 Example test_member1:             member 1 [1,4,1] = true.
@@ -308,7 +308,7 @@ Example test_remove_one2:         count 5 (remove_one 5 [2,1,4,1]) = 0.
  (* FILL IN HERE *) Admitted.
 Example test_remove_one3:         count 4 (remove_one 5 [2,1,4,5,1,4]) = 2.
  (* FILL IN HERE *) Admitted.
-Example test_remove_one4: 
+Example test_remove_one4:
   count 5 (remove_one 5 [2,1,5,4,5,1,4]) = 1.
  (* FILL IN HERE *) Admitted.
 
@@ -360,7 +360,7 @@ Proof.
   intros l. destruct l as [| n l'].
   Case "l = nil".
     reflexivity.
-  Case "l = cons n l'". 
+  Case "l = cons n l'".
     reflexivity.  Qed.
 
 (** ここで、[nil]のcaseがうまくいく理由は、tlを定義した際、[tl nil = nil]としたからです。[destruct]タクティクの[as]句についている注釈[[| n l']]は、展開の際に[n]と[l']を名前として使いますが、これはlistのコンストラクタ[cons]の二つの引数に対応しています。（この際の二つの引数は、作成されるリストのそれぞれ[head]と[tail]にあたります *)
@@ -385,8 +385,8 @@ Proof.
 
 大きいリストは小さいリストからのみ作成されるのですから、いつかは[nil]に達します。これら二つで、全てのリスト[l]について[P]がtrueであることが立証されるのです。以下は具体的な例です。 *)
 
-Theorem app_ass : forall l1 l2 l3 : natlist, 
-  (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3).   
+Theorem app_ass : forall l1 l2 l3 : natlist,
+  (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3).
 Proof.
   intros l1 l2 l3. induction l1 as [| n l1'].
   Case "l1 = nil".
@@ -396,7 +396,7 @@ Proof.
 
 (** 蒸し返すようですが、このCoqの証明はこうして単に静的なテキストとして読んでいる限り、さほど明白で分かりやすいものではありません。Coqの証明は、インタクラティブな環境でポイントごとに「現在のゴールは何か」「コンテキストに何が出ているか」を見て、証明が今どうなっているかを読み下していくことで理解されるようになっています。しかし、こうして画面に表示される証明の途中経過は、全てが証明結果として書き出されるわけではありません。それだけに、自然言語で人間が読むために人間が書いた証明には、このことがわかる道筋を持たせることが常に期待されています。特に、読み手が二つ目のCaseを読む中で、帰納法の仮定が何であったかをちゃんと頭に浮かべられるような書き方になっていなければなりません。  *)
 
-(** 定理: 全てのリスト[l1], [l2], [l3]について、 
+(** 定理: 全てのリスト[l1], [l2], [l3]について、
    [(l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)]。
 
    証明: [l1]について帰納法を適用する。
@@ -414,7 +414,7 @@ Proof.
      帰納法の仮定より、以下が示される。さらに[++]の定義より
 [[
        ((n :: l1') ++ l2) ++ l3 = (n :: l1') ++ (l2 ++ l3).
-]]  
+]]
      が導かれる。
 [[
        n :: ((l1' ++ l2) ++ l3) = n :: (l1' ++ (l2 ++ l3)),
@@ -435,7 +435,7 @@ Proof.
 
 (** リストでの帰納的証明のもう少し高度な例を見てみましょう。リストの右側に数値を追加する[snoc]関数です。 *)
 
-Fixpoint snoc (l:natlist) (v:nat) : natlist := 
+Fixpoint snoc (l:natlist) (v:nat) : natlist :=
   match l with
   | nil    => [v]
   | h :: t => h :: (snoc t v)
@@ -443,7 +443,7 @@ Fixpoint snoc (l:natlist) (v:nat) : natlist :=
 
 (** そしてこの関数を、リストを反転する関数[rev]の定義に使ってみましょう。 *)
 
-Fixpoint rev (l:natlist) : natlist := 
+Fixpoint rev (l:natlist) : natlist :=
   match l with
   | nil    => nil
   | h :: t => snoc (rev t) h
@@ -475,7 +475,7 @@ Proof.
   Case "l = nil".
     reflexivity.
   Case "l = cons n' l'".
-    simpl. rewrite -> IHl'. reflexivity.  Qed. 
+    simpl. rewrite -> IHl'. reflexivity.  Qed.
 
 (** これで、元々の証明ができるようになりました。 *)
 
@@ -486,7 +486,7 @@ Proof.
   Case "l = nil".
     reflexivity.
   Case "l = cons".
-    simpl. rewrite -> length_snoc. 
+    simpl. rewrite -> length_snoc.
     rewrite -> IHl'. reflexivity.  Qed.
 
 (** 対比として、この二つの定理の非形式的な証明を見てみましょう
@@ -494,7 +494,7 @@ Proof.
     定理: 任意の数[n]とリスト[l]について
        [length (snoc l n) = S (length l)].
     が成り立つ。
- 
+
     証明: [l]について帰納法を適用する。
 
     - まず、[l = []]と仮定すると、以下の式が立つ。
@@ -514,18 +514,18 @@ Proof.
       これは[length]と[snoc]の定義より、次のように変形できる。
 [[
         S (length (snoc l' n)) = S (S (length l')),
-]] 
+]]
       これは帰納法の仮定より明らかである。 [] *)
-                        
+
 (** 定理: 任意のリスト[l]について[length (rev l) = length l].
-    
-    証明: [l]について帰納法を適用する。  
+
+    証明: [l]について帰納法を適用する。
 
       - まず、[l = []]と仮定すると、[length]と[rev]の定義より、以下が導かれる。
 [[
           length (rev []) = length [],
 ]]
-    
+
       - 次に、[l = n::l']と仮定すると、以下により
 [[
           length (rev l') = length l'.
@@ -546,7 +546,7 @@ Proof.
 
 (** 明らかに、こういった証明のスタイルは長たらしく、杓子定規に感じられます。最初の何行かを過ぎると、こんなに瑣末なことまで細かく書かないほうが分かりやすいのではないかと思うでしょう。（頭の中で考えたり、紙に書いたりすればわかるので）もっと縮めて書くと、こんな風に書くこともできます。 *)
 
-(** 定理:	
+(** 定理:
      任煮のリスト[l]について、 [length (rev l) = length l].
 
 
@@ -568,7 +568,7 @@ Proof.
 (* SearchAbout rev. *)
 
 (** 続く練習問題やコースに取り組む際には、常に[SearchAbout]コマンドのことを頭のすみに置いておくといいでしょう。そうすることでずいぶん時間の節約ができるはずです。 *)
-    
+
 (** もしProofGeneralを使用しているなら、[C-c C-f]とキー入力することで[SearchAbout]コマンドを使うことができます。その結果をエディタに貼り付けるためには[C-c C-;]を使うこともできます。 *)
 
 
@@ -577,8 +577,8 @@ Proof.
 (** **** 練習問題: 星三つ, recommended (list_exercises) *)
 (** リストについてさらに練習しましょう。 *)
 
-Theorem app_nil_end : forall l : natlist, 
-  l ++ [] = l.   
+Theorem app_nil_end : forall l : natlist,
+  l ++ [] = l.
 Proof.
   (* FILL IN HERE *) Admitted.
 
@@ -618,10 +618,10 @@ Proof.
 (** ** リストについての練習問題　パート２ *)
 
 (** **** 練習問題: 星二つ, recommended (list_design) *)
-(** デザインについての練習: 
-     - [cons]([::]), [snoc], and [append] ([++])にかかわる、自明でない定理を考えて書きなさい。  
+(** デザインについての練習:
+     - [cons]([::]), [snoc], and [append] ([++])にかかわる、自明でない定理を考えて書きなさい。
      - それを証明しなさい。
-*) 
+*)
 
 (* FILL IN HERE *)
 (** [] *)
@@ -640,7 +640,7 @@ Theorem ble_n_Sn : forall n,
   ble_nat n (S n) = true.
 Proof.
   intros n. induction n as [| n'].
-  Case "0".  
+  Case "0".
     simpl.  reflexivity.
   Case "S n'".
     simpl.  rewrite IHn'.  reflexivity.  Qed.
@@ -651,7 +651,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (bag_count_sum) *)  
+(** **** 練習問題: 星三つ, optional (bag_count_sum) *)
 (** bagについての、[count]と[sum]関数に関する面白そうな定理を書き、証明をしなさい。
 
 (* FILL IN HERE *)
@@ -679,16 +679,16 @@ Proof.
 
 Inductive natoption : Type :=
   | Some : nat -> natoption
-  | None : natoption.  
+  | None : natoption.
 
 (** この[natoption]型の使い道の一つは、関数からエラーをコードを返すような場合です。例えば、リストの[n]番目の要素をあらわす関数を書くとします。そこでその関数の型を[nat -> natlist -> nat]とした場合、最初の引数に対しリストが短すぎた場合に何を返せばいいのでしょうか。 *)
 
 Fixpoint index_bad (n:nat) (l:natlist) : nat :=
   match l with
   | nil => 42  (* arbitrary! *)
-  | a :: l' => match beq_nat n O with 
-               | true => a 
-               | false => index_bad (pred n) l' 
+  | a :: l' => match beq_nat n O with
+               | true => a
+               | false => index_bad (pred n) l'
                end
   end.
 
@@ -696,10 +696,10 @@ Fixpoint index_bad (n:nat) (l:natlist) : nat :=
 
 Fixpoint index (n:nat) (l:natlist) : natoption :=
   match l with
-  | nil => None 
-  | a :: l' => match beq_nat n O with 
+  | nil => None
+  | a :: l' => match beq_nat n O with
                | true => Some a
-               | false => index (pred n) l' 
+               | false => index (pred n) l'
                end
   end.
 
@@ -714,7 +714,7 @@ Proof. reflexivity.  Qed.
 
 Fixpoint index' (n:nat) (l:natlist) : natoption :=
   match l with
-  | nil => None 
+  | nil => None
   | a :: l' => if beq_nat n O then Some a else index (pred n) l'
   end.
 
@@ -794,7 +794,7 @@ Theorem silly2 : forall (n m o p : nat),
      (forall (q r : nat), q = r -> [q,o] = [r,p]) ->
      [n,o] = [m,p].
 Proof.
-  intros n m o p eq1 eq2. 
+  intros n m o p eq1 eq2.
   apply eq2. apply eq1.  Qed.
 
 (** この証明を実際にCoqで動かし、[rewrite]の代わりに[apply]を使った場合に何がどうなっていくのかを見極めることは、とても有意義であることが分かるでしょう。 *)
@@ -812,7 +812,7 @@ Proof.
 (** **** 練習問題: 星二つ, optional (silly_ex) *)
 (** 次の証明を、[simpl]を使わずに完成させなさい。 *)
 
-Theorem silly_ex : 
+Theorem silly_ex :
      (forall n, evenb n = true -> oddb (S n) = true) ->
      evenb 3 = true ->
      oddb 4 = true.
@@ -839,8 +839,8 @@ Theorem silly3 : forall (n : nat),
 Proof.
   intros n H.
   symmetry.
-  simpl. (* この[simpl]は必ず必要というわけではありません。[apply]は、適用する前に[simpl]を先に行ってから適用を行います。 *)  
-  apply H.  Qed.         
+  simpl. (* この[simpl]は必ず必要というわけではありません。[apply]は、適用する前に[simpl]を先に行ってから適用を行います。 *)
+  apply H.  Qed.
 
 
 (** **** 練習問題: 星三つ, recommended (apply_exercise1) *)
@@ -880,8 +880,8 @@ Proof.
 (** **** 練習問題: 星二つ, optional (app_ass') *)
 (** [++]の結合則を、より一般化された仮定を用いた方法で証明しなさい。（次の証明を完成させることが課題ですが、証明の最初の行は変更しないで、その続きを書きなさい。） *)
 
-Theorem app_ass' : forall l1 l2 l3 : natlist, 
-  (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3).   
+Theorem app_ass' : forall l1 l2 l3 : natlist,
+  (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3).
 Proof.
   intros l1. induction l1 as [ | n l1'].
   (* FILL IN HERE *) Admitted.
@@ -915,8 +915,8 @@ End NatList.
 Module Dictionary.
 
 Inductive dictionary : Type :=
-  | empty  : dictionary 
-  | record : nat -> nat -> dictionary -> dictionary. 
+  | empty  : dictionary
+  | record : nat -> nat -> dictionary -> dictionary.
 
 (** この宣言は次のように読めます。：「[dictionary]を作成するには二つの方法がある。emptyコンストラクタを使って空の[dictionary]を表すか、[record]コンストラクタにキー、値、既存の[dictionary]を与えて、キー→値のマッピングが追加された[dictionary]を返すかのどちらかである」 *)
 
@@ -925,8 +925,8 @@ Definition insert (key value : nat) (d : dictionary) : dictionary :=
 
 (** 以下の[find]関数は、[dictionary]から、与えられたキーに対応する値を探し出すものです。 これは、キーが見つからなかった場合に[None]を、そのキーが[val]に結び付けられていた場合に [Some val]を返します。もし同じキーが複数の値に結び付けられていれば、[find]は最初に見つかったほうの値を返します。 *)
 
-Fixpoint find (key : nat) (d : dictionary) : option nat := 
-  match d with 
+Fixpoint find (key : nat) (d : dictionary) : option nat :=
+  match d with
   | empty         => None
   | record k v d' => if (beq_nat key k) then (Some v) else (find key d')
   end.

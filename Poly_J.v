@@ -2,7 +2,7 @@
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
 
-Require Export Lists.
+Require Export Lists_J.
 
 
 
@@ -32,9 +32,9 @@ Inductive list (X:Type) : Type :=
 
 (** この定義の下で、コンストラクタ[nil]や[cons]を使う際には、今作ろうとしているリストの要素の型を指定してやる必要があります。なぜなら、今や[nil]も[cons]もポリモルフィックなコンストラクタとなっているからです。 *)
 
-Check nil. 
+Check nil.
 (* ===> nil : forall X : Type, list X *)
-Check cons. 
+Check cons.
 (* ===> cons : forall X : Type, X -> list X -> list X *)
 
 (** ここで出てきた"[forall X]"というのは、コンストラクタに追加された引数で、後に続く引数で型を特定させるものです。[nil]や[cons]が使われる際、例えば[2]と[1]を要素に持つリストは、以下のように表されます。  *)
@@ -45,7 +45,7 @@ Check (cons nat 2 (cons nat 1 (nil nat))).
 
 (** それでは少し話を戻して、以前書いたリスト処理関数をポリモルフィック版（汎用版）に作り直していきましょう。[length]関数は以下のようになります。 *)
 
-Fixpoint length (X:Type) (l:list X) : nat := 
+Fixpoint length (X:Type) (l:list X) : nat :=
   match l with
   | nil      => 0
   | cons h t => S (length X t)
@@ -67,31 +67,31 @@ Proof. reflexivity.  Qed.
 
 (** では、このサブセクションの終わりに、他の標準的なリスト処理関数をポリモルフィックに書き直しましょう。 *)
 
-Fixpoint app (X : Type) (l1 l2 : list X) 
-                : (list X) := 
+Fixpoint app (X : Type) (l1 l2 : list X)
+                : (list X) :=
   match l1 with
   | nil      => l2
   | cons h t => cons X h (app X t l2)
   end.
 
-Fixpoint snoc (X:Type) (l:list X) (v:X) : (list X) := 
+Fixpoint snoc (X:Type) (l:list X) (v:X) : (list X) :=
   match l with
   | nil      => cons X v (nil X)
   | cons h t => cons X h (snoc X t v)
   end.
 
-Fixpoint rev (X:Type) (l:list X) : list X := 
+Fixpoint rev (X:Type) (l:list X) : list X :=
   match l with
   | nil      => nil X
   | cons h t => snoc X (rev X t) h
   end.
 
 Example test_rev1 :
-    rev nat (cons nat 1 (cons nat 2 (nil nat))) 
+    rev nat (cons nat 1 (cons nat 2 (nil nat)))
   = (cons nat 2 (cons nat 1 (nil nat))).
 Proof. reflexivity.  Qed.
 
-Example test_rev2: 
+Example test_rev2:
   rev bool (nil bool) = nil bool.
 Proof. reflexivity.  Qed.
 
@@ -100,7 +100,7 @@ Proof. reflexivity.  Qed.
 
 (** それでは、[app]関数の定義をもう一度書いてみましょう。ただし今回は、引数の型を指定しないでおきます。Coqはこれを受け入れてくれるでしょうか？ *)
 
-Fixpoint app' X l1 l2 : list X := 
+Fixpoint app' X l1 l2 : list X :=
   match l1 with
   | nil      => l2
   | cons h t => cons X h (app' X t l2)
@@ -125,7 +125,7 @@ Check app.
 
     これを聞くと、型推論と同じじゃないかと思われるかもしれません。実際、この二つの機能は水面下にあるメカニズムではつながっています。次のように単に引数の型を省略する代わりに
 [[
-      app' X l1 l2 : list X := 
+      app' X l1 l2 : list X :=
 ]]
     このように、型を[_]で書くことができるということです。
 [[
@@ -135,7 +135,7 @@ Check app.
 
     引数の同化を使うと、[length]関数は以下のように書けます。 *)
 
-Fixpoint length' (X:Type) (l:list X) : nat := 
+Fixpoint length' (X:Type) (l:list X) : nat :=
   match l with
   | nil      => 0
   | cons h t => S (length' _ t)
@@ -143,7 +143,7 @@ Fixpoint length' (X:Type) (l:list X) : nat :=
 
 (** この例では、[X]を[_]に省略することをあまりしていません。しかし多くの場合、この違いは重要です。例えば、[1],[2],[3]といった数値を保持するリストを書きたい場合、以下のように書く代わりに... *)
 
-Definition list123 := 
+Definition list123 :=
   cons nat 1 (cons nat 2 (cons nat 3 (nil nat))).
 
 (** ...引数同化を使って以下のように書くこともできます。 *)
@@ -164,11 +164,11 @@ Implicit Arguments snoc [[X]].
 
 (* 注）もはや引数に_は必要ありません... *)
 Definition list123'' := cons 1 (cons 2 (cons 3 nil)).
-Check (length list123'').  
+Check (length list123'').
 
 (** また、関数定義の中で、引数を暗黙のものにすることもできます。その際は、次のように引数を中カッコで囲みます。 *)
 
-Fixpoint length'' {X:Type} (l:list X) : nat := 
+Fixpoint length'' {X:Type} (l:list X) : nat :=
   match l with
   | nil      => 0
   | cons h t => S (length'' t)
@@ -188,15 +188,15 @@ Definition mynil : list nat := nil.
 
 Check @nil.
 
-Definition mynil' := @nil nat. 
+Definition mynil' := @nil nat.
 
 (** 引数同化と暗黙的な引数をつかうことで、リストのノーテーヨン（表記法）をより便利に記述できます。コンストラクタの型引数を暗黙的に記述すれば、Coqはその表記法を使ったときに型を自動的に推論してくれます。 *)
 
-Notation "x :: y" := (cons x y) 
+Notation "x :: y" := (cons x y)
                      (at level 60, right associativity).
 Notation "[ ]" := nil.
 Notation "[ x , .. , y ]" := (cons x .. (cons y []) ..).
-Notation "x ++ y" := (app x y) 
+Notation "x ++ y" := (app x y)
                      (at level 60, right associativity).
 
 (** これで、我々の望む書き方ができるようになりました。 *)
@@ -209,26 +209,26 @@ Definition list123''' := [1, 2, 3].
 (** **** 練習問題: 星二つ, optional (poly_exercises) *)
 (** っここにあるいくつかの練習問題は、List.vにあったものと同じですが、ポリモルフィズムの練習になります。以下の定義を行い、証明を完成させなさい。 *)
 
-Fixpoint repeat (X : Type) (n : X) (count : nat) : list X := 
+Fixpoint repeat (X : Type) (n : X) (count : nat) : list X :=
   (* FILL IN HERE *) admit.
 
-Example test_repeat1: 
+Example test_repeat1:
   repeat bool true 2 = cons true (cons true nil).
  (* FILL IN HERE *) Admitted.
 
-Theorem nil_app : forall X:Type, forall l:list X, 
+Theorem nil_app : forall X:Type, forall l:list X,
   app [] l = l.
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Theorem rev_snoc : forall X : Type, 
+Theorem rev_snoc : forall X : Type,
                      forall v : X,
                      forall s : list X,
   rev (snoc s v) = v :: (rev s).
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Theorem snoc_with_append : forall X : Type, 
+Theorem snoc_with_append : forall X : Type,
                          forall l1 l2 : list X,
                          forall v : X,
   snoc (l1 ++ l2) v = l1 ++ (snoc l2 v).
@@ -260,16 +260,16 @@ Notation "X * Y" := (prod X Y) : type_scope.
 
 (** ペアの最初の要素、２番目の要素を返す射影関数は他のプログラミング言語で書いたものと比べると若干長くなります。 *)
 
-Definition fst {X Y : Type} (p : X * Y) : X := 
+Definition fst {X Y : Type} (p : X * Y) : X :=
   match p with (x,y) => x end.
 
-Definition snd {X Y : Type} (p : X * Y) : Y := 
+Definition snd {X Y : Type} (p : X * Y) : Y :=
   match p with (x,y) => y end.
 
 (** 次の関数は二つのリストを引数にとり、一つの"ペアのリスト"を作成します。多くの関数型言語で[zip]関数と呼ばれているものです。Coqの標準ライブラリとぶつからないよう、ここでは[combine]と呼ぶことにします。 *)
 (** ペアの表記法は、式だけではなくパターンマッチにも使えることに注目してください。 *)
 
-Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y) 
+Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
            : list (X*Y) :=
   match (lx,ly) with
   | ([],_) => []
@@ -279,7 +279,7 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
 
 (** また、あいまいさがない場合は、matchを囲む括弧を取る事もできます。 *)
 
-Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y) 
+Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
            : list (X*Y) :=
   match lx,ly with
   | [],_ => []
@@ -300,8 +300,8 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
 (** **** 練習問題: 星二つ, recommended (split) *)
 (** [split]関数は[combine]と全く逆で、ペアのリストを引数に受け取り、リストのペアを返します。多くの関数型言語とで[unzip]と呼ばれているものです。次の段落のコメントをはずし、[split]関数の定義を完成させなさい。続くテストを通過することも確認しなさい。 *)
 
-(* 
-Fixpoint split 
+(*
+Fixpoint split
   (* FILL IN HERE *)
 
 Example test_split:
@@ -327,7 +327,7 @@ Implicit Arguments None [[X]].
 Fixpoint index {X : Type} (n : nat)
                (l : list X) : option X :=
   match l with
-  | [] => None 
+  | [] => None
   | a :: l' => if beq_nat n O then Some a else index (pred n) l'
   end.
 
@@ -348,7 +348,7 @@ Definition hd_opt {X : Type} (l : list X)  : option X :=
 
 Check @hd_opt.
 
-Example test_hd_opt1 :  hd_opt [1,2] = Some 1. 
+Example test_hd_opt1 :  hd_opt [1,2] = Some 1.
  (* FILL IN HERE *) Admitted.
 Example test_hd_opt2 :   hd_opt  [[1],[2]]  = Some [1].
  (* FILL IN HERE *) Admitted.
@@ -364,7 +364,7 @@ Example test_hd_opt2 :   hd_opt  [[1],[2]]  = Some [1].
 
     関数を操作する関数を、一般に「高階関数」と呼びます。例えば次のようなものです。 *)
 
-Definition doit3times {X:Type} (f:X->X) (n:X) : X := 
+Definition doit3times {X:Type} (f:X->X) (n:X) : X :=
   f (f (f n)).
 
 (** ここで引数[f]は関数です。[doit3times]の内容は、値[n]に対して関数[f]を3回適用するものです。 *)
@@ -426,7 +426,7 @@ Theorem uncurry_curry : forall (X Y Z : Type) (f : X -> Y -> Z) x y,
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Theorem curry_uncurry : forall (X Y Z : Type) 
+Theorem curry_uncurry : forall (X Y Z : Type)
                                (f : (X * Y) -> Z) (p : X * Y),
   prod_uncurry (prod_curry f) p = f p.
 Proof.
@@ -438,7 +438,7 @@ Proof.
 
 (** 次に紹介するのは、とても有用な高階関数です。これは、[X]型のリストと、[X]についての述語（[X]を引数にとり、boolを返す関数）を引数にとり、リストの要素にフィルターをかけて、述語として与えられた関数の結果が[true]となった要素だけのリストを返す関数です。 *)
 
-Fixpoint filter {X:Type} (test: X->bool) (l:list X) 
+Fixpoint filter {X:Type} (test: X->bool) (l:list X)
                 : (list X) :=
   match l with
   | []     => []
@@ -454,7 +454,7 @@ Proof. reflexivity.  Qed.
 Definition length_is_1 {X : Type} (l : list X) : bool :=
   beq_nat (length l) 1.
 
-Example test_filter2: 
+Example test_filter2:
     filter length_is_1
            [ [1, 2], [3], [4], [5,6,7], [], [8] ]
   = [ [3], [4], [8] ].
@@ -462,7 +462,7 @@ Proof. reflexivity.  Qed.
 
 (** この[filter]を使うことで、 [Lists.v]にある[countoddmembers]関数をもっと簡潔に書くことができます。 *)
 
-Definition countoddmembers' (l:list nat) : nat := 
+Definition countoddmembers' (l:list nat) : nat :=
   length (filter oddb l).
 
 Example test_countoddmembers'1:   countoddmembers' [1,0,3,1,4,5] = 4.
@@ -479,13 +479,13 @@ Proof. reflexivity.  Qed.
 
     幸いなことに、いい方法があります。一時的な関数を、名前を付けることも、トップレベルで宣言することもなく作成することができるのです。これは定数のリストや、数値定数と同じようなものだと考えられます。 *)
 
-Example test_anon_fun': 
+Example test_anon_fun':
   doit3times (fun n => n * n) 2 = 256.
 Proof. reflexivity.  Qed.
 
 (** 次は無名関数を使った書き換えのもう少しいい例です。 *)
 
-Example test_filter2': 
+Example test_filter2':
     filter (fun l => beq_nat (length l) 1)
            [ [1, 2], [3], [4], [5,6,7], [], [8] ]
   = [ [3], [4], [8] ].
@@ -509,14 +509,14 @@ Example test_filter_even_gt7_2 :
 (** [] *)
 
 (** **** 練習問題: 星三つ, optional (partition) *)
-(** [filter]関数を使って、[partition]関数を書きなさい。: 
+(** [filter]関数を使って、[partition]関数を書きなさい。:
 [[
-  partition : forall X : Type, 
+  partition : forall X : Type,
               (X -> bool) -> list X -> list X * list X
 ]]
    型[X]について、[X]型の値がある条件を満たすかを調べる述語[X -> bool]と[X]のリスト[list X]を引数に与えると、[partition]関数はリストのペアを返します。ペアの最初の要素は、与えられたリストのうち、条件を満たす要素だけの理宇土で、二番目の要素は、条件を満たさないもののリストです。二つのリストの要素の順番は、元のリストの順と同じでなければなりません。*)
 
-Definition partition {X : Type} (test : X -> bool) (l : list X) 
+Definition partition {X : Type} (test : X -> bool) (l : list X)
                      : list X * list X :=
 (* FILL IN HERE *) admit.
 
@@ -531,8 +531,8 @@ Example test_partition2: partition (fun x => false) [5,9,0] = ([], [5,9,0]).
 
 (** もう一つ、便利な高階関数として[map]を挙げます。 *)
 
-Fixpoint map {X Y:Type} (f:X->Y) (l:list X) 
-             : (list Y) := 
+Fixpoint map {X Y:Type} (f:X->Y) (l:list X)
+             : (list Y) :=
   match l with
   | []     => []
   | h :: t => (f h) :: (map f t)
@@ -550,8 +550,8 @@ Proof. reflexivity.  Qed.
 
 (** 同じ関数が、数値のリストと、「数値から[bool]型のリストへの関数」を引数にとり、「[bool]型のリストのリスト」を返すような関数にも使えます。 *)
 
-Example test_map3: 
-    map (fun n => [evenb n,oddb n]) [2,1,2,5] 
+Example test_map3:
+    map (fun n => [evenb n,oddb n]) [2,1,2,5]
   = [[true,false],[false,true],[true,false],[false,true]].
 Proof. reflexivity.  Qed.
 
@@ -573,11 +573,11 @@ Proof.
 ]]
 *)
 
-Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X) 
-                   : (list Y) := 
+Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X)
+                   : (list Y) :=
   (* FILL IN HERE *) admit.
 
-Example test_flat_map1: 
+Example test_flat_map1:
   flat_map (fun n => [n,n,n]) [1,5,4]
   = [1, 1, 1, 5, 5, 5, 4, 4, 4].
  (* FILL IN HERE *) Admitted.
@@ -585,7 +585,7 @@ Example test_flat_map1:
 
 (** リストは、[map]関数のような関数意渡すことができる、帰納的に定義された唯一の型、というわけではありません。次の定義は、[option]型のために[map]関数を定義したものです。 *)
 
-Definition option_map {X Y : Type} (f : X -> Y) (xo : option X) 
+Definition option_map {X Y : Type} (f : X -> Y) (xo : option X)
                       : option Y :=
   match xo with
     | None => None
@@ -639,7 +639,7 @@ Proof. reflexivity. Qed.
 
     まず、値[x]（型[X]）を引数としてとり、「[nat]型の引数から[X]型の戻り値を返す関数」を返す関数を考えます。戻る関数は、引数に関係なく、生成時に与えられた値｢x｣を常に返すものです。 *)
 
-Definition constfun {X: Type} (x: X) : nat->X := 
+Definition constfun {X: Type} (x: X) : nat->X :=
   fun (k:nat) => x.
 
 Definition ftrue := constfun true.
@@ -674,7 +674,7 @@ Proof. reflexivity. Qed.
 (** **** 練習問題: 星一つ (override_example) *)
 (** 次の証明にとりかかる前に、あなたがこの証明の意味することを理解しているか確認するため、証明内容を別の言葉で言い換えてください。証明自体は単純なものです。 *)
 
-Theorem override_example : forall (b:bool), 
+Theorem override_example : forall (b:bool),
   (override (constfun b) 3 true) 2 = b.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -685,7 +685,7 @@ Proof.
 
 (** * さらにCoqについて *)
 
-     
+
 (** ###################################################### *)
 (** ** [unfold]タクティク *)
 
@@ -750,7 +750,7 @@ Proof.
 (** 同じ原理が、全ての機能的に定義された型にあてはまります。全てのコンストラクタは単射で、コンストラクタが違えば同じ値は生まれません。リストについて言えば[cons]コンストラクタは単射で、[nil]全ての空でないリストと異なっています。[bool]型では、[true]と[false]は異なるものです（ただ、[true]も[false]も引数を取らないため、単射かどうか、という議論には意味がありません）。 *)
 
 (** Coqには、この性質を証明に利用する[inversion]というタクティクが用意されています。
- 
+
     [inversion]タクティクは、次のような場合に使います。コンテキストに以下のような形の仮定[H]（や過去に定義された補助定理）がある場合、
 [[
       c a1 a2 ... an = d b1 b2 ... bm
@@ -786,7 +786,7 @@ Theorem silly5 : forall (n m o : nat),
 Proof.
   intros n m o eq. inversion eq. reflexivity. Qed.
 
-(** **** Exercise: 1 star (sillyex1) *) 
+(** **** Exercise: 1 star (sillyex1) *)
 Example sillyex1 : forall (X : Type) (x y z : X) (l j : list X),
      x :: y :: l = z :: j ->
      y :: l = x :: j ->
@@ -827,12 +827,12 @@ Proof. intros n m eq. rewrite -> eq. reflexivity. Qed.
 Theorem beq_nat_eq : forall n m,
   true = beq_nat n m -> n = m.
 Proof.
-  intros n. induction n as [| n']. 
-  Case "n = 0". 
+  intros n. induction n as [| n'].
+  Case "n = 0".
     intros m. destruct m as [| m'].
-    SCase "m = 0". reflexivity.  
-    SCase "m = S m'". simpl. intros contra. inversion contra. 
-  Case "n = S n'". 
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'". simpl. intros contra. inversion contra.
+  Case "n = S n'".
     intros m. destruct m as [| m'].
     SCase "m = 0". simpl. intros contra. inversion contra.
     SCase "m = S m'". simpl. intros H.
@@ -850,7 +850,7 @@ Proof.
 Theorem beq_nat_eq' : forall m n,
   beq_nat n m = true -> n = m.
 Proof.
-  intros m. induction m as [| m']. 
+  intros m. induction m as [| m'].
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
@@ -859,7 +859,7 @@ Proof.
 Theorem length_snoc' : forall (X : Type) (v : X)
                               (l : list X) (n : nat),
      length l = n ->
-     length (snoc l v) = S n. 
+     length (snoc l v) = S n.
 Proof.
   intros X v l. induction l as [| v' l'].
   Case "l = []". intros n eq. rewrite <- eq. reflexivity.
@@ -874,7 +874,7 @@ Proof.
 
 (** **** 練習問題: 星二つ, optional (practice) *)
 (** 同じところに分類され、相互に関連するような、自明でもないが複雑というほどでもない証明をいくつか練習問題としましょう。このうち、いくつかは過去のレクチャーや練習問題に出てきた補題を使用します。 *)
- 
+
 
 Theorem beq_nat_0_l : forall n,
   true = beq_nat 0 n -> 0 = n.
@@ -896,7 +896,7 @@ Proof.
   (* WORKED IN CLASS *)
     Case "n = 0". simpl. intros m eq. destruct m as [| m'].
       SCase "m = 0". reflexivity.
-      SCase "m = S m'". inversion eq. 
+      SCase "m = S m'". inversion eq.
     Case "n = S n'". intros m eq. destruct m as [| m'].
       SCase "m = 0". inversion eq.
       SCase "m = S m'".
@@ -911,13 +911,13 @@ Proof.
 
 Theorem S_inj : forall (n m : nat) (b : bool),
      beq_nat (S n) (S m) = b  ->
-     beq_nat n m = b. 
+     beq_nat n m = b.
 Proof.
   intros n m b H. simpl in H. apply H.  Qed.
 
 (** 同様に、[apply L in H]というタクティクは、ある条件式[L] ([L1 -> L2]といった形の)を、コンテキストにある過程[H]に適用します。しかし普通のあ[apply]と異なるのは、[apply L in H]が、[H]が[L1]とマッチすることを調べ、それに成功したらそれを[L2]に書き換えることです。
- 
-    言い換えると、[apply L in H]は、"前向きの証明"の形をとっているといえます。それは、[L1 -> L2]が与えられ、仮定と[L1]がマッチしたら、仮定は[L2」と同じと考えてよい、ということです。逆に、[apply L]は"逆向きの証明"であると言えます。それは、[L1->L2]であることが分かっていて、今証明しようとしているものが[L2]なら、[L1]を証明すればよいとすることです。  
+
+    言い換えると、[apply L in H]は、"前向きの証明"の形をとっているといえます。それは、[L1 -> L2]が与えられ、仮定と[L1]がマッチしたら、仮定は[L2」と同じと考えてよい、ということです。逆に、[apply L]は"逆向きの証明"であると言えます。それは、[L1->L2]であることが分かっていて、今証明しようとしているものが[L2]なら、[L1]を証明すればよいとすることです。
 
     以前やった証明の変種を挙げておきます。逆向きの証明ではなく、前向きの証明を進めましょう。 *)
 
@@ -927,7 +927,7 @@ Theorem silly3' : forall (n : nat),
      true = beq_nat (S (S n)) 7.
 Proof.
   intros n eq H.
-  symmetry in H. apply eq in H. symmetry in H. 
+  symmetry in H. apply eq in H. symmetry in H.
   apply H.  Qed.
 
 (** 前向きの証明は、与えられたもの（前提や、すでに証明された定理）からスタートして、そのゴールを次々につなげていき、ゴールに達するまでそれを続けます。逆向きの証明は、ゴールからスタートし、そのゴールが結論となる前提を調べ、それを前提や証明済みの定理にたどりつくまで繰り返します。皆さんがこれまで（数学やコンピュータサイエンスの分野で）見てきた非形式的な証明は、おそらく前向きの証明であったのではないかと思います。一般にCoqでの証明は逆向きの証明となる傾向があります。しかし、状況によっては前向きの証明のほうが簡単で考えやすい、ということもあります。  *)
@@ -960,7 +960,7 @@ Definition sillyfun (n : nat) : bool :=
 Theorem sillyfun_false : forall (n : nat),
   sillyfun n = false.
 Proof.
-  intros n. unfold sillyfun. 
+  intros n. unfold sillyfun.
   destruct (beq_nat n 3).
     Case "beq_nat n 3 = true". reflexivity.
     Case "beq_nat n 3 = false". destruct (beq_nat n 5).
@@ -977,7 +977,7 @@ Proof.
 (** [] *)
 
 (** **** 練習問題: 星三つ, recommended (combine_split) *)
-(* 
+(*
 Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
@@ -989,12 +989,12 @@ Proof.
 
 (** **** 練習問題: 星三つ, optional (split_combine) *)
 (** 思考練習: 我々はすでに、全ての型のリストのペアで[combine]が[split]の逆関数であることを証明しました。ではその逆の「[split]は[combine]の逆関数である」を示すことはできるでしょうか？
- 
+
     ヒント: [split combine l1 l2 = (l1,l2)]が[true]となる[l1]、[l2]の条件は何でしょう？
 
     この定理をCoqで証明しなさい（なるべく[intros]を使うタイミングを送らせ、帰納法の仮定を一般化させておくといいでしょう。 *)
 
-(* FILL IN HERE *) 
+(* FILL IN HERE *)
 (** [] *)
 
 
@@ -1049,7 +1049,7 @@ Proof.
 
 (** **** 練習問題: 星二つ (override_same) *)
 Theorem override_same : forall {X:Type} x1 k1 k2 (f : nat->X),
-  f k1 = x1 -> 
+  f k1 = x1 ->
   (override f k1 x1) k2 = f k2.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -1076,7 +1076,7 @@ Example trans_eq_example : forall (a b c d e f : nat),
      [c,d] = [e,f] ->
      [a,b] = [e,f].
 Proof.
-  intros a b c d e f eq1 eq2. 
+  intros a b c d e f eq1 eq2.
   rewrite -> eq1. rewrite -> eq2. reflexivity.  Qed.
 
 (** このようなことがよくあるため、これを補題として定義し、全ての等式が遷移性をもっていることを示します。 *)
@@ -1084,7 +1084,7 @@ Proof.
 Theorem trans_eq : forall {X:Type} (n m o : X),
   n = m -> m = o -> n = o.
 Proof.
-  intros X n m o eq1 eq2. rewrite -> eq1. rewrite -> eq2. 
+  intros X n m o eq1 eq2. rewrite -> eq1. rewrite -> eq2.
   reflexivity.  Qed.
 
 (** そして、[trans_eq]をさきほどの証明に使ってみます。しかし、実際にやってみると[apply]タクティクに多少細工が必要なことがわかります。 *)
@@ -1094,7 +1094,7 @@ Example trans_eq_example' : forall (a b c d e f : nat),
      [c,d] = [e,f] ->
      [a,b] = [e,f].
 Proof.
-  intros a b c d e f eq1 eq2. 
+  intros a b c d e f eq1 eq2.
   (* ここで単純に[apply trans_eq]とすると（その補題の結論をゴールにマッチすることで）[X]を[[nat]]に、[n]を[[a,b]]に、[o]を[[e,f]]にあてはめようとします。しかしこのマッチングでは、[m]に何をあてはめるかを決めることができません。そこで、[with (m:=[c,d])]を明示的に情報として追加することで[apply]を動かします。 *)
   apply trans_eq with (m:=[c,d]). apply eq1. apply eq2.   Qed.
 
@@ -1104,7 +1104,7 @@ Proof.
 Example trans_eq_exercise : forall (n m o p : nat),
      m = (minustwo o) ->
      (n + p) = m ->
-     (n + p) = (minustwo o). 
+     (n + p) = (minustwo o).
 Proof.
   (* FILL IN HERE *) Admitted.
 
@@ -1130,7 +1130,7 @@ Proof.
 
     ここまでに出てきたタクティクの一覧です
 
-      - [intros]: 
+      - [intros]:
         仮定や変数をゴールからコンテキストに移す
 
       - [reflexivity]:
@@ -1139,7 +1139,7 @@ Proof.
       - [apply]:
         仮定、補助定理、コンストラクタを使ってゴールを証明する
 
-      - [apply... in H]: 
+      - [apply... in H]:
         仮定、補助定理、コンストラクタを使ってゴールを証明する（前向きの証明）
 
       - [apply... with...]:
@@ -1147,10 +1147,10 @@ Proof.
 
       - [simpl]:
         ゴールの式を簡約する
-        
+
       - [simpl in H]:
         ゴール、もしくは仮定Hの式を簡約する
-      
+
       - [rewrite]:
         等式の形をした仮定（もしくは定理）を使い、ゴールを書き換える
 
@@ -1195,7 +1195,7 @@ Proof. reflexivity. Qed.
 
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
-(* FILL IN HERE *) Admitted. 
+(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (** **** 練習問題: 星三つ, recommended (fold_map) *)
@@ -1228,7 +1228,7 @@ Inductive grumble (X:Type) : Type :=
       - [e bool true]
       - [e mumble (b c 0)]
       - [e bool (b c 0)]
-      - [c] 
+      - [c]
 (* FILL IN HERE *)
 [] *)
 
@@ -1239,7 +1239,7 @@ Inductive baz : Type :=
    | x : baz -> baz
    | y : baz -> bool -> baz.
 
-(** 型[baz]はいくつの要素を持つことができるでしょうか？ 
+(** 型[baz]はいくつの要素を持つことができるでしょうか？
 (* FILL IN HERE *)
 [] *)
 
@@ -1251,23 +1251,23 @@ End MumbleBaz.
       forallb oddb [1,3,5,7,9] = true
 
       forallb negb [false,false] = true
-  
+
       forallb evenb [0,2,4,5] = false
-  
+
       forallb (beq_nat 5) [] = true
 ]]
     [existsb]は、リストの中に、与えられた条件を満たす要素が一つ以上あるかを返します。
 [[
       existsb (beq_nat 5) [0,2,3,6] = false
- 
+
       existsb (andb true) [true,true,false] = true
- 
+
       existsb oddb [1,0,0,0,0,3] = true
- 
+
       existsb evenb [] = false
 ]]
     次に[existsb']を再帰関数としてではなく、[forallb]と[negb]を使って定義しなさい。.
- 
+
     そして、[existsb']と[existsb]が同じ振る舞いをすることを証明しなさい。
 *)
 
@@ -1279,7 +1279,7 @@ End MumbleBaz.
 [[
    Fixpoint index {X : Type} (n : nat) (l : list X) : option X :=
      match l with
-     | [] => None 
+     | [] => None
      | a :: l' => if beq_nat n O then Some a else index (pred n) l'
      end.
 ]]
