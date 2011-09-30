@@ -1,4 +1,4 @@
-(** * Imp: Simple Imperative Programs *)
+(** * Imp: 単純な命令型プログラム *)
 
 (* $Date: 2011-06-22 14:56:13 -0400 (Wed, 22 Jun 2011) $ *)
 
