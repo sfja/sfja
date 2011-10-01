@@ -91,7 +91,7 @@ Proof.
 
 (**  "[as]..."パターンで変数をどのような名前にするか、ということを指定するために、先ほど紹介した表記法が使えることにも注目してください。 *)
 
-(** **** 練習問題: 星一つ (snd_fst_is_swap) *)
+(** **** 練習問題: ★ (snd_fst_is_swap) *)
 Theorem snd_fst_is_swap : forall (p : natprod),
   (snd p, fst p) = swap_pair p.
 Proof.
@@ -197,7 +197,7 @@ Proof. reflexivity.  Qed.
 Example test_tail:            tail [1,2,3] = [2,3].
 Proof. reflexivity.  Qed.
 
-(** **** 練習問題: 星二つ, recommended (list_funs) *)
+(** **** 練習問題: ★★, recommended (list_funs) *)
 (** 以下の三つの関数[nonzeros], [oddmembers], [countoddmembers]の定義を完成させなさい。  *)
 
 Fixpoint nonzeros (l:natlist) : natlist :=
@@ -223,7 +223,7 @@ Example test_countoddmembers3:    countoddmembers nil = 0.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星二つ (alternate) *)
+(** **** 練習問題: ★★ (alternate) *)
 (** 二つのリストを交互に混ぜながら一つのリストを作り上げる[alternate]関数の定義を完成させなさい。下のテスト内容を見れば、どのようなものかは分かると思います。
 
 注） [alternate]を普通に書いてしまうと、Coqの"[Fixpoint]で定義される関数は、明らかに停止するものでなければならない"という制限にひっかかってしまう場合があります。もしこれにはまってしまったら、両方のリストの要素を一緒に見ていくような、少々冗長な方法を探してみてください。
@@ -249,7 +249,7 @@ Example test_alternate4:        alternate [] [20,30] = [20,30].
 
 Definition bag := natlist.
 
-(** **** 練習問題: 星三つ (bag_functions) *)
+(** **** 練習問題: ★★★ (bag_functions) *)
 (** バッグを操作する、[count], [sum], [add], [member]関数の定義を完成させなさい *)
 
 Fixpoint count (v:nat) (s:bag) : nat :=
@@ -287,7 +287,7 @@ Example test_member2:             member 2 [1,4,1] = false.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (bag_more_functions) *)
+(** **** 練習問題: ★★★, optional (bag_more_functions) *)
 (** 練習として、さらにいくつかの関数を作成してください。 *)
 
 Fixpoint remove_one (v:nat) (s:bag) : bag :=
@@ -325,7 +325,7 @@ Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, recommended (bag_theorem) *)
+(** **** 練習問題: ★★★, recommended (bag_theorem) *)
 (** bagについての、[count]や[add]がからむような面白い定理を自分で考え、証明しなさい。この問題はいわゆる自由課題で、常に真となるような定理を自分で決めてかまわないのですが、その定理がこれまで習ったテクニックだけで証明できるとは限りません。もし証明に行き詰まってしまったら気軽に質問してください。
 
 (* FILL IN HERE *)
@@ -566,7 +566,7 @@ Proof.
 
 (** ** リストについての練習問題　パート１ *)
 
-(** **** 練習問題: 星三つ, recommended (list_exercises) *)
+(** **** 練習問題: ★★★, recommended (list_exercises) *)
 (** リストについてさらに練習しましょう。 *)
 
 Theorem app_nil_end : forall l : natlist,
@@ -609,7 +609,7 @@ Proof.
 
 (** ** リストについての練習問題　パート２ *)
 
-(** **** 練習問題: 星二つ, recommended (list_design) *)
+(** **** 練習問題: ★★, recommended (list_design) *)
 (** デザインについての練習:
      - [cons]([::]), [snoc], and [append] ([++])にかかわる、自明でない定理を考えて書きなさい。
      - それを証明しなさい。
@@ -618,7 +618,7 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** 練習問題: 星二つ, optional (bag_proofs) *)
+(** **** 練習問題: ★★, optional (bag_proofs) *)
 (** もし、以前あったbagについてのオプション問題をやっているなら、その定義をつかって以下の定理の証明をしなさい。 *)
 
 Theorem count_member_nonzero : forall (s : bag),
@@ -643,14 +643,14 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (bag_count_sum) *)
+(** **** 練習問題: ★★★, optional (bag_count_sum) *)
 (** bagについての、[count]と[sum]関数に関する面白そうな定理を書き、証明をしなさい。
 
 (* FILL IN HERE *)
 []
  *)
 
-(** **** 練習問題: 星四つ, optional (rev_injective) *)
+(** **** 練習問題: ★★★★, optional (rev_injective) *)
 (** [rev]関数が単射（[f(a1) = f(a2)]が成り立つならば必ず[a1 = a2]が成り立つ）であることを証明しなさい。
 
 [[
@@ -720,7 +720,7 @@ Definition option_elim (o : natoption) (d : nat) : nat :=
   | None => d
   end.
 
-(** **** 練習問題: 星二つ (hd_opt) *)
+(** **** 練習問題: ★★ (hd_opt) *)
 (** 同じ考え方を使って、以前定義した[hd]関数を、引数の値が[nil]だった場合にデフォルト値を返さなくて済むように修正しなさい。  *)
 
 Definition hd_opt (l : natlist) : natoption :=
@@ -736,7 +736,7 @@ Example test_hd_opt3 : hd_opt [5,6] = Some 5.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星二つ, optional (option_elim_hd) *)
+(** **** 練習問題: ★★, optional (option_elim_hd) *)
 (** この練習問題は、新しい[hd_opt]と古い[hd]の関係に関するものです。 *)
 
 Theorem option_elim_hd : forall (l:natlist) (default:nat),
@@ -745,7 +745,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星二つ, recommended (beq_natlist) *)
+(** **** 練習問題: ★★, recommended (beq_natlist) *)
 (** 二つの数値のリストを比較する関数[beq_natlist]の定義を完成させなさい。そして、[beq_natlist l l]が、任意のリスト[l]で[true]となることを証明しなさい。 *)
 
 Fixpoint beq_natlist (l1 l2 : natlist) : bool :=
@@ -801,7 +801,7 @@ Proof.
   intros n m eq1 eq2.
   apply eq2. apply eq1.  Qed.
 
-(** **** 練習問題: 星二つ, optional (silly_ex) *)
+(** **** 練習問題: ★★, optional (silly_ex) *)
 (** 次の証明を、[simpl]を使わずに完成させなさい。 *)
 
 Theorem silly_ex :
@@ -835,7 +835,7 @@ Proof.
   apply H.  Qed.
 
 
-(** **** 練習問題: 星三つ, recommended (apply_exercise1) *)
+(** **** 練習問題: ★★★, recommended (apply_exercise1) *)
 Theorem rev_exercise1 : forall (l l' : natlist),
      l = rev l' ->
      l' = rev l.
@@ -845,7 +845,7 @@ Proof.
 (** [] *)
 
 
-(** **** 練習問題: 星一つ (apply_rewrite) *)
+(** **** 練習問題: ★ (apply_rewrite) *)
 (** [apply]と[rewrite]の違いを簡単に説明しなさい。それぞれ便利に使えるシチュエーションはどんなものでしたか？
 
   (* FILL IN HERE *)
@@ -869,7 +869,7 @@ Proof.
 
     前のケースでは、二つの証明の違いはささいなものでした。これは[++]関数の定義が最初の引数の内容を見るだけで、二つ目の引数については何もしていないことからきています。しかし今後、どちらの方法をとるかで証明の成否が分かれてしまう場合もあることに注意してください。 *)
 
-(** **** 練習問題: 星二つ, optional (app_ass') *)
+(** **** 練習問題: ★★, optional (app_ass') *)
 (** [++]の結合則を、より一般化された仮定を用いた方法で証明しなさい。（次の証明を完成させることが課題ですが、証明の最初の行は変更しないで、その続きを書きなさい。） *)
 
 Theorem app_ass' : forall l1 l2 l3 : natlist,
@@ -879,7 +879,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ (apply_exercise2) *)
+(** **** 練習問題: ★★★ (apply_exercise2) *)
 (** 帰納法を使う前に[m]を[intro]していないことに注意してください。これによって仮定が[forall]を使った、より一般化した式に保たれ、仮定[IH]が特定の[m]に縛られることがなくなり、使いやすくなります。 *)
 
 Theorem beq_nat_sym : forall (n m : nat),
@@ -889,7 +889,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, recommended (beq_nat_sym_informal) *)
+(** **** 練習問題: ★★★, recommended (beq_nat_sym_informal) *)
 (** 以下の補題について、以前やった形式的な証明に対応するような非形式的証明を作成しなさい。
 
    定理: 任意の [nat] [n] [m]について, [beq_nat n m = beq_nat m n].
@@ -923,7 +923,7 @@ Fixpoint find (key : nat) (d : dictionary) : option nat :=
   | record k v d' => if (beq_nat key k) then (Some v) else (find key d')
   end.
 
-(** **** 練習問題: 星一つ (dictionary_invariant1) *)
+(** **** 練習問題: ★ (dictionary_invariant1) *)
 (* 次の証明を完成させなさい。 *)
 Theorem dictionary_invariant1 : forall (d : dictionary) (k v: nat),
   (find k (insert k v d)) = Some v.
@@ -931,7 +931,7 @@ Proof.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星一つ (dictionary_invariant2) *)
+(** **** 練習問題: ★ (dictionary_invariant2) *)
 (* 次の証明を完成させなさい。 *)
 Theorem dictionary_invariant2 : forall (d : dictionary) (m n o: nat),
   (beq_nat m n) = false -> (find m d) = (find m (insert n o d)).
