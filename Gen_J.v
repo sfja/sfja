@@ -197,7 +197,7 @@ _Proof_: [m]を[nat]とする。 [m]に関する帰納法によって、 すべ�
     帰納法の仮定を[n']をあてはめることで、[n' = m']という結論を導ける。
     [S n' = n]かつ[S m' = m]なので、これにより示せる。 [] *)
 
-(** **** 練習問題: 星三つ (gen_dep_practice) *)
+(** **** 練習問題: ★★★ (gen_dep_practice) *)
 (** [m]に関する帰納法で以下を示しなさい。 *)
 
 Theorem plus_n_n_injective_take2 : forall n m,
@@ -215,7 +215,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (index_after_last_informal) *)
+(** **** 練習問題: ★★★, optional (index_after_last_informal) *)
 (** [index_after_last]のCoqによる証明に対応する非形式的な証明を書きなさい。
 
      _Theorem_: すべてのSet [X], リスト [l : list X], 自然数[n]に対して、[length l = n] ならば [index (S n) l = None]。
@@ -225,7 +225,7 @@ Proof.
 []
 *)
 
-(** **** 練習問題: 星三つ, optional (gen_dep_practice_opt) *)
+(** **** 練習問題: ★★★, optional (gen_dep_practice_opt) *)
 (** [l]に関する帰納法で示しなさい。 *)
 
 Theorem length_snoc''' : forall (n : nat) (X : Type)
@@ -236,7 +236,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (app_length_cons) *)
+(** **** 練習問題: ★★★, optional (app_length_cons) *)
 (** [app_length]を使わずに[l1]に関する帰納法で示しなさい。 *)
 
 Theorem app_length_cons : forall (X : Type) (l1 l2 : list X)
@@ -247,7 +247,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星四つ, optional (app_length_twice) *)
+(** **** 練習問題: ★★★★, optional (app_length_twice) *)
 (** [app_length]を使わずに[l1]に関する帰納法で示しなさい。 *)
 
 Theorem app_length_twice : forall (X:Type) (n:nat) (l:list X),

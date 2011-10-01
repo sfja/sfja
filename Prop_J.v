@@ -1,4 +1,4 @@
-(** * Prop: 命題とエビデンス *)
+(** * Prop: 命題と論拠 *)
 
 (* $Date: 2011-06-27 09:22:51 -0400 (Mon, 27 Jun 2011) $ *)
 
@@ -12,11 +12,11 @@ Require Export Poly_J.
 
 (** 読者への注意: この章で紹介するコンセプトは最初に見たときは、抽象的すぎるように思えるかもしれません。
     たくさんの練習問題が用意してあり、テキストの詳細を理解してる途中であっても大部分は解けるはずです。
-    できるかぎり多くの問題を、特に星一つの問題は解くようにしてください。 *)
+    できるかぎり多くの問題を、特に★の問題は解くようにしてください。 *)
 
 (** ここまでは宣言したり証明した文は等価性の形をしたものだけでした。
     しかし、数学で用いられる文や証明はもっとリッチです。
-    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類とその証明を論理的なエビデンス(_evidence_)を与えることでどのように行なうかをもっと近くでもっと根本的な部分を見ていきましょう。
+    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類とその証明を論拠(_evidence_)を与えることでどのように行なうかをもっと近くでもっと根本的な部分を見ていきましょう。
 *)
 
 (** 命題( _proposition_ )は"2足す2は4と等しい"のような事実に基づく主張を表現するための文です。
@@ -29,65 +29,69 @@ Check (2 + 2 = 4).
 Check (ble_nat 3 2 = false).
 (* ===> ble_nat 3 2 = false : Prop *)
 
-(** Both provable and unprovable claims are perfectly good
-    propositions.  Simply _being_ a proposition is one thing; being
-    _provable_ is something else! *)
+(** 証明可能な主張も証明不能な主張も、どちらも完全な命題です。
+    単に命題であるということと、証明可能であるということは別ものです! *)
 
 Check (2 + 2 = 5).
 (* ===> 2 + 2 = 5 : Prop *)
 
-(** Both [2 + 2 = 4] and [2 + 2 = 5] are legal expressions
-    of type [Prop]. *)
+(** [2 + 2 = 4] も [2 + 2 = 5] も [Prop] の型をもった妥当な式です。 *)
 
-(** We've seen one way that propositions can be used in Coq: in
-    [Theorem] (and [Lemma] and [Example]) declarations. *)
+(** これまでCoqの中で命題を使う方法は1つしか見てません。 [Theorem](あるいは[Lemma]、[Example])の宣言の中でだけです。 *)
 
 Theorem plus_2_2_is_4 :
   2 + 2 = 4.
 Proof. reflexivity.  Qed.
 
-(** But they can be used in many other ways.  For example, we
-    can give a name to a proposition using a [Definition], just as we
-    have given names to expressions of other sorts (numbers,
-    functions, types, type functions, ...). *)
+(** しかし命題にはもっといろいろな使い方があります。
+    例えば、他の種類の式(数字、関数、型、型関数など)と同様に、[Definition] を使うことで命題に名前を与えることができます。 *)
 
 Definition plus_fact : Prop  :=  2 + 2 = 4.
 Check plus_fact.
 (* ===> plus_fact : Prop *)
 
-(** Now we can use this name in any situation where a proposition is
-    expected -- for example, as the claim in a [Theorem]
-    declaration. *)
+(** これで、命題が使える場所ならどこでも、この名前を使うことできます。
+    例えば、[Theorem]宣言内の主張として使うことができます。 *)
 
 Theorem plus_fact_is_true :
   plus_fact.
 Proof. reflexivity.  Qed.
 
-(** So far, all the propositions we have seen are equality
+(* So far, all the propositions we have seen are equality
     propositions.  We can also form new propositions out of old
     ones.  For example, given propositions [P] and [Q], we can form
     the proposition "[P] implies [Q]." *)
+(** ここまでで、登場したすべての命題は等号の命題だけです。
+    これまでに登場した命題から新しい命題を作ることができます。
+    例えば、命題[P]と[Q]が与えられば、"[P]ならば[Q]"という命題を作れます。
+*)
 
 Definition strange_prop1 : Prop :=
   (2 + 2 = 5) -> (99 + 26 = 42).
 
-(** Also, given a proposition [P] with a free variable [n], we can
+(* Also, given a proposition [P] with a free variable [n], we can
     form the proposition [forall n, P]. *)
+(** また、自由変数[n]を含む命題[P]が与えられれば、[foral n, P]という形の命題を作れます。 *)
 
 Definition strange_prop2 :=
   forall n, (ble_nat n 17 = true) -> (ble_nat n 99 = true).
 
-(** Finally, we can define _parameterized propositions_.  For
+(* Finally, we can define _parameterized propositions_.  For
     example, what does it mean to claim that "a number n is even"?  We
     have written a function that tests evenness, so one possible
     definition of what it means to be even is "[n] is even iff [evenb
     n = true]." *)
+(** 最後に、パラメータ化された命題(_parameterized proposition_)の定義を紹介します。
+    例えば、"数値nが偶数である"という主張はどのようになるでしょうか？
+    偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数のとき、かつそのときに限り[evenb n = true]である"が考えられます。 *)
 
 Definition even (n:nat) : Prop :=
   evenb n = true.
 
-(** This defines [even] as a _function_ that, when applied to a number
+(* This defines [even] as a _function_ that, when applied to a number
     [n], _yields a proposition_ asserting that [n] is even.  *)
+(** これは[even]を関数として定義します。
+    その関数は数値[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
 
 Check even.
 (* ===> even : nat -> Prop *)
@@ -96,29 +100,38 @@ Check (even 4).
 Check (even 3).
 (* ===> even 3 : Prop *)
 
-(** The type of [even], [nat->Prop], can be pronounced in three
+(* The type of [even], [nat->Prop], can be pronounced in three
     ways: (1) "[even] is a _function_ from numbers to
     propositions," (2) "[even] is a _family_ of propositions, indexed
     by a number [n]," or (3) "[even] is a _property_ of numbers."  *)
+(** [even]の型 [nat->Prop]は3つの意味を持っています。
+   (1) "[even]は数値から命題への関数である。"
+   (2) "[even]は数値[n]でインデックスされた命題の集りである"。
+   (3) "[even]は数値の性質(_property_)である。" *)
 
-(** Propositions -- including parameterized propositions -- are
+(* Propositions -- including parameterized propositions -- are
     first-class citizens in Coq.  We can use them in other
     definitions: *)
+(** 命題(パラーメータ化された命題も含む)はCoqにおける第一級市民です。
+    ほかの定義の中で命題使うことができます。 *)
 
 Definition even_n__even_SSn (n:nat) : Prop :=
   (even n) -> (even (S (S n))).
 
-(** We can define them to take multiple arguments... *)
+(* We can define them to take multiple arguments... *)
+(** 複数の引数を受け取るように定義することや.. *)
 
 Definition between (n m o: nat) : Prop :=
   andb (ble_nat n o) (ble_nat o m) = true.
 
-(** ... and then partially apply them: *)
+(* ... and then partially apply them: *)
+(** ...部分適用もできます。 *)
 
 Definition teen : nat->Prop := between 13 19.
 
-(** We can even pass propositions -- including parameterized
+(* We can even pass propositions -- including parameterized
     propositions -- as arguments to functions: *)
+(** 他の関数の引数として命題(パラーメータ化された命題も含む)を渡すことすらできます。 *)
 
 Definition true_for_zero (P:nat->Prop) : Prop :=
   P 0.
@@ -126,13 +139,16 @@ Definition true_for_zero (P:nat->Prop) : Prop :=
 Definition true_for_n__true_for_Sn (P:nat->Prop) (n:nat) : Prop :=
   P n -> P (S n).
 
-(** (Names of the form [x__y], with two underscores in a row, can be
+(* (Names of the form [x__y], with two underscores in a row, can be
     read "[x] implies [y].") *)
+(** 2つのアンダースコアを続けた[x__y]という形式の名前は、"[x]ならば[y]である"と読みます。 *)
 
-(** Here are two more examples of passing parameterized
+(* Here are two more examples of passing parameterized
     propositions as arguments to a function.  The first makes the
     claim that a whenever a proposition [P] is true for some natural
     number [n'], it is also true by the successor of [n']: *)
+(** ここれパラメータ化された
+*)
 
 Definition preserved_by_S (P:nat->Prop) : Prop :=
   forall n', P n' -> P (S n').

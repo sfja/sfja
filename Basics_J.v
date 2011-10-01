@@ -69,25 +69,25 @@ Inductive bool : Type :=
   | true : bool
   | false : bool.
 
-(** 
+(**
 このようにして、我々は独自のbool型を一から作りあげることもできるのですが、もちろんCoqには標準ライブラリとしてbool型が多くの有用な関数、補助定理と一緒に用意されています。（もし興味があるなら、CoqライブラリドキュメントのCoq.Init.Datatypesを参照してください。）ここでは可能な限り標準ライブラリと正確に同じ機能を、我々独自の名前で定義していくことにしましょう。 *)
 
 (**ブール型を使用する関数は、Day型と同じように定義することができます。 *)
 
-Definition negb (b:bool) : bool := 
+Definition negb (b:bool) : bool :=
   match b with
   | true => false
   | false => true
   end.
 
-Definition andb (b1:bool) (b2:bool) : bool := 
-  match b1 with 
-  | true => b2 
+Definition andb (b1:bool) (b2:bool) : bool :=
+  match b1 with
+  | true => b2
   | false => false
   end.
 
-Definition orb (b1:bool) (b2:bool) : bool := 
-  match b1 with 
+Definition orb (b1:bool) (b2:bool) : bool :=
+  match b1 with
   | true => true
   | false => b2
   end.
@@ -96,7 +96,7 @@ Definition orb (b1:bool) (b2:bool) : bool :=
 
 (** 次の四つの単体テストは、関数[orb]が取り得るすべての引数についての完全な仕様（真理値表）となっています。 *)
 
-Example test_orb1:  (orb true  false) = true. 
+Example test_orb1:  (orb true  false) = true.
 Proof. simpl. reflexivity.  Qed.
 Example test_orb2:  (orb false false) = false.
 Proof. simpl. reflexivity.  Qed.
@@ -111,7 +111,7 @@ Proof. simpl. reflexivity.  Qed.
 
 Definition admit {T: Type} : T.  Admitted.
 
-(** **** 練習問題: 星一つ (nandb) *)
+(** **** 練習問題: ★ (nandb) *)
 (** 次の定義を完成させ、[Example]で記述された確認内容がCoqのチェックをすべて通過することを確認しなさい。  *)
 
 (** この関数はどちらか、もしくは両方が[false]になったときに[true]を返すものである。 *)
@@ -131,7 +131,7 @@ Example test_nandb4:               (nandb true true) = false.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星一つ (andb3) *)
+(** **** 練習問題: ★ (andb3) *)
 Definition andb3 (b1:bool) (b2:bool) (b3:bool) : bool :=
   (* ここを埋めなさい *) admit.
 
@@ -181,7 +181,7 @@ Inductive nat : Type :=
 
     これまでに定義してきた帰納的な型（[weekday]、[nat]、[bool]など）は、実際には式の集合とでも言うべきものです。[nat]の定義は、[nat]の要素となる式がどのように構築されるかを表しています。
 
-    - 式[O]（オー）は、[nat]に属する。 
+    - 式[O]（オー）は、[nat]に属する。
     - もし[n]が[nat]に属するならば、[S n]もまた[nat]に属する。
     - これら二つの方法で表された式のみが[nat]に属するものの全てである。*)
 
@@ -293,15 +293,15 @@ Fixpoint exp (base power : nat) : nat :=
 Example test_mult1:             (mult 3 3) = 9.
 Proof. simpl. reflexivity.  Qed.
 
-(** **** 演習問題: 星一つ (factorial) *)
+(** **** 演習問題: ★ (factorial) *)
 (** 再帰を使用した、一般的なfactorical（階乗）の定義を思い出してください :
 <<
-    factorial(0)  =  1 
+    factorial(0)  =  1
     factorial(n)  =  n * factorial(n-1)     (if n>0)
 >>
     これをCoqでの定義に書き直しなさい。 *)
 
-Fixpoint factorial (n:nat) : nat := 
+Fixpoint factorial (n:nat) : nat :=
   (* FILL IN HERE *) admit.
 
 Example test_factorial1:          (factorial 3) = 6.
@@ -358,7 +358,7 @@ Proof. simpl. reflexivity.  Qed.
 Example test_ble_nat3:             (ble_nat 4 2) = false.
 Proof. simpl. reflexivity.  Qed.
 
-(** **** 練習問題: 星二つ (blt_nat) *)
+(** **** 練習問題: ★★ (blt_nat) *)
 (** [blt_nat]関数は、自然数を比較して小さい、ということを調べてbool値を生成します（ [nat]ural numbers for [l]ess-[t]han）。[Fixpoint]を使用して１から作成するのではなく、すでにこれまで定義した関数を利用して定義しなさい。
 
 注：[simpl]タクティクを使ってうまくいかない場合は、代わりに[compute]を試してください。それはよりうまく作られた[simpl]と言えるものですが、そもそもシンプルでエレガントな解が書けていれば、[simpl]で十分に評価できるはずです。 *)
@@ -398,14 +398,14 @@ Proof.
 
 [simpl]や[reflexivity]はタクティクの例です。タクティクは、[Proof]と[Qed]の間に記述され、Coqに対して、我々がしようとしている主張の正当性をどのようにチェックすべきかを指示するためのコマンドです。この講義の残りでは、まだ出てきていないタクティクのうちのいくつかを紹介していきましょう。さらにその後の講義ではもっと色々出てくるのですが。 *)
 
-(** **** 練習問題: 星一つ, optional (simpl_plus) *)
+(** **** 練習問題: ★, optional (simpl_plus) *)
 (** この問い合わせの結果、Coqが返す応答はなにか？ *)
 
-Eval simpl in (forall n:nat, n + 0 = n). 
+Eval simpl in (forall n:nat, n + 0 = n).
 
 (** また次のものの場合はどうか？ *)
 
-Eval simpl in (forall n:nat, 0 + n = n). 
+Eval simpl in (forall n:nat, 0 + n = n).
 
 (** この二つの違いを示せ。  [] *)
 
@@ -424,7 +424,7 @@ Proof.
 
 (** 次の証明をCoq上で逐次実行し、どのように状況が変化してゴールが導かれるのかをよく観察してください。 *)
 
-Theorem plus_1_l : forall n:nat, 1 + n = S n. 
+Theorem plus_1_l : forall n:nat, 1 + n = S n.
 Proof.
   intros n. reflexivity.  Qed.
 
@@ -440,7 +440,7 @@ Proof.
 (** 少しばかり興味深い定理を見てみましょう。 *)
 
 Theorem plus_id_example : forall n m:nat,
-  n = m -> 
+  n = m ->
   n + n = m + m.
 
 (** この定理は、あらゆる[n]や[m]について完全に成り立つと言っているわけではなく、[n = m]が成り立つときに限って成立する、というもので、この矢印は"ならば"と一般的に読みます。
@@ -457,7 +457,7 @@ Proof.
 
 （[rewrite]の矢印は特に論理に関与していません。単に左側を右側に置き換えているだけです。逆に右側を左側に置き換えたい場合は、[rewrite <-]と書くこともできます。この逆の置き換えも上の証明で試して、Coqの振る舞いがどのように変わるかを観察してください。） *)
 
-(** **** 練習問題: 星一つ (plus_id_exercise) *)
+(** **** 練習問題: ★ (plus_id_exercise) *)
 (** [Admitted.]を削除し、証明を完成させなさい。*)
 
 Theorem plus_id_exercise : forall n m o : nat,
@@ -477,7 +477,7 @@ Proof.
   rewrite -> plus_O_n.
   reflexivity.  Qed.
 
-(** **** 練習問題: 星二つ, recommended (mult_1_plus) *)
+(** **** 練習問題: ★★, recommended (mult_1_plus) *)
 Theorem mult_1_plus : forall n m : nat,
   (1 + n) * m = m + (n * m).
 Proof.
@@ -485,7 +485,7 @@ Proof.
 (** [] *)
 
 
-(** * Case分析 *) 
+(** * Case分析 *)
 
 (** もちろん、どんな命題でも簡単な計算だけで証明できるという訳ではありません。一般に、未知だったり仮定の（任意のbool、自然数、リストなど）値は、我々が検証しようとしている関数の先頭に記述され、それが簡約の邪魔をしてくれます。例えば、下のような命題をsimplタクティクだけで証明しようとすると、すぐに行き詰まってしまうでしょう。 *)
 
@@ -523,7 +523,7 @@ Proof.
 
 (** ここで使われている[destruct]には[as]句がありませんが、ここで展開している[b]の型[bool]の二つのコンストラクタが両方とも引数をとらないため、名前を指定する必要がないのです。このような場合、"[as [|]]"や"[as []]"のように書くこともできます。実際のところほとんどの場合[destruct]の[as]句は省略可能です。その際はCoqの側で自動的に変数名をつけてくれます。これは確かに便利なのですが、よくない書き方とも言えます。Coqはしばしば名前付けに混乱して望ましくない結果を出す場合があります。 *)
 
-(** **** 練習問題: 星一つ (zero_nbeq_plus_1) *)
+(** **** 練習問題: ★ (zero_nbeq_plus_1) *)
 Theorem zero_nbeq_plus_1 : forall n : nat,
   beq_nat 0 (n + 1) = false.
 Proof.
@@ -580,7 +580,7 @@ Proof.
 
 ネストしたcaseの分析（今[destruct]で解決しようとしているゴール自体が、他の[destruct]の産物であるような場合）のために、[SCase]("subcase")が用意されています。 *)
 
-(** **** 練習問題: 星二つ (andb_true_elim2) *)
+(** **** 練習問題: ★★ (andb_true_elim2) *)
 (** [destruct]を使い、case（もしくはsubcase）を作成して、以下の証明[andb_true_elim2]を完成させなさい。 *)
 
 Theorem andb_true_elim2 : forall b c : bool,
@@ -649,15 +649,15 @@ Proof.
   Case "n = S n'".
     simpl. rewrite -> IHn'. reflexivity.  Qed.
 
-(** **** 練習問題: 星二つ, recommended (basic_induction) *)
+(** **** 練習問題: ★★, recommended (basic_induction) *)
 Theorem mult_0_r : forall n:nat,
   n * 0 = 0.
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Theorem plus_n_Sm : forall n m : nat, 
+Theorem plus_n_Sm : forall n m : nat,
   S (n + m) = n + (S m).
-Proof. 
+Proof.
   (* FILL IN HERE *) Admitted.
 
 Theorem plus_comm : forall n m : nat,
@@ -672,13 +672,13 @@ Fixpoint double (n:nat) :=
   | S n' => S (S (double n'))
   end.
 
-(** **** 練習問題: 星二つ (double_plus) *)
+(** **** 練習問題: ★★ (double_plus) *)
 Lemma double_plus : forall n, double n = n + n .
-Proof.  
+Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星一つ (destruct_induction) *)
+(** **** 練習問題: ★ (destruct_induction) *)
 (** [destruct]と[induction]の違いを短く説明しなさい。
 
 (* FILL IN HERE *)
@@ -703,7 +703,7 @@ Proof.
 
 Theorem plus_assoc' : forall n m p : nat,
   n + (m + p) = (n + m) + p.
-Proof. intros n m p. induction n as [| n']. reflexivity. 
+Proof. intros n m p. induction n as [| n']. reflexivity.
   simpl. rewrite -> IHn'. reflexivity.  Qed.
 
 (** Coqはこのような証明を完璧にこなしてくれますが、上の証明は人間にとってはいささかのみこみにくいと言わざるを得ません。もしあなたがCoqに十分慣れていて、タクティクを次々と適用しながら証明を進めていき、コンテキストやゴールがどう変化していくかを頭の中だけでイメージしていくことができるようなレベルの人でも、上の証明はかなり複雑で、ほとんど理解不能に思えるかもしれません。それを横目に、数学者はサラサラとこんな風に書くでしょう。 *)
@@ -713,9 +713,9 @@ Proof. intros n m p. induction n as [| n']. reflexivity.
 ]]
     証明：[n]について帰納法を適用する。
 
-    - まず[n = 0]と置くと、以下のようになる 
+    - まず[n = 0]と置くと、以下のようになる
 [[
-        0 + (m + p) = (0 + m) + p.  
+        0 + (m + p) = (0 + m) + p.
 ]]
       これは、[+]の定義から直接導くことができる。
 
@@ -740,31 +740,31 @@ Proof. intros n m p. induction n as [| n']. reflexivity.
 Theorem plus_assoc : forall n m p : nat,
   n + (m + p) = (n + m) + p.
 Proof.
-  intros n m p. induction n as [| n']. 
+  intros n m p. induction n as [| n'].
   Case "n = 0".
-    reflexivity. 
+    reflexivity.
   Case "n = S n'".
     simpl. rewrite -> IHn'. reflexivity.   Qed.
 
-(** **** 練習問題: 星二つ (plus_comm_informal) *)
+(** **** 練習問題: ★★ (plus_comm_informal) *)
 (** [plus_comm]の証明を、非形式的な証明に書き換えなさい。 *)
 
 (** 定理：加法は可換である。
- 
+
     Proof: (* FILL IN HERE *)
 []
 *)
 
-(** **** 練習問題: 星二つ, optional (beq_nat_refl_informal) *)
+(** **** 練習問題: ★★, optional (beq_nat_refl_informal) *)
 (** 次の証明を、[plus_assoc] の非形式的な証明を参考に書き換えなさい。Coqのタクティクを単に言い換えただけにならないように！
- 
+
    定理：true=beq_nat n n forany n.（任意のnについて、nはnと等しいという命題がtrueとなる）
-    
+
     Proof: (* FILL IN HERE *)
 []
  *)
 
-(** **** 練習問題: 星一つ, optional (beq_nat_refl) *)
+(** **** 練習問題: ★, optional (beq_nat_refl) *)
 Theorem beq_nat_refl : forall n : nat,
   true = beq_nat n n.
 Proof.
@@ -781,7 +781,7 @@ Theorem mult_0_plus' : forall n m : nat,
   (0 + n) * m = n * m.
 Proof.
   intros n m.
-  assert (H: 0 + n = n). 
+  assert (H: 0 + n = n).
     Case "Proof of assertion". reflexivity.
   rewrite -> H.
   reflexivity.  Qed.
@@ -813,10 +813,10 @@ Proof.
     rewrite -> plus_comm. reflexivity.
   rewrite -> H. reflexivity.  Qed.
 
-(** **** 練習問題: 星四つ (mult_comm) *)
+(** **** 練習問題: ★★★★ (mult_comm) *)
 (** [assert]を使用して以下の証明を完成させなさい。ただしinduction（帰納法）を使用しないこと。 *)
 
-Theorem plus_swap : forall n m p : nat, 
+Theorem plus_swap : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -830,7 +830,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星二つ, optional (evenb_n__oddb_Sn) *)
+(** **** 練習問題: ★★, optional (evenb_n__oddb_Sn) *)
 Theorem evenb_n__oddb_Sn : forall n : nat,
   evenb n = negb (evenb (S n)).
 Proof.
@@ -840,7 +840,7 @@ Proof.
 
 (** * さらなる練習問題 *)
 
-(** **** 練習問題: 星三つ, optional (more_exercises) *)
+(** **** 練習問題: ★★★, optional (more_exercises) *)
 (** 紙を何枚か用意して、下に続く定理が(a)簡約と書き換えだけで証明可能か、(b)[destruct]を使ったcase分割が必要になるか、(c)帰納法が必要となるか、のいずれに属すかを、紙の上だけで考えなさい。予測を紙に書いたら、実際に証明を完成させなさい。証明にはCoqを用いてかまいません。最初に紙を使ったのは「初心忘れるべからず」といった理由です。 *)
 
 Theorem ble_nat_refl : forall n:nat,
@@ -858,7 +858,7 @@ Theorem andb_false_r : forall b : bool,
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Theorem plus_ble_compat_l : forall n m p : nat, 
+Theorem plus_ble_compat_l : forall n m p : nat,
   ble_nat n m = true -> ble_nat (p + n) (p + m) = true.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -892,20 +892,20 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星二つ, optional (plus_swap') *)
+(** **** 練習問題: ★★, optional (plus_swap') *)
 (** [replace]タクティクは、特定のサブタームを置き換えたいものと置き換えることができます。もう少し正確に言うと、[replace (t) with (u)]は、ゴールにある[t]という式を全て[u]にかきかえ、[t = u]というサブゴールを追加します。この機能は、通常の[rewrite]がゴールの思い通りの場所に作用してくれない場合に有効です。
 
 [replace]タクティクを使用して[plus_swap']の証明をしなさい。ただし[plus_swap]のように[assert (n + m = m + n)]を使用しないで証明を完成させなさい。
 *)
 
-Theorem plus_swap' : forall n m p : nat, 
+Theorem plus_swap' : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
 
-(** **** 練習問題: 星四つ, recommended (binary) *)
+(** **** 練習問題: ★★★★, recommended (binary) *)
 (** これまでとは異なる、通常表記の自然数ではなく2進のシステムで、自然数のより効率的な表現を考えなさい。それは自然数をゼロとゼロに1を加える加算器からなるものを定義する代わりに、以下のような2進の形で表すものです。2進数とは、
       - ゼロであるか,
       - 2進数を2倍したものか,
@@ -944,7 +944,7 @@ Proof.
 (* FILL IN HERE *)
 
 
-(** **** 練習問題: 星二つ, optional (decreasing) *)
+(** **** 練習問題: ★★, optional (decreasing) *)
 (** 各関数の引数のいくつかが"減少的"でなければならない、という要求仕様は、Coqのデザインにおいて基礎となっているものです。特に、そのことによって、Coq上で作成された関数が、どんな入力を与えられても必ずいつか終了する、ということが保障されています。しかし、Coqの"減少的な解析"が「とても洗練されているとまではいえない」ため、時には不自然な書き方で関数を定義しなければならない、ということもあります。
 
 これを具体的に感じるため、[Fixpoint]で定義された、より「微妙な」関数の書き方を考えてみましょう（自然数に関する簡単な関数でかまいません）。それが全ての入力で停止することと、Coqがそれを、この制限のため受け入れてくれないことを確認しなさい。 *)

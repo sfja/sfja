@@ -206,7 +206,7 @@ Definition list123''' := [1, 2, 3].
 
 (** *** 練習問題:ポリモルフィックなリスト *)
 
-(** **** 練習問題: 星二つ, optional (poly_exercises) *)
+(** **** 練習問題: ★★, optional (poly_exercises) *)
 (** っここにあるいくつかの練習問題は、List.vにあったものと同じですが、ポリモルフィズムの練習になります。以下の定義を行い、証明を完成させなさい。 *)
 
 Fixpoint repeat (X : Type) (n : X) (count : nat) : list X :=
@@ -287,7 +287,7 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
   | x::tx, y::ty => (x,y) :: (combine' tx ty)
   end.
 
-(** **** 練習問題: 星一つ (combine_checks) *)
+(** **** 練習問題: ★ (combine_checks) *)
 (** 次の質問の答えを紙に書いた後で、Coqの出した答えと同じかチェックしなさい。
     - 関数[combine]の型は何でしょう ([Check @combine]の出力結果は？
     - それでは
@@ -297,7 +297,7 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
       は何を出力する？   []
 *)
 
-(** **** 練習問題: 星二つ, recommended (split) *)
+(** **** 練習問題: ★★, recommended (split) *)
 (** [split]関数は[combine]と全く逆で、ペアのリストを引数に受け取り、リストのペアを返します。多くの関数型言語とで[unzip]と呼ばれているものです。次の段落のコメントをはずし、[split]関数の定義を完成させなさい。続くテストを通過することも確認しなさい。 *)
 
 (*
@@ -338,7 +338,7 @@ Proof. reflexivity.  Qed.
 Example test_index3 :    index  2 [true]  = None.
 Proof. reflexivity.  Qed.
 
-(** **** 練習問題: 星一つ, optional (hd_opt_poly) *)
+(** **** 練習問題: ★, optional (hd_opt_poly) *)
 (** 前の章に出てきた[hd_opt]関数のポリモルフィック版を定義しなさい。。次の単体テストでの確認も忘れずに。 *)
 
 Definition hd_opt {X : Type} (l : list X)  : option X :=
@@ -400,7 +400,7 @@ Proof. reflexivity.  Qed.
 
 (** ** 余談： カリー化 *)
 
-(** **** 練習問題: 星二つ, optional (currying) *)
+(** **** 練習問題: ★★, optional (currying) *)
 (** Coqでは、[f : A -> B -> C]という型の関数は[A -> (B -> C)]型と同じです。このことは、もし上の関数[f]に値[A]を与えると、[f' : B -> C]という型の関数が戻り値として返ってくるということです。これは部分適用の[plus3]でやりましたが、このように、複数の引数から戻り値の型のリストを、関数を返す関数として捉えなおすことを、論理学者ハスケル・カリーにちなんでカリー化、と呼んでいます。
 
     逆に、[A -> B -> C]型の関数を[(A * B) -> C]型の関数に変換することもできます。これをアンカリー化（非カリー化）といいます。アンカリー化された二項演算は、二つの引数を同時にペアの形で与える必要があり、部分適用はできません。 *)
@@ -491,7 +491,7 @@ Example test_filter2':
   = [ [3], [4], [8] ].
 Proof. reflexivity.  Qed.
 
-(** **** 練習問題: 星二つ, optional (filter_even_gt7) *)
+(** **** 練習問題: ★★, optional (filter_even_gt7) *)
 
 (** [filter]関数を使い、数値のリストを入力すると、そのうち偶数でなおかつ7より大きい要素だけを取り出す[filter_even_gt7]関数を書きなさい。 *)
 
@@ -508,7 +508,7 @@ Example test_filter_even_gt7_2 :
 
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (partition) *)
+(** **** 練習問題: ★★★, optional (partition) *)
 (** [filter]関数を使って、[partition]関数を書きなさい。:
 [[
   partition : forall X : Type,
@@ -556,7 +556,7 @@ Example test_map3:
 Proof. reflexivity.  Qed.
 
 
-(** **** 練習問題: 星三つ, optional (map_rev) *)
+(** **** 練習問題: ★★★, optional (map_rev) *)
 (** [map]と[rev]が可換であることを示しなさい。証明には補題をたてて証明する必要があるでしょう。 *)
 
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
@@ -565,7 +565,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星二つ, recommended (flat_map) *)
+(** **** 練習問題: ★★, recommended (flat_map) *)
 (** [map]関数は、[list X]から[list Y]へのマップを、型[X -> Y]の関数を使って実現しています。同じような関数[flat_map]を定義しましょう。これは[list X]から[list Y]へのマップですが、[X -> list Y]となる関数[f]を使用できます。このため、次のように要素ごとの関数[f]の結果を平坦化してやる必要があります。
 [[
         flat_map (fun n => [n,n+1,n+2]) [1,5,10]
@@ -592,7 +592,7 @@ Definition option_map {X Y : Type} (f : X -> Y) (xo : option X)
     | Some x => Some (f x)
   end.
 
-(** **** 練習問題: 星二つ, optional (implicit_args) *)
+(** **** 練習問題: ★★, optional (implicit_args) *)
 (** [filter]や[map]関数を定義したり使ったりするケースでは、多くの場合暗黙的な型引数が使われます。暗黙の型引数定義に使われている中括弧を普通の括弧に置き換え、必要なところに型引数を明示的に書くようにして、それが正しいかどうかをCoqでチェックしなさい。 [] *)
 
 
@@ -629,7 +629,7 @@ Proof. reflexivity. Qed.
 Example fold_example3 : fold app  [[1],[],[2,3],[4]] [] = [1,2,3,4].
 Proof. reflexivity. Qed.
 
-(** **** 練習問題: 星一つ, optional (fold_types_different) *)
+(** **** 練習問題: ★, optional (fold_types_different) *)
 (** [fold]関数が[X]と[Y]二つの型引数をとっていて、関数[f]が型[X]を引数にとり型[Y]を返すようになっていることに注目してください。[X]と[Y]が別々の型となっていることで、どのような場合に便利であるかを考えてください。 *)
 
 
@@ -671,7 +671,7 @@ Proof. reflexivity. Qed.
 Example override_example4 : fmostlytrue 3 = false.
 Proof. reflexivity. Qed.
 
-(** **** 練習問題: 星一つ (override_example) *)
+(** **** 練習問題: ★ (override_example) *)
 (** 次の証明にとりかかる前に、あなたがこの証明の意味することを理解しているか確認するため、証明内容を別の言葉で言い換えてください。証明自体は単純なものです。 *)
 
 Theorem override_example : forall (b:bool),
@@ -722,7 +722,7 @@ Proof.
 
 (** この証明はストレートなものですが、[override]関数の展開に[unfold]を必要としている点だけ注意してください。 *)
 
-(** **** 練習問題: 星二つ (override_neq) *)
+(** **** 練習問題: ★★ (override_neq) *)
 Theorem override_neq : forall {X:Type} x1 x2 k1 k2 (f : nat->X),
   f k1 = x1 ->
   beq_nat k2 k1 = false ->
@@ -786,7 +786,7 @@ Theorem silly5 : forall (n m o : nat),
 Proof.
   intros n m o eq. inversion eq. reflexivity. Qed.
 
-(** **** 練習問題: 星一つ (sillyex1) *)
+(** **** 練習問題: ★ (sillyex1) *)
 Example sillyex1 : forall (X : Type) (x y z : X) (l j : list X),
      x :: y :: l = z :: j ->
      y :: l = x :: j ->
@@ -807,7 +807,7 @@ Theorem silly7 : forall (n m : nat),
 Proof.
   intros n m contra. inversion contra.  Qed.
 
-(** **** 練習問題: 星一つ (sillyex2) *)
+(** **** 練習問題: ★ (sillyex2) *)
 Example sillyex2 : forall (X : Type) (x y z : X) (l j : list X),
      x :: y :: l = [] ->
      y :: l = z :: j ->
@@ -838,13 +838,13 @@ Proof.
     SCase "m = S m'". simpl. intros H.
       apply eq_remove_S. apply IHn'. apply H. Qed.
 
-(** **** 練習問題: 星二つ (beq_nat_eq_informal) *)
+(** **** 練習問題: ★★ (beq_nat_eq_informal) *)
 (** [beq_nat_eq]の、非形式的な証明を示しなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** 練習問題: 星三つ (beq_nat_eq') *)
+(** **** 練習問題: ★★★ (beq_nat_eq') *)
 (** [beq_nat_eq]は、[m]について帰納法をつかうことで証明することができました。しかし我々は、もう少し編集を導入する順序に注意を払うべきです。なぜなら、我々は一般に、十分な帰納法の仮定を得ているからです。このことを次に示します。次の証明を完成させなさい。この練習問題の効果を最大にするため、とりあえずは先にやった証明を見ないで取り組んでください。 *)
 
 Theorem beq_nat_eq' : forall m n,
@@ -872,7 +872,7 @@ Proof.
 (** *** 練習問題 *)
 
 
-(** **** 練習問題: 星二つ, optional (practice) *)
+(** **** 練習問題: ★★, optional (practice) *)
 (** 同じところに分類され、相互に関連するような、自明でもないが複雑というほどでもない証明をいくつか練習問題としましょう。このうち、いくつかは過去のレクチャーや練習問題に出てきた補題を使用します。 *)
 
 
@@ -932,7 +932,7 @@ Proof.
 
 (** 前向きの証明は、与えられたもの（前提や、すでに証明された定理）からスタートして、そのゴールを次々につなげていき、ゴールに達するまでそれを続けます。逆向きの証明は、ゴールからスタートし、そのゴールが結論となる前提を調べ、それを前提や証明済みの定理にたどりつくまで繰り返します。皆さんがこれまで（数学やコンピュータサイエンスの分野で）見てきた非形式的な証明は、おそらく前向きの証明であったのではないかと思います。一般にCoqでの証明は逆向きの証明となる傾向があります。しかし、状況によっては前向きの証明のほうが簡単で考えやすい、ということもあります。  *)
 
-(** **** 練習問題: 星三つ, recommended (plus_n_n_injective) *)
+(** **** 練習問題: ★★★, recommended (plus_n_n_injective) *)
 (** 先に述べて"in"を使って次の証明をしなさい。 *)
 
 Theorem plus_n_n_injective : forall n m,
@@ -969,14 +969,14 @@ Proof.
 
 (** 上の証明で[sillyfun]を展開すると、[if (beq_nat n 3) then ... else ...]で行き詰まることがわかります。そこで、[n]が[3]である場合とそうでない場合とに[destruct (beq_nat n 3)]を使って二つのケースに分け、証明を行います。 *)
 
-(** **** 練習問題: 星一つ (override_shadow) *)
+(** **** 練習問題: ★ (override_shadow) *)
 Theorem override_shadow : forall {X:Type} x1 x2 k1 k2 (f : nat->X),
   (override (override f k1 x2) k1 x1) k2 = (override f k1 x1) k2.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, recommended (combine_split) *)
+(** **** 練習問題: ★★★, recommended (combine_split) *)
 (*
 Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
@@ -987,7 +987,7 @@ Proof.
 *)
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (split_combine) *)
+(** **** 練習問題: ★★★, optional (split_combine) *)
 (** 思考練習: 我々はすでに、全ての型のリストのペアで[combine]が[split]の逆関数であることを証明しました。ではその逆の「[split]は[combine]の逆関数である」を示すことはできるでしょうか？
 
     ヒント: [split combine l1 l2 = (l1,l2)]が[true]となる[l1]、[l2]の条件は何でしょう？
@@ -1047,7 +1047,7 @@ Proof.
            rewrite -> Heqe5. reflexivity.
          SCase "e5 = false". inversion eq.  Qed.
 
-(** **** 練習問題: 星二つ (override_same) *)
+(** **** 練習問題: ★★ (override_same) *)
 Theorem override_same : forall {X:Type} x1 k1 k2 (f : nat->X),
   f k1 = x1 ->
   (override f k1 x1) k2 = f k2.
@@ -1055,7 +1055,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, optional (filter_exercise) *)
+(** **** 練習問題: ★★★, optional (filter_exercise) *)
 (** この問題はやや難しいかもしれません。最初に[intros]を使うと、帰納法を適用するための変数まで上に上げてしまうので気をつけてください。 *)
 
 Theorem filter_exercise : forall (X : Type) (test : X -> bool)
@@ -1100,7 +1100,7 @@ Proof.
 
 (**  実際には、このように名前[m]を[with]に与えるということはそれほど多くありません。Coqは多くの場合賢く振舞って、我々の要求を実現してくれます。ちなみにこの上の[apply]はapply trans_eq with [c,d]と書くこともできます。 *)
 
-(** **** 練習問題: 星三つ, recommended (apply_exercises) *)
+(** **** 練習問題: ★★★, recommended (apply_exercises) *)
 Example trans_eq_exercise : forall (n m o p : nat),
      m = (minustwo o) ->
      (n + p) = m ->
@@ -1182,7 +1182,7 @@ Proof.
 
 (** * さらなる練習問題 *)
 
-(** **** 練習問題: 星二つ, optional (fold_length) *)
+(** **** 練習問題: ★★, optional (fold_length) *)
 (** リストに関する多くの一般的な関数は[fold]を使って書きなおすることができます。例えば、次に示すのは[length]の別な実装です。 *)
 
 Definition fold_length {X : Type} (l : list X) : nat :=
@@ -1198,7 +1198,7 @@ Theorem fold_length_correct : forall X (l : list X),
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: 星三つ, recommended (fold_map) *)
+(** **** 練習問題: ★★★, recommended (fold_map) *)
 (** [map]関数も[fold]を使って書くことができます。以下の[fold_map]を完成させなさい。 *)
 
 Definition fold_map {X Y:Type} (f : X -> Y) (l : list X) : list Y :=
@@ -1210,7 +1210,7 @@ Definition fold_map {X Y:Type} (f : X -> Y) (l : list X) : list Y :=
 (** [] *)
 
 Module MumbleBaz.
-(** **** 練習問題: 星二つ, optional (mumble_grumble) *)
+(** **** 練習問題: ★★, optional (mumble_grumble) *)
 (** つぎの、機能的に定義された二つの型をよく観察してください。 *)
 
 Inductive mumble : Type :=
@@ -1232,7 +1232,7 @@ Inductive grumble (X:Type) : Type :=
 (* FILL IN HERE *)
 [] *)
 
-(** **** 練習問題: 星二つ, optional (baz_num_elts) *)
+(** **** 練習問題: ★★, optional (baz_num_elts) *)
 (** 次の、機能的に定義された型をよく観察してください。 *)
 
 Inductive baz : Type :=
@@ -1245,7 +1245,7 @@ Inductive baz : Type :=
 
 End MumbleBaz.
 
-(** **** 練習問題: 星四つ, recommended (forall_exists_challenge) *)
+(** **** 練習問題: ★★★★, recommended (forall_exists_challenge) *)
 (** チャレンジ問題: 二つの再帰関数[forallb]、[existsb]を定義しなさい。[forallb]は、リストの全ての要素が与えられた条件を満たしているかどうかを返します。
 [[
       forallb oddb [1,3,5,7,9] = true
@@ -1274,7 +1274,7 @@ End MumbleBaz.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** 練習問題: 星二つ, optional (index_informal) *)
+(** **** 練習問題: ★★, optional (index_informal) *)
 (** [index]関数の定義を思い出してください。
 [[
    Fixpoint index {X : Type} (n : nat) (l : list X) : option X :=
