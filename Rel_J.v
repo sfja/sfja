@@ -340,9 +340,8 @@ Proof.
     smallest relation that contains [R] and that is both reflexive and
     transitive.  Formally, it is defined like this in the Relations
     module of the Coq standard library: *)
-(** * 関係[R]の反射推移閉包とは、[R]を含み反射性と推移性の両者を満たす
-      最小の関係のことです。フォーマルには、Coq標準ライブラリのRelationモジュール
-      で、以下のように定義されます。*)
+(** 関係[R]の反射推移閉包とは、[R]を含み反射性と推移性の両者を満たす
+    最小の関係のことです。フォーマルには、Coq標準ライブラリのRelationモジュールで、以下のように定義されます。*)
 
 Inductive clos_refl_trans {A: Type} (R: relation A) : relation A :=
     | rt_step : forall x y, R x y -> clos_refl_trans R x y
