@@ -175,10 +175,10 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
      (preserved_by_S P) ->
      (true_for_all_numbers P).
 
-(* ##################################################### *)
-(** * Evidence *)
+(* * Evidence *)
+(** * 根拠 *)
 
-(** We've seen that well-formed expressions of type [Prop] can
+(* We've seen that well-formed expressions of type [Prop] can
     embody both provable and unprovable propositions.  Naturally,
     we're particularly interested in the provable ones.  When [P] is a
     proposition and [e] is a proof of [P] -- i.e., [e] is evidence
@@ -187,14 +187,23 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     that there is a fundamental and fruitful analogy between data
     values inhabiting types and evidence "inhabiting" propositions. *)
 
-(** The next question is "what are proofs?" -- i.e., what sorts of
+(** [Prop]型として妥当な式には証明可能な命題も証明不能な命題もあることを見てきました。
+    当然、証明可能なものには強い興味があります。
+    [P]が命題であり[e]が[P]の証明である場合、すなわち[e]がPが真であるという根拠である場合、"[e : P]"と書きます。
+    "型を持っている"や"属してる"を表わす記法とかぶっているのはたまたまではありません。
+     型に属する値と命題に"属する"根拠の間には根本的で有益な類似性があることを見ていきます。 *)
+
+(* The next question is "what are proofs?" -- i.e., what sorts of
     things would we be willing to accept as evidence that particular
     propositions are true? *)
+(** 次の疑問は"証明とはなにか?"です。
+    すなわち、ある命題が真であるという根拠として使えるものは、どようなものでしょうか? *)
 
 (* ##################################################### *)
-(** ** Inductively Defined Propositions *)
+(* ** Inductively Defined Propositions *)
+(** ** 帰納的に定義された命題 *)
 
-(** The answer, of course, depends on the form of the
+(* The answer, of course, depends on the form of the
     proposition -- evidence for implication propositions ([P->Q]) is
     different from evidence for conjunctions ([P/\Q]), etc.  In this
     chapter and the next, we'll address a number of specific cases.
@@ -211,11 +220,22 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     [d] is either [saturday] or [sunday].  The following declaration
     achieves this: *)
 
+(** もちろん、その答は命題の形に依存します。
+    例えば、含意の命題[P->Q]に対する根拠と連言の命題[P/\Q]に対する根拠は異なります。
+    この章では次に、たくさんの具体的な例を示します。
+
+    まずは、不可分( _atomic_ )な命題を考えましょう。
+    それは私達が使っている論理には組み込むのではなく、特定のドメインに有用な概念を導入するものです。
+    例えば、Basic_J.v で [day] 型を定義したので、[saturday] と [sunday] は"良い"日であるといったような、特定の日に対して何らかの概念を思い浮かべるかもしれません。
+    良い日に関する定理を宣言し証明したい場合は、"良い"とはどういう意味かをCoqに教えなければなりません。
+    ある日[d]が良い(すなわち[d]が[saturday]か[sunday]である)とする根拠として何を使うかを決める必要があります。
+    これをするためには次のように宣言します。 *)
+
 Inductive good_day : day -> Prop :=
   | gd_sat : good_day saturday
   | gd_sun : good_day sunday.
 
-(** The [Inductive] keyword means exactly the same thing whether
+(* The [Inductive] keyword means exactly the same thing whether
     we are using it to define sets of data values (in the [Type]
     world) or sets of evidence (in the [Prop] world).  Consider the
     parts of the definition above:
@@ -228,22 +248,35 @@ Inductive good_day : day -> Prop :=
 
     - The third line declares that the constructor [gd_sun] can be
       taken as evidence for the assertion [good_day sunday]. *)
+(** [Inductive] キーワードは、データ値を集合を定義する場合([Type]の世界)であっても根拠の集合を定義する場合([Prop]の世界)であってもまったく同じ意味です。
+    上記の定義の意味はそれぞれ次のような意味になっています:
 
-(** That is, we're _defining_ what we mean by days being good by
+    - 最初の行は[good_day]は日によってインデックスされた命題であることを宣言しています。
+
+    - 二行目は[gd_sat]コンストラクタは[good_day saturday]という表明への根拠として使えることを宣言しています。
+
+    - 三行目は[gd_sun]コンストラクタは[good_day sunday]という表明への根拠として使えることを宣言しています。
+*)
+
+(* That is, we're _defining_ what we mean by days being good by
     saying "Saturday is good, sunday is good, and that's all."  Then
     someone can _prove_ that Sunday is good simply by observing that
     we said it was when we defined what [good_day] meant. *)
+(** 言い換えると、ある日が良いとは"土曜日は良い、日曜日は良い、それだけだ"と言うことで定義しています。
+    なので、日曜日が良いということを証明したいときは、[good_day]の意味を定義したときにそう言っていたかを調べるだけで済みます。 *)
 
 Theorem gds : good_day sunday.
 Proof. apply gd_sun. Qed.
 
-(** The constructor [gd_sun] is "primitive evidence" -- an _axiom_ --
+(* The constructor [gd_sun] is "primitive evidence" -- an _axiom_ --
     justifying the claim that Sunday is good. *)
+(** コンストラクタ[gd_sun」は、日曜日が良いという主張を正当化する"素朴(primitive)な根拠"、つまり公理です。*)
 
-(** Similarly, we can define a proposition [day_before]
+(* Similarly, we can define a proposition [day_before]
     parameterized by _two_ days, together with axioms stating that
     Monday comes before Tuesday, Tuesday before Wednesday, and so
     on. *)
+(** 同様に、月曜日は火曜日の前に来て、火曜日は水曜日の前に来て、...、ということを宣言する公理を、2つの日をパラメータとして取る命題 [day_before] として定義できます。*)
 
 Inductive day_before : day -> day -> Prop :=
   | db_tue : day_before tuesday monday
@@ -254,10 +287,11 @@ Inductive day_before : day -> day -> Prop :=
   | db_sun : day_before sunday saturday
   | db_mon : day_before monday sunday.
 
-(** The axioms that we introduce along with an inductively
+(* The axioms that we introduce along with an inductively
     defined proposition can also involve universal quantifiers.  For
-    example, it is well known that _every_ day is a fine day for
-    singing a song: *)
+    example, it is well known that every day is a fine day forsinging a song: *)
+(** 帰納的な定義による命題で導入される公理では全称記号を使うこともできます。
+    例えば、歌うためには毎日がすばらしい日であるということは有名です。 *)
 
 Inductive fine_day_for_singing : day -> Prop :=
   | fdfs_any : forall d:day, fine_day_for_singing d.
@@ -269,22 +303,34 @@ Inductive fine_day_for_singing : day -> Prop :=
 
     In particular, Wednesday is a fine day for singing. *)
 
+(** この行は、もし[d]が日ならば、[fdfs_any d]は[fine_day_for_singing d]の根拠として使えるということを宣言してます。
+    言い換えると、[d]が[fine_day_for_singing]であるという根拠を[fdfs_any]を[d]に適用することで作ることができます。
+
+    具体的には、水曜日は歌うにはすばらしい日です。
+*)
+
 Theorem fdfs_wed : fine_day_for_singing wednesday.
 Proof. apply fdfs_any. Qed.
 
-(** As always, the first line here can be read "I'm about to
+(* As always, the first line here can be read "I'm about to
     show you some evidence for the proposition [fine_day_for_singing
     wednesday], and I want to introduce the name [fdfs_wed] to refer
     to that evidence later on."  The second line then instructs Coq
     how to assemble the evidence. *)
 
-(* ##################################################### *)
-(** ** Proof Objects *)
+(** いつもどおり、最初の行は"私は命題[fine_day_for_singing wednesday]に対する根拠を示し、その根拠をあとで参照するために[fdfs_wed]という名前を導入したいと思います"と読みます。
+    二行目は、Coqにその根拠をどのように組み立てるかを指示しています。 *)
 
-(** There's another -- more primitive -- way to accomplish the
+(* ##################################################### *)
+(* ** Proof Objects *)
+(** ** 証明オブジェクト *)
+
+(* There's another -- more primitive -- way to accomplish the
     same thing: we can use a [Definition] whose left-hand side is the
     name we're introducing and whose right-hand side is the evidence
     _itself_, rather than a script for how to build it.  *)
+(** 同じことをやる、もっと素朴な別の方法があります。
+    [Definiton]の左辺を導入しようとしている名前にし、右辺を根拠の構築方法ではなく、根拠そのものにします。 *)
 
 Definition fdfs_wed' : fine_day_for_singing wednesday :=
   fdfs_any wednesday.
@@ -292,7 +338,7 @@ Definition fdfs_wed' : fine_day_for_singing wednesday :=
 Check fdfs_wed.
 Check fdfs_wed'.
 
-(** The expression [fdfs_any wednesday] can be thought of as
+(* The expression [fdfs_any wednesday] can be thought of as
     instantiating the parameterized axiom [fdfs_any] with the specific
     argument [wednesday].  Alternatively, we can think of [fdfs_any]
     as a primitive "evidence constructor" that, when applied to a
@@ -303,9 +349,17 @@ Check fdfs_wed'.
     that the constructor [nil] can be thought of as a function from
     types to empty lists with elements of that type. *)
 
+(** 式[fdfs_any wednesday]は、パラメータを受け取る公理[fdfs_any]を特定の引数[wednesday]によって具体化したものととらえることができます。
+    別の見方として、[fdfs_any]を素朴な"根拠コンストラクタ"として捉えることもできます。この根拠コンストラクタは、特定の日を適用されると、その日が歌うのがよい日である根拠を表します。
+    型 [forall d:day, fine_day_for_singing d] はこの機能を表しています。
+    これは、前章で登場した多相型 [forall X, list X] において [nil] コンストラクタが型からその型を持つ空リストを返す関数であったことと同様です。 *)
+
 (** Let's take a slightly more interesting example.  Let's say
     that a day of the week is "ok" if either (1) it is a good day or
     else (2) it falls the day before an ok day. *)
+
+(** もうちょっと面白い例を見てみましょう。
+    "OK"な日とは(1)良い日であるか(2)OKな日の前日であるとしましょう。*)
 
 Inductive ok_day : day -> Prop :=
   | okd_gd : forall d,
@@ -316,16 +370,22 @@ Inductive ok_day : day -> Prop :=
       day_before d2 d1 ->
       ok_day d1.
 
-(** The first constructor can be read "One way to show that [d]
+(* The first constructor can be read "One way to show that [d]
     is an ok day is to present evidence that [d] is good."  The second
     can be read, "Another way to show that a day [d1] is ok is to
     present evidence that it is the day before some other day [d2]
     together with evidence that [d2] is ok." *)
+(** 最初のコンストラクタは"[d]がOKな日であることを示す一つ目の方法は、[d]が良い日であるという根拠を示すことである"と読みます。
+    二番目のは"[d1]がOKであることを示す別の方法は、その日が別の日 [d2] の前日であり、[d2]がOKであるという根拠を示すことである"と読みます。 *)
 
-(** Now suppose that we want to prove that [wednesday] is ok.
+(* Now suppose that we want to prove that [wednesday] is ok.
     There are two ways to do it.  First, we have the primitive way,
     where we simply write down an expression that has the right
     type -- a big nested application of constructors: *)
+(** ここで[wednesday]がOKであることを証明したいとしましょう。
+    証明するには2つの方法があります
+    1つめは素朴な方法であり、コンストラクタの適用を何度もネストすることで、
+    正しい型を持つ式を書き下します。 *)
 
 Definition okdw : ok_day wednesday :=
   okd_before wednesday thursday
@@ -336,9 +396,10 @@ Definition okdw : ok_day wednesday :=
        db_fri)
     db_thu.
 
-(** Second, we have the machine-assisted way, where we go into [Proof]
+(* Second, we have the machine-assisted way, where we go into [Proof]
     mode and Coq guides us through a series of goals and subgoals
     until it is finally satisfied: *)
+(** 2つめの方法は、機械に支援してもらう方法です。証明モードに入り、最終的に満たされるまでゴールやサブゴールを通してCoqに案内してもらいます。 *)
 
 Theorem okdw' : ok_day wednesday.
 Proof.
@@ -360,10 +421,13 @@ Proof.
   (* "subgoal: show that the day before thursday is wednesday". *)
   apply db_thu. Qed.
 
-(** Fundamentally, though, these two ways of making proofs are the
-    same, in the sense that what Coq is actually doing when it's
-    following the commands in a [Proof] script is _literally_
-    attempting to construct an expression with the desired type. *)
+(* Fundamentally, though, these two ways of making proofs are the
+   same, in the sense that what Coq is actually doing when it's
+   following the commands in a [Proof] script is _literally_
+   attempting to construct an expression with the desired type. *)
+(** しかし、根本的にはこの2つの証明方法は同じです。
+    証明スクリプト内のコマンドを実行するときにCoqが実際にやっていることは、目的の型を持つ式を構築しようとしてるときとまったく同じ意味です。
+*)
 
 Print okdw'.
 (* ===> okdw' = okd_before wednesday thursday
@@ -374,9 +438,10 @@ Print okdw'.
                   db_thu
               : ok_day wednesday *)
 
-(** These expressions are often called _proof objects_. *)
+(* These expressions are often called _proof objects_. *)
+(** この式は証明オブエジェクト(Proof object)と呼ばれることが多いです。  *)
 
-(** Proof objects are the bedrock of Coq.  Tactic proofs are
+(* Proof objects are the bedrock of Coq.  Tactic proofs are
     essentially _programs_ that instruct Coq how to construct proof
     objects for us instead of our writing them out explicitly.  Here,
     of course, the proof object is actually shorter than the tactic
@@ -385,31 +450,53 @@ Print okdw'.
     painful.  Moreover, we'll see later on in the course that Coq has
     a number of automation tactics that can construct quite complex
     proof objects without our needing to specify every step. *)
+(** 証明オジェクトはCoqの基本的な部分です。
+    タクティックによる証明は、自分で証明オブジェクトを書く代わりに、証明オブジェクトを構築する方法をCoqに指示する基本的なプログラムです。
+    もちろん、この例では証明オブジェクトはタクティックによる証明よりも短くなっています。
+    しかし、もっと興味深い証明では証明オブジェクトは手で構築することが苦痛に思えるほど大きく複雑になります。
+    さらに、あとの章では、各ステップを書くことなく複雑な証明オブジェクトを構築できる自動化されたタクティックをたくさん紹介します。 *)
 
 (* ##################################################### *)
-(** ** The Curry-Howard Correspondence *)
+(* ** The Curry-Howard Correspondence *)
+(** ** カリー・ハワード対応 *)
 
-(** The analogy
+(* The analogy
 <<
                  propositions  ~  sets / types
                  proofs        ~  data values
 >>
     is called the _Curry-Howard correspondence_ (or _Curry-Howard
     isomorphism_).  Many wonderful things follow from it. *)
+(** この
+<<
+                 propositions  ~  sets / types
+                 proofs        ~  data values
+>>
+    という類似性は、カリー・ハワード対応(もしくはカリー・ハワード同型, Curry-Howard correspondence, Curry-Howard isomorphism)と呼ばれます。
+    これにより多くのおもしろい性質が導けます。
+*)
 
-(** Just as a set can be empty, a singleton, finite, or infinite -- it
+(* Just as a set can be empty, a singleton, finite, or infinite -- it
     can have zero, one, or many inhabitants -- a proposition may be
     inhabited by zero, one, many, or infinitely many proofs.  Each
     inhabitant of a proposition [P] is a different way of giving
     evidence for [P].  If there are none, then [P] is not provable.
     If there are many, then [P] has many different proofs. *)
+(** 集合に空集合、単集合、有限集合、無限集合があり、それぞれが0個、個1、多数の元を持っているように、命題も0個、1個、多数、無限の証明を持ちえます。
+    命題[P]の各要素は、それぞれ異なる[P]の根拠です。
+    もし要素がないならば、[P]は証明不能です。
+    もしたくさんの要素あるならば、[P]には多数の異なった証明があります。 *)
 
 (* ##################################################### *)
-(** ** Implication *)
+(* ** Implication *)
+(** ** 含意 *)
 
-(** We've seen that the [->] operator (implication) builds bigger
+(* We've seen that the [->] operator (implication) builds bigger
     propositions from smaller ones.  What constitutes evidence for
     propositions built in this way?  Consider this statement: *)
+(** これまで[->]演算子(含意)を小さい命題から大きな命題を作るために使ってきました。
+    このような命題に対する根拠はどのようになるでしょうか?
+    次の文を考えてみてください。 *)
 
 Definition okd_before2 := forall d1 d2 d3,
   ok_day d3 ->
@@ -417,20 +504,25 @@ Definition okd_before2 := forall d1 d2 d3,
   day_before d3 d2 ->
   ok_day d1.
 
-(** In English: if we have three days, [d1] which is before [d2]
+(* In English: if we have three days, [d1] which is before [d2]
     which is before [d3], and if we know [d3] is ok, then so is
     [d1].
 
     It should be easy to see how we'd construct a tactic proof of
     [okd_before2]... *)
 
-(** **** Exercise: 1 star, optional (okd_before2_valid) *)
+(** 日本語にすると、 もし3つの日があるとして、[d1]が[d2]の前日であり、[d2]が[d3]の前日であり、かつ[d3]がOKであるということがわかっているならば、[d1]もOKである、という意味になります。
+
+    [okd_before2]をタクティッックを使って証明するのは簡単なはずです... *)
+
+(* **** Exercise: 1 star, optional (okd_before2_valid) *)
+(** **** 練習問題: ★, optional (okd_before2_valid) *)
 Theorem okd_before2_valid : okd_before2.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** But what should the corresponding proof object look like?
+(* But what should the corresponding proof object look like?
 
     Answer: We've made a notational pun between [->] as implication
     and [->] as the type of functions.  If we take this pun seriously,
@@ -440,6 +532,14 @@ Proof.
     arguments (three days and three pieces of evidence) and returns a
     piece of evidence!  Here it is: *)
 
+(** ところで、対応する証明オブエジェクトはどんな感じでしょうか?
+
+    答: 含意としての[->]と、関数の型の[->]の記法はそっくりです。
+    これをまじめに捉えると、[forall d1 d2 d3, ok_day d3 -> day_before d2 d1 -> day_before d3 d2 -> ok_day d1]という型をもった式を見付ける必要があります。
+    なので探すものは6個の引数(3つの日と、3個の根拠)を受け取り、1個の根拠を返す関数です!
+    それはこんな感じです。
+*)
+
 Definition okd_before2_valid' : okd_before2 :=
   fun (d1 d2 d3 : day) =>
   fun (H : ok_day d3) =>
@@ -447,8 +547,10 @@ Definition okd_before2_valid' : okd_before2 :=
   fun (H1 : day_before d3 d2) =>
   okd_before d1 d2 (okd_before d2 d3 H H1) H0.
 
-(** **** Exercise: 1 star, optional (okd_before2_valid_defn) *)
-(** Predict what Coq will print in response to this: *)
+(* **** Exercise: 1 star, optional (okd_before2_valid_defn) *)
+(** **** 練習問題: ★, optional (okd_before2_valid_defn) *)
+(* Predict what Coq will print in response to this: *)
+(** 下記の結果としてCoqが出力するものを予測しなさい。 *)
 
 Print okd_before2_valid.
 
