@@ -166,8 +166,9 @@ Proof.
 (** We can also prove [lt_trans] more laboriously by induction,
     without using le_trans.  Do this.*)
 (** **** 練習問題:星二つ, オプショナル *)
-(** [lt_trans] は、帰納法を使うと、(手間はかかるが)le_trans を使わずに証明することができる。
+(** [lt_trans] は、帰納法を使って手間をかければ、le_trans を使わずに証明することができます。
     これをやってみなさい。*)
+
 
 Theorem lt_trans' :
   transitive lt.
