@@ -1,35 +1,27 @@
-(** * Prop: Propositions and Evidence *)
+(** * Prop: 命題とエビデンス *)
 
 (* $Date: 2011-06-27 09:22:51 -0400 (Mon, 27 Jun 2011) $ *)
 
-(** "_Algorithms are the computational content of proofs_." (Robert
-    Harper) *)
+(** "アルゴリズムは計算可能な証明である。"(Robert Harper) *)
 
 Require Export Poly_J.
 
 (* ##################################################### *)
 (* ##################################################### *)
-(** * Programming with Propositions *)
+(** * 命題によるプログラミング *)
 
-(** _Note to readers_: Some of the concepts in this chapter may
-    seem quite abstract on a first encounter.  We've included a _lot_
-    of exercises, most of which should be quite approachable even if
-    you're still working on understanding the details of the text.
-    Try to work as many of them as you can, especially the one-starred
-    exercises. *)
+(** 読者への注意: この章で紹介するコンセプトは最初に見たときは、抽象的すぎるように思えるかもしれません。
+    たくさんの練習問題が用意してあり、テキストの詳細を理解してる途中であっても大部分は解けるはずです。
+    できるかぎり多くの問題を、特に星一つの問題は解くようにしてください。 *)
 
-(** So far, the only statements we have been able to state and
-    prove have been in the form of _equalities_.  However, the
-    language of mathematical statements and proofs is much richer than
-    this!  In this chapter we will take a much closer and more
-    fundamental look at the sorts of mathematical statements
-    (_propositions_) we can make in Coq, and how we go about proving
-    them by providing logical _evidence_. *)
+(** ここまでは宣言したり証明した文は等価性の形をしたものだけでした。
+    しかし、数学で用いられる文や証明はもっとリッチです。
+    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類とその証明を論理的なエビデンス(_evidence_)を与えることでどのように行なうかをもっと近くでもっと根本的な部分を見ていきましょう。
+*)
 
-(** A _proposition_ is a statement expressing a factual claim,
-    like "two plus two equals four."  In Coq, propositions are written
-    as expressions of type [Prop].  Although we haven't mentioned it
-    explicitly, we have already seen numerous examples. *)
+(** 命題( _proposition_ )は"2足す2は4と等しい"のような事実に基づく主張を表現するための文です。
+    Coqにおいて命題は[Prop]型の式として書かれます。
+    これまでそれについて明確にしたことはありませんが、すでに多くの例を見ています。 *)
 
 Check (2 + 2 = 4).
 (* ===> 2 + 2 = 4 : Prop *)
