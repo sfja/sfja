@@ -83,7 +83,7 @@ Definition strange_prop2 :=
     n = true]." *)
 (** 最後に、パラメータ化された命題(_parameterized proposition_)の定義を紹介します。
     例えば、"数値nが偶数である"という主張はどのようになるでしょうか？
-    偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数のとき、かつそのときに限り[evenb n = true]である"が考えられます。 *)
+    偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数であることと[evenb n = true]は同値である"が考えられます。 *)
 
 Definition even (n:nat) : Prop :=
   evenb n = true.
