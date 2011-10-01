@@ -147,22 +147,28 @@ Definition true_for_n__true_for_Sn (P:nat->Prop) (n:nat) : Prop :=
     propositions as arguments to a function.  The first makes the
     claim that a whenever a proposition [P] is true for some natural
     number [n'], it is also true by the successor of [n']: *)
-(** ここれパラメータ化された
+(** パラメータ化された命題を引数として渡す関数をさらに2つ紹介します。
+    1つ目は、ある自然数[n']について[P]が真ならば常に[n']の次の数でも[P]が真であることを述べています。
 *)
 
 Definition preserved_by_S (P:nat->Prop) : Prop :=
   forall n', P n' -> P (S n').
 
-(** And this one simply claims that a proposition is true for
+(* And this one simply claims that a proposition is true for
     all natural numbers: *)
+(** そして次のは、すべての自然数について命題が真であることを述べています。 *)
 
 Definition true_for_all_numbers (P:nat->Prop) : Prop :=
   forall n, P n.
 
-(** We can put these pieces together to manually restate the
+(* We can put these pieces together to manually restate the
     principle of induction for natural numbers.  Given a parameterized
     proposition [P], if [P] is true for [0], and [P (S n')] is true
     whenever [P n'] is, then [P] is true for all natural numbers. *)
+
+(** これらを一つにまとめることで、自然数に関する帰納法の原理を自分で再宣言できます。
+    パラメータ化された命題[P]が与えられた場合、[0]についてPが真であり、[P n']が真のとき[P (S n')]が真であるならば、すべての自然数について[P]は真である。
+*)
 
 Definition our_nat_induction (P:nat->Prop) : Prop :=
      (true_for_zero P) ->
