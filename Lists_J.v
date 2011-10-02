@@ -131,12 +131,7 @@ Notation "x + y" := (plus x y)
 ]]
    このように定義された[+]演算子は、::よりも強い結びつきを持つことになります。このため [1 + 2 :: [3]]という式は[1 + (2 :: [3])]ではなく[(1 + 2) :: [3]]と解釈されるでしょう。
 
-   (訳注：この段落はHTML版では意味をなさないので割愛：By the way, it's worth noting in passing that expressions like "[1
-   + 2 :: [3]]" can be a little confusing when you read them in a .v
-   file.  The inner brackets, around 3, indicate a list, but the outer
-   brackets are there to instruct the "coqdoc" tool that the bracketed
-   part should be displayed as Coq code rather than running text.
-   These brackets don't appear in the generated HTML.)
+    (ところで、あなたがもし拡張子[.v]のファイルを直接読んでいるなら、"[1 + 2 :: [3]]" といういささか冗長な表現に少し戸惑っているかもしれません。3を囲んでいる内側の大括弧は、それがリストであることを示しています。しかし、外側の大括弧はcoqdocというツールに対して、「これは文章ではなく、プログラムの一部である」ということを示すために付けられているものです。この外側の大括弧は、HTML版に変換される際に消し去られます。)
 
 上に挙げた[Notation]定義の2番目と3番目のものは、リストの標準的な書き方を示しています。3行目の右側はnまでの配列をCoqの文法で表しており、これは引数二つのコンストラクタ[cons]のネストした列に変換されます。 *)
 
