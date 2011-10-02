@@ -217,8 +217,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(* 関係が同値関係(_equivalence_)であるとは、その関係が、
-   反射的、対称的、かつ推移的であることです。 *)
+(** 関係が同値関係(_equivalence_)であるとは、その関係が、
+    反射的、対称的、かつ推移的であることです。 *)
 
 Definition equivalence {X:Type} (R: relation X) :=
   (reflexive R) /\ (symmetric R) /\ (transitive R).
@@ -230,7 +230,7 @@ Definition equivalence {X:Type} (R: relation X) :=
 Definition order {X:Type} (R: relation X) :=
   (reflexive R) /\ (antisymmetric R) /\ (transitive R).
 
-(* 前順序(preorder)とは、半順序の条件から反対称性を除いたものです。*)
+(** 前順序(preorder)とは、半順序の条件から反対称性を除いたものです。*)
 
 Definition preorder {X:Type} (R: relation X) :=
   (reflexive R) /\ (transitive R).
@@ -340,4 +340,3 @@ Theorem rtc_rsc_coincide :
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
-
