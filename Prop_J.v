@@ -555,14 +555,20 @@ Definition okd_before2_valid' : okd_before2 :=
 Print okd_before2_valid.
 
 (* ##################################################### *)
-(** ** Induction Principles for Inductively Defined Types *)
+(* ** Induction Principles for Inductively Defined Types *)
+(** ** 帰納的に定義された型に対する帰納法の原理 *)
 
-(** Every time we declare a new [Inductive] datatype, Coq
+(* Every time we declare a new [Inductive] datatype, Coq
     automatically generates an axiom that embodies an _induction
     principle_ for this type.
 
     The induction principle for a type [t] is called [t_ind].  Here is
     the one for natural numbers: *)
+
+(** [Inductive]でデータ型を新たに定義するたびに、Coqは帰納法の原理に対応する公理を自動生成します。
+
+    型[t]に対応する帰納法の原理は[t_ind]という名前になります。
+    ここでは自然数に対するものを示します。 *)
 
 Check nat_ind.
 (*  ===> nat_ind : forall P : nat -> Prop,
@@ -570,15 +576,19 @@ Check nat_ind.
                       (forall n : nat, P n -> P (S n))  ->
                       forall n : nat, P n  *)
 
-(** Note that this is exactly the [our_nat_induction] property from
+(* Note that this is exactly the [our_nat_induction] property from
     above. *)
+(** これは先ほど定義した[our_nat_induction]性質とまったく同じであることに注意してください。 *)
 
-(** The [induction] tactic is a straightforward wrapper that, at
+(* The [induction] tactic is a straightforward wrapper that, at
     its core, simply performs [apply t_ind].  To see this more
     clearly, let's experiment a little with using [apply nat_ind]
     directly, instead of the [induction] tactic, to carry out some
     proofs.  Here, for example, is an alternate proof of a theorem
     that we saw in the [Basics] chapter. *)
+(** [induction]タクティックは、基本的には[apply t_ind]の単純なラッパーです。
+    もっとわかりやすくするために、[induction]タクティックのかわりに[apply nat_ind]を使っていくつかの証明をしてみる実験をしてみましょう。
+    例えば、[Basics_J]の章で見た定理の別の証明を見てみましょう。 *)
 
 Theorem mult_0_r' : forall n:nat,
   n * 0 = 0.
@@ -588,7 +598,7 @@ Proof.
   Case "S". simpl. intros n IHn. rewrite -> IHn.
     reflexivity.  Qed.
 
-(** This proof is basically the same as the earlier one, but a
+(* This proof is basically the same as the earlier one, but a
     few minor differences are worth noting.  First, in the induction
     step of the proof (the ["S"] case), we have to do a little
     bookkeeping manually (the [intros]) that [induction] does
@@ -614,9 +624,24 @@ Proof.
     principles like [nat_ind] directly.  But it is important to
     realize that, modulo this little bit of bookkeeping, applying
     [nat_ind] is what we are really doing. *)
+(** この証明は基本的には前述のものと同じですが、細かい点で特筆すべき違いがあります。
+    1つめは、帰納段階の証明(["S"]の場合)において、[induction]が自動でやってくれること([intros])を手作業で行なう必要があります。
 
-(** **** Exercise: 2 stars (plus_one_r') *)
-(** Complete this proof without using the [induction] tactic. *)
+    2つめは、[nat_ind]を適用する前にコンテキストに[n]を導入していません。
+    [nat_ind]の結論は限量子を含む式であり、[apply]で使うためにはこの結論と限量子を含んだゴールの形とぴったりと一致する必要があります。
+    [induction]タクティックはコンテキストにある変数にもゴール内の量子化された変数のどちらにでも使えます。
+
+    3つめは、[appl]タクティックは変数名(この場合はサブゴール内で使われる変数名)を自動で選びますが、[induction]は([as ...]節によって)使う名前を指定できます。
+    実際には、この自動選択にはちょっと不都合な点があります。元の定理の[n]とは別の変数として[n]を再利用してしまいます。
+    これは[Case]注釈がただの[S]だからです。
+    ほかの証明で使ってきたように省略しない形で書くと、これは[n = S n]という意味のなさない形になります。
+    このような便利な点があるため、実際には[nat_ind]のような帰納法の原理を直接適用するよりも[induction]を使ったほうがよいでしょう。
+    しかし、ちょっとした例外を除けば実際にやりたいのは[nat_ind]の適用であるということを知っておくのは重要です。 *)
+
+(* **** Exercise: 2 stars (plus_one_r') *)
+(** **** 練習問題: ★★  (plus_one_r') *)
+(* Complete this proof without using the [induction] tactic. *)
+(** [induction]タクティックを使わずに、下記の証明を完成させなさい。 *)
 
 Theorem plus_one_r' : forall n:nat,
   n + 1 = S n.
@@ -624,7 +649,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** The induction principles that Coq generates for other
+(* The induction principles that Coq generates for other
     datatypes defined with [Inductive] follow a similar pattern. If we
     define a type [t] with constructors [c1] ... [cn], Coq generates a
     theorem with this shape:
@@ -641,6 +666,21 @@ Proof.
     corresponding constructor.  Before trying to write down a general
     rule, let's look at some more examples. First, an example where
     the constructors take no arguments: *)
+(** ほかの[Inductive]によって定義されたデータ型に対しても、Coqは似た形の帰納法の原理を生成します。
+    コンストラクタ[c1] ... [cn]を持った型[t]を定義すると、Coqは次の形の定理を生成します。
+[[
+    t_ind :
+       forall P : t -> Prop,
+            ... c1の場合 ... ->
+            ... c2の場合 ... ->
+            ...                 ->
+            ... cnの場合 ... ->
+            forall n : t, P n
+]]
+    各場合分けの形は、対応するコンストラクタの引数の数によって決まります。
+    一般的な規則を紹介する前に、もっと例を見てみましょう。
+    最初は、コンストラクタが引数を取らない場合です。
+*)
 
 Inductive yesno : Type :=
   | yes : yesno
@@ -652,10 +692,13 @@ Check yesno_ind.
                       P no  ->
                       forall y : yesno, P y *)
 
-(** **** Exercise: 1 star (rgb) *)
-(** Write out the induction principle that Coq will generate for
+(* **** Exercise: 1 star (rgb) *)
+(** **** 練習問題: ★ (rgb) *)
+(* Write out the induction principle that Coq will generate for
     the following datatype.  Write down your answer on paper, and
     then compare it with what Coq prints. *)
+(** 次のデータ型に対してCoqが生成する帰納法の原理を予測しなさい。
+    紙に答えを書いたのち、Coqの出力と比較しなさい。 *)
 
 Inductive rgb : Type :=
   | red : rgb
@@ -664,8 +707,9 @@ Inductive rgb : Type :=
 Check rgb_ind.
 (** [] *)
 
-(** Here's another example, this time with one of the constructors
+(* Here's another example, this time with one of the constructors
     taking some arguments. *)
+(** 別の例を見てみましょう。引数を受け取るコンストラクタがある場合です。 *)
 
 Inductive natlist : Type :=
   | nnil : natlist
@@ -679,18 +723,21 @@ Check natlist_ind.
          (forall (n : nat) (l : natlist), P l -> P (ncons n l)) ->
          forall n : natlist, P n *)
 
-(** **** Exercise: 1 star (natlist1) *)
-(** Suppose we had written the above definition a little
+(* **** Exercise: 1 star (natlist1) *)
+(** **** 練習問題: ★ (natlist1) *)
+(* Suppose we had written the above definition a little
    differently: *)
+(** 上記の定義をすこし変えたとしましょう。 *)
 
 Inductive natlist1 : Type :=
   | nnil1 : natlist1
   | nsnoc1 : natlist1 -> nat -> natlist1.
 
-(** Now what will the induction principle look like? *)
+(* Now what will the induction principle look like? *)
+(** このとき、帰納法の原理はどのようになるでしょうか? *)
 (** [] *)
 
-(** From these examples, we can extract this general rule:
+(* From these examples, we can extract this general rule:
 
     - The type declaration gives several constructors; each
       corresponds to one clause of the induction principle.
@@ -703,8 +750,18 @@ Inductive natlist1 : Type :=
            [P] holds for each of the [x]s of type [t], then [P]
            holds for [c x1 ... xn]". *)
 
-(** **** Exercise: 1 star (ExSet) *)
-(** Here is an induction principle for an inductively defined
+(** これらの例より、一般的な規則を導くことができます。
+
+    - 型宣言は複数のコンストラクタを持ち、各コンストラクタが帰納法の原理の各節に対応する。
+    - 各コンストラクタ[c]は引数[a1]..[an]を取る。
+    - [ai]は[t](定義しようとしているデータ型)、もしくは別の型[s]かのどちらかである。
+    - 帰納法の原理において各節は以下のことを述べている。
+        - "型[a1]...[an]のすべての値[x1]...[xn]について、各[x]について[P]が成り立つならば、[c x1 ... xn]についても[P]が成り立つ"
+*)
+
+(* **** Exercise: 1 star (ExSet) *)
+(** **** 練習問題: ★ (ExSet) *)
+(* Here is an induction principle for an inductively defined
     set.
 [[
       ExSet_ind :
@@ -714,6 +771,15 @@ Inductive natlist1 : Type :=
              forall e : ExSet, P e
 ]]
     Give an [Inductive] definition of [ExSet]: *)
+(** 帰納的に定義された集合に対する帰納法の原理が次のようなものだとします。
+[[
+      ExSet_ind :
+         forall P : ExSet -> Prop,
+             (forall b : bool, P (con1 b)) ->
+             (forall (n : nat) (e : ExSet), P e -> P (con2 n e)) ->
+             forall e : ExSet, P e
+]]
+    [ExSet]の帰納的な定義を示しなさい。 *)
 
 Inductive ExSet : Type :=
   (* FILL IN HERE *)
@@ -721,7 +787,7 @@ Inductive ExSet : Type :=
 
 (** [] *)
 
-(** What about polymorphic datatypes?
+(* What about polymorphic datatypes?
 
     The inductive definition of polymorphic lists
 [[
@@ -748,10 +814,35 @@ Inductive ExSet : Type :=
    applied to a type [X], gives us back an induction principle
    specialized to the type [list X]. *)
 
-(** **** Exercise: 1 star (tree) *)
-(** Write out the induction principle that Coq will generate for
+(** 多相的なデータ型ではどのようになるでしょうか?
+
+    多相的なリストの帰納的定義は[natlist]によく似ています。
+[[
+      Inductive list (X:Type) : Type :=
+        | nil : list X
+        | cons : X -> list X -> list X.
+]]
+     ここでの主な違いは、定義全体が集合[X]によってパラメータ化されていることです。
+     つまり、それぞれの[X]ごとに帰納型[list X]を定義していることになります。
+     (定義本体で[list]が登場するときは、常にパラメータ[X]に適用されていることに注意してください。)
+     帰納法の原理も同様に[X]によってパラメータ化されています。
+[[
+     list_ind :
+       forall (X : Type) (P : list X -> Prop),
+          P [] ->
+          (forall (x : X) (l : list X), P l -> P (x :: l)) ->
+          forall l : list X, P l
+]]
+   この言い回し(と[list_ind]の形)に注意してください。
+   言い換えると、[list_ind]は多相関数を考えることができます。この関数は、型[X]が適用されると、[list X]に特化した帰納法の原理が返ります。 *)
+
+(* **** Exercise: 1 star (tree) *)
+(** **** 練習問題: ★ (tree) *)
+(* Write out the induction principle that Coq will generate for
    the following datatype.  Compare your answer with what Coq
    prints. *)
+(** 次のデータ型に対してCoqが生成する帰納法の原理を予測しなさい。
+    Coqの出力と比較しなさい。 *)
 
 Inductive tree (X:Type) : Type :=
   | leaf : X -> tree X
@@ -760,8 +851,19 @@ Check tree_ind.
 (** [] *)
 
 (** **** Exercise: 1 star (mytype) *)
-(** Find an inductive definition that gives rise to the
+(* Find an inductive definition that gives rise to the
     following induction principle:
+[[
+      mytype_ind :
+        forall (X : Type) (P : mytype X -> Prop),
+            (forall x : X, P (constr1 X x)) ->
+            (forall n : nat, P (constr2 X n)) ->
+            (forall m : mytype X, P m ->
+               forall n : nat, P (constr3 X m n)) ->
+            forall m : mytype X, P m
+]]
+*)
+(** 以下の帰納法の原理を生成する帰納的定義を探しなさい。
 [[
       mytype_ind :
         forall (X : Type) (P : mytype X -> Prop),
@@ -774,9 +876,21 @@ Check tree_ind.
 *)
 (** [] *)
 
-(** **** Exercise: 1 star, optional (foo) *)
-(** Find an inductive definition that gives rise to the
+(* **** Exercise: 1 star, optional (foo) *)
+(** **** 練習問題: ★, optional (foo) *)
+(* Find an inductive definition that gives rise to the
     following induction principle:
+[[
+      foo_ind :
+        forall (X Y : Type) (P : foo X Y -> Prop),
+             (forall x : X, P (bar X Y x)) ->
+             (forall y : Y, P (baz X Y y)) ->
+             (forall f1 : nat -> foo X Y,
+               (forall n : nat, P (f1 n)) -> P (quux X Y f1)) ->
+             forall f2 : foo X Y, P f2
+]]
+*)
+(** 以下の帰納法の原理を生成する帰納的定義を探しなさい。
 [[
       foo_ind :
         forall (X Y : Type) (P : foo X Y -> Prop),
@@ -790,14 +904,27 @@ Check tree_ind.
 (** [] *)
 
 (** **** Exercise: 1 star, optional (foo') *)
-(** Consider the following inductive definition: *)
+(* Consider the following inductive definition: *)
+(** 次のような帰納的定義があるとします。 *)
 
 Inductive foo' (X:Type) : Type :=
   | C1 : list X -> foo' X -> foo' X
   | C2 : foo' X.
 
-(** What induction principle will Coq generate for [foo']?  Fill
+(* What induction principle will Coq generate for [foo']?  Fill
    in the blanks, then check your answer with Coq.)
+[[
+     foo'_ind :
+        forall (X : Type) (P : foo' X -> Prop),
+              (forall (l : list X) (f : foo' X),
+                    _______________________ ->
+                    _______________________   ) ->
+             ___________________________________________ ->
+             forall f : foo' X, ________________________
+]]
+*)
+(** [foo']に対してCoqはどのような帰納法の原理を生成するでしょうか?
+    空欄を埋め、Coqの結果と比較しなさい
 [[
      foo'_ind :
         forall (X : Type) (P : foo' X -> Prop),
