@@ -1,5 +1,5 @@
-(* * Lists: Products, Lists and Options *)
 (** * Lists_J: 直積、リスト、オプション *)
+(* * Lists: Products, Lists and Options *)
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
 
