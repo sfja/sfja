@@ -1,4 +1,4 @@
-(** * SfLib: Software Foundations Library *)
+(** * SfLib_J: Software Foundations ƒ‰ƒCƒuƒ‰ƒŠ *)
 
 (* $Date: 2011-03-14 20:08:53 -0400 (Mon, 14 Mar 2011) $ *)
 
