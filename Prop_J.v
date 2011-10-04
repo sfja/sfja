@@ -82,7 +82,7 @@ Definition strange_prop2 :=
     definition of what it means to be even is "[n] is even iff [evenb
     n = true]." *)
 (** 最後に、パラメータ化された命題(_parameterized proposition_)の定義を紹介します。
-    例えば、"数値nが偶数である"という主張はどのようになるでしょうか？
+    例えば、"数nが偶数である"という主張はどのようになるでしょうか？
     偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数であることと[evenb n = true]は同値である"が考えられます。 *)
 
 Definition even (n:nat) : Prop :=
@@ -91,7 +91,7 @@ Definition even (n:nat) : Prop :=
 (* This defines [even] as a _function_ that, when applied to a number
     [n], _yields a proposition_ asserting that [n] is even.  *)
 (** これは[even]を関数として定義します。
-    その関数は数値[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
+    その関数は数[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
 
 Check even.
 (* ===> even : nat -> Prop *)
@@ -105,9 +105,9 @@ Check (even 3).
     propositions," (2) "[even] is a _family_ of propositions, indexed
     by a number [n]," or (3) "[even] is a _property_ of numbers."  *)
 (** [even]の型 [nat->Prop]は3つの意味を持っています。
-   (1) "[even]は数値から命題への関数である。"
-   (2) "[even]は数値[n]でインデックスされた命題の集りである"。
-   (3) "[even]は数値の性質(_property_)である。" *)
+   (1) "[even]は数から命題への関数である。"
+   (2) "[even]は数[n]でインデックスされた命題の集りである"。
+   (3) "[even]は数の性質(_property_)である。" *)
 
 (* Propositions -- including parameterized propositions -- are
     first-class citizens in Coq.  We can use them in other
@@ -253,9 +253,9 @@ Inductive good_day : day -> Prop :=
 
     - 最初の行は[good_day]は日によってインデックスされた命題であることを宣言しています。
 
-    - 二行目は[gd_sat]コンストラクタは[good_day saturday]という表明への根拠として使えることを宣言しています。
+    - 二行目は[gd_sat]コンストラクタを宣言してます。このコンストラクタは[good_day saturday]という主張の根拠として使えます。
 
-    - 三行目は[gd_sun]コンストラクタは[good_day sunday]という表明への根拠として使えることを宣言しています。
+    - 三行目は[gd_sun]コンストラクタを宣言したす。このコンストラクタは[good_day sunday]という主張の根拠として使えます。
 *)
 
 (* That is, we're _defining_ what we mean by days being good by
