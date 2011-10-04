@@ -7,8 +7,9 @@
     already in the Coq standard library.  From now on we can [Import]
     or [Export] this file, instead of cluttering our environment with
     all the examples and false starts in those files. *)
+(** ここでは、Basics.v, List.v, Poly.v, Ind.v, and Logic.vの中から、使い勝手のよい定義や定理でCoqのスタンダードライブラリに含まれていないものをを集めてみました。これ以降、環境を色々な証明で散らかす代わりに、このライブラリファイルを[Import]、[Export]するだけで済むようになります。 *)
 
-(** * From the Coq Standard Library *)
+(** * Coq スタンダードライブラリから *)
 
 Require Omega.   (* needed for using the [omega] tactic *)
 Require Export Bool.
@@ -16,7 +17,7 @@ Require Export List.
 Require Export Arith.
 Require Export Arith.EqNat.  (* Contains [beq_nat], among other things *)
 
-(** * From Basics.v *)
+(** * Basics.vから *)
 
 Definition admit {T: Type} : T.  Admitted.
 
@@ -78,20 +79,20 @@ Theorem beq_nat_sym : forall (n m : nat),
 (* An exercise in Lists.v *)
 Admitted.
 
-(* From Poly.v *)
+(* Poly.vから *)
 
 Notation "[ ]" := nil.
 Notation "[ x , .. , y ]" := (cons x .. (cons y []) ..).
 Notation "x ++ y" := (app x y) 
                      (at level 60, right associativity).
 
-(** * From Props.v *)
+(** * Props.vから *)
 
 Inductive ev : nat -> Prop :=
   | ev_0 : ev O
   | ev_SS : forall n:nat, ev n -> ev (S (S n)).
 
-(** * From Logic.v *)
+(** * Logic.vから *)
 
 Theorem andb_true : forall b c,
   andb b c = true -> b = true /\ c = true.
@@ -107,7 +108,7 @@ Theorem not_eq_beq_false : forall n n' : nat,
      n <> n' ->
      beq_nat n n' = false.
 Proof. 
-(* An exercise in Logic.v *)
+(* Logic.vの練習問題 *)
 Admitted.
 
 Theorem ex_falso_quodlibet : forall (P:Prop),
@@ -119,17 +120,17 @@ Proof.
 Theorem ev_not_ev_S : forall n,
   ev n -> ~ ev (S n).
 Proof. 
-(* An exercise in Logic.v *)
+(* Logic.vの練習問題 *)
 Admitted.
 
 Theorem ble_nat_true : forall n m,
   ble_nat n m = true -> n <= m.
-(* An exercise in Logic.v *)
+(* Logic.vの練習問題 *)
 Admitted.
 
 Theorem ble_nat_false : forall n m,
   ble_nat n m = false -> ~(n <= m).
-(* An exercise in Logic.v *)
+(* Logic.vの練習問題 *)
 Admitted.
 
 Inductive appears_in (n : nat) : list nat -> Prop :=
@@ -251,7 +252,7 @@ Proof with auto.
   intros. unfold extend. destruct (beq_id x2 x1)...
 Qed.
 
-(** * Some useful tactics *)
+(** * 使い勝手のいいタクティックをいくつか *)
 
 Tactic Notation "solve_by_inversion_step" tactic(t) :=  
   match goal with  
