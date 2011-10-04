@@ -850,7 +850,8 @@ Inductive tree (X:Type) : Type :=
 Check tree_ind.
 (** [] *)
 
-(** **** Exercise: 1 star (mytype) *)
+(* **** Exercise: 1 star (mytype) *)
+(** **** 練習問題: ★ (mytype) *)
 (* Find an inductive definition that gives rise to the
     following induction principle:
 [[
@@ -903,7 +904,9 @@ Check tree_ind.
 *)
 (** [] *)
 
-(** **** Exercise: 1 star, optional (foo') *)
+(* **** Exercise: 1 star, optional (foo') *)
+(** **** 練習問題: ★, optional (foo') *)
+
 (* Consider the following inductive definition: *)
 (** 次のような帰納的定義があるとします。 *)
 
