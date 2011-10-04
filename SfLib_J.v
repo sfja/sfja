@@ -1,4 +1,4 @@
-(** * SfLib_J: Software Foundations ƒ‰ƒCƒuƒ‰ƒŠ *)
+(** * SfLib_J: Software Foundations ãƒ©ã‚¤ãƒ–ãƒ©ãƒª *)
 
 (* $Date: 2011-03-14 20:08:53 -0400 (Mon, 14 Mar 2011) $ *)
 
@@ -7,9 +7,9 @@
     already in the Coq standard library.  From now on we can [Import]
     or [Export] this file, instead of cluttering our environment with
     all the examples and false starts in those files. *)
-(** ‚±‚±‚Å‚ÍABasics.v, List.v, Poly.v, Ind.v, and Logic.v‚Ì’†‚©‚çAg‚¢Ÿè‚Ì‚æ‚¢’è‹`‚â’è—‚ÅCoq‚ÌƒXƒ^ƒ“ƒ_[ƒhƒ‰ƒCƒuƒ‰ƒŠ‚ÉŠÜ‚Ü‚ê‚Ä‚¢‚È‚¢‚à‚Ì‚ğ‚ğW‚ß‚Ä‚İ‚Ü‚µ‚½B‚±‚êˆÈ~AŠÂ‹«‚ğFX‚ÈØ–¾‚ÅU‚ç‚©‚·‘ã‚í‚è‚ÉA‚±‚Ìƒ‰ƒCƒuƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğ[Import]A[Export]‚·‚é‚¾‚¯‚ÅÏ‚Ş‚æ‚¤‚É‚È‚è‚Ü‚·B *)
+(** ã“ã“ã§ã¯ã€Basics.v, List.v, Poly.v, Ind.v, and Logic.vã®ä¸­ã‹ã‚‰ã€ä½¿ã„å‹æ‰‹ã®ã‚ˆã„å®šç¾©ã‚„å®šç†ã§Coqã®ã‚¹ã‚¿ãƒ³ãƒ€ãƒ¼ãƒ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã«å«ã¾ã‚Œã¦ã„ãªã„ã‚‚ã®ã‚’ã‚’é›†ã‚ã¦ã¿ã¾ã—ãŸã€‚ã“ã‚Œä»¥é™ã€ç’°å¢ƒã‚’è‰²ã€…ãªè¨¼æ˜ã§æ•£ã‚‰ã‹ã™ä»£ã‚ã‚Šã«ã€ã“ã®ãƒ©ã‚¤ãƒ–ãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’[Import]ã€[Export]ã™ã‚‹ã ã‘ã§æ¸ˆã‚€ã‚ˆã†ã«ãªã‚Šã¾ã™ã€‚ *)
 
-(** * Coq ƒXƒ^ƒ“ƒ_[ƒhƒ‰ƒCƒuƒ‰ƒŠ‚©‚ç *)
+(** * Coq ã‚¹ã‚¿ãƒ³ãƒ€ãƒ¼ãƒ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã‹ã‚‰ *)
 
 Require Omega.   (* needed for using the [omega] tactic *)
 Require Export Bool.
@@ -17,7 +17,7 @@ Require Export List.
 Require Export Arith.
 Require Export Arith.EqNat.  (* Contains [beq_nat], among other things *)
 
-(** * Basics.v‚©‚ç *)
+(** * Basics.vã‹ã‚‰ *)
 
 Definition admit {T: Type} : T.  Admitted.
 
@@ -79,20 +79,20 @@ Theorem beq_nat_sym : forall (n m : nat),
 (* An exercise in Lists.v *)
 Admitted.
 
-(* Poly.v‚©‚ç *)
+(* Poly.vã‹ã‚‰ *)
 
 Notation "[ ]" := nil.
 Notation "[ x , .. , y ]" := (cons x .. (cons y []) ..).
 Notation "x ++ y" := (app x y) 
                      (at level 60, right associativity).
 
-(** * Props.v‚©‚ç *)
+(** * Props.vã‹ã‚‰ *)
 
 Inductive ev : nat -> Prop :=
   | ev_0 : ev O
   | ev_SS : forall n:nat, ev n -> ev (S (S n)).
 
-(** * Logic.v‚©‚ç *)
+(** * Logic.vã‹ã‚‰ *)
 
 Theorem andb_true : forall b c,
   andb b c = true -> b = true /\ c = true.
@@ -108,7 +108,7 @@ Theorem not_eq_beq_false : forall n n' : nat,
      n <> n' ->
      beq_nat n n' = false.
 Proof. 
-(* Logic.v‚Ì—ûK–â‘è *)
+(* Logic.vã®ç·´ç¿’å•é¡Œ *)
 Admitted.
 
 Theorem ex_falso_quodlibet : forall (P:Prop),
@@ -120,17 +120,17 @@ Proof.
 Theorem ev_not_ev_S : forall n,
   ev n -> ~ ev (S n).
 Proof. 
-(* Logic.v‚Ì—ûK–â‘è *)
+(* Logic.vã®ç·´ç¿’å•é¡Œ *)
 Admitted.
 
 Theorem ble_nat_true : forall n m,
   ble_nat n m = true -> n <= m.
-(* Logic.v‚Ì—ûK–â‘è *)
+(* Logic.vã®ç·´ç¿’å•é¡Œ *)
 Admitted.
 
 Theorem ble_nat_false : forall n m,
   ble_nat n m = false -> ~(n <= m).
-(* Logic.v‚Ì—ûK–â‘è *)
+(* Logic.vã®ç·´ç¿’å•é¡Œ *)
 Admitted.
 
 Inductive appears_in (n : nat) : list nat -> Prop :=
@@ -252,7 +252,7 @@ Proof with auto.
   intros. unfold extend. destruct (beq_id x2 x1)...
 Qed.
 
-(** * g‚¢Ÿè‚Ì‚¢‚¢ƒ^ƒNƒeƒBƒbƒN‚ğ‚¢‚­‚Â‚© *)
+(** * ä½¿ã„å‹æ‰‹ã®ã„ã„ã‚¿ã‚¯ãƒ†ã‚£ãƒƒã‚¯ã‚’ã„ãã¤ã‹ *)
 
 Tactic Notation "solve_by_inversion_step" tactic(t) :=  
   match goal with  
