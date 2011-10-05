@@ -1,4 +1,4 @@
-(** * Prop: 命題と根拠 *)
+(** * Prop_J: 命題と根拠 *)
 
 (* $Date: 2011-06-27 09:22:51 -0400 (Mon, 27 Jun 2011) $ *)
 
@@ -942,9 +942,10 @@ Inductive foo' (X:Type) : Type :=
 (** [] *)
 
 (* ##################################################### *)
-(** ** Induction Hypotheses *)
+(* ** Induction Hypotheses *)
+(** ** 帰納法の仮定 *)
 
-(** Where does the phrase "induction hypothesis" fit into this
+(* Where does the phrase "induction hypothesis" fit into this
     picture?
 
     The induction principle for numbers
@@ -965,16 +966,38 @@ Inductive foo' (X:Type) : Type :=
    "[forall n, n * 0 = 0]," we can write it as "[forall n, P_m0r
    n]", where [P_m0r] is defined as... *)
 
+(** この概念において"帰納法の過程"はどこにあてはまるでしょうか?
+
+    数に関する帰納法の原理
+[[
+       forall P : nat -> Prop,
+            P 0  ->
+            (forall n : nat, P n -> P (S n))  ->
+            forall n : nat, P n
+]]
+    は、すべての命題[P](より正確にはnを引数にとる命題[P])について成り立つ一般的な文です。
+    この原理を使うときはいつも、[nat->Prop]という型を持つ式を[P]として選びます。
+
+    この式に名前を与えることで、証明をもっと明確にできます。
+    例えば、[mult_0_r]を"[forall n, n * 0 = 0]"と宣言するかわりに、"[forall n, P_m0r n]"と宣言します。
+    なお、ここで[P_m0r]は次のように定義されています。
+
+*)
+
 Definition P_m0r (n:nat) : Prop :=
   n * 0 = 0.
 
-(** ... or equivalently... *)
+(* ... or equivalently... *)
+(** あるいは *)
 
 Definition P_m0r' : nat->Prop :=
   fun n => n * 0 = 0.
 
-(** Now when we do the proof it is easier to see where [P_m0r]
+(** でも同じ意味です。 *)
+
+(* Now when we do the proof it is easier to see where [P_m0r]
     appears. *)
+(** これで、証明する際に[P_m0r]がどこに表われるかが分かりやすくなります。 *)
 
 Theorem mult_0_r'' : forall n:nat,
   P_m0r n.
@@ -986,7 +1009,7 @@ Proof.
     unfold P_m0r. simpl. intros n' IHn'.
     apply IHn'.  Qed.
 
-(** This extra naming step isn't something that we'll do in
+(* This extra naming step isn't something that we'll do in
     normal proofs, but it is useful to do it explicitly for an example
     or two, because it allows us to see exactly what the induction
     hypothesis is.  If we prove [forall n, P_m0r n] by induction on
@@ -999,10 +1022,17 @@ Proof.
     implication -- the assumption that [P] holds of [n'], which we are
     allowed to use in proving that [P] holds for [S n']. *)
 
-(* ####################################################### *)
-(** ** Evenness Again *)
+(** この名前をつける手順は通常の証明では不要です。
+    しかし、1つか2つの例で試してみると、帰納法の仮定がどのようなものなのかが分かりやすくなります。
+    [forall n, P_m0r n]を[n]による帰納法([induction]か[apply nat_ind]を使う)によって証明しようとすると、最初のサブゴールでは[P_m0r 0]("[P]が0に対して成り立つ")を証明しなければならず、2つめのサブゴールでは[forall n', P_m0r n' -> P_m0r n' (S n')]("[P]が[n']について成り立つならば,[P]が[S n']につても成り立つ"あるいは"[Pが[S]によって保存される")を証明しなければなりません。
+    帰納法の過程は、2つめの推論の基礎になっています -- [P]が[n']について成り立つことを仮定することにより、それによって[P]が[S n']について成り立つことを示すことができます。
+*)
 
-(** Some of the examples in the opening discussion of
+(* ####################################################### *)
+(* ** Evenness Again *)
+(** ** 偶数について再び *)
+
+(* Some of the examples in the opening discussion of
     propositions involved the concept of _evenness_.  We began with a
     computation [evenb n] that _checks_ evenness, yielding a boolean.
     From this, we built a proposition [even n] (defined in terms of
@@ -1015,18 +1045,32 @@ Proof.
     even if a certain computation yields [true]"), we can say directly
     what the concept of evenness means in terms of evidence. *)
 
+(** これまで命題に関して議論してきたことのいくつかは、偶数の概念に関係しています。
+    偶数を判定するために[evenb n]を計算することから始め、真偽値を返していました。
+    つぎに、[n]が偶数であることを主張する命題[even n]を([evenb]を使うことで)作りました。
+    つまり、"[n]が偶数である"を"[evenb]が[n]を適用されたときに[n]を返す"と定義していました。
+
+    偶数性の概念をそのまま定義する別の方法があります。
+    [evenb]関数("ある計算が[true]を返すなら、その数は偶数である")を使って間接的に定義するのではなく、偶数とは何を意味するかを根拠を使うことで直接定義できます。
+*)
+
 Inductive ev : nat -> Prop :=
   | ev_0 : ev O
   | ev_SS : forall n:nat, ev n -> ev (S (S n)).
 
-(** This definition says that there are two ways to give
+(* This definition says that there are two ways to give
     evidence that a number [m] is even.  First, [0] is even, and
     [ev_0] is evidence for this.  Second, if [m = S (S n)] for some
     [n] and we can give evidence [e] that [n] is even, then [m] is
     also even, and [ev_SS n e] is the evidence. *)
+(** この定義は、数[m]が偶数であるという根拠を与える方法は2つあることを示しています。
+    第一に、[0]は偶数であり、[ev_0]がこれに対する根拠です。
+    次に、適当な[n]に対して[m = S (S n)]であり、[n]が偶数であるという根拠[e]を与えることができるならば、[m]も偶数であり、[ev_SS n e]がその根拠です。 *)
 
-(** **** Exercise: 1 star, optional (four_ev) *)
-(** Give a tactic proof and a proof object showing that four is even. *)
+(* **** Exercise: 1 star, optional (four_ev) *)
+(** **** 練習問題: ★, optional (four_ev) *)
+(* Give a tactic proof and a proof object showing that four is even. *)
+(** 4が偶数であることをタクティックによる証明と証明オブジェクトによる証明で示しなさい。 *)
 
 Theorem four_ev' :
   ev 4.
@@ -1037,9 +1081,10 @@ Definition four_ev : ev 4 :=
 (** [] *)
 
 (** **** Exercise: 2 stars (ev_plus4) *)
+(** **** 練習問題: ★★ (ev_plus4) *)
 (** Give a tactic proof and a proof object showing that, if [n] is
     even, then so is [4+n]. *)
-
+(** [n]が偶数ならば[4+n]も偶数であることをタクティックによる証明と証明オブジェクトによる証明で示しなさい。 *)
 Definition ev_plus4 : forall n, ev n -> ev (4 + n) :=
   (* FILL IN HERE *) admit.
 Theorem ev_plus4' : forall n,
@@ -1048,8 +1093,10 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars (double_even) *)
-(** Construct a tactic proof of the following proposition. *)
+(* **** Exercise: 2 stars (double_even) *)
+(** **** 練習問題: ★★ (double_even) *)
+(* Construct a tactic proof of the following proposition. *)
+(** 次の命題をタクティックによって証明しなさい。 *)
 
 Theorem double_even : forall n,
   ev (double n).
@@ -1057,11 +1104,15 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (double_even_pfobj) *)
+(* **** Exercise: 4 stars, optional (double_even_pfobj) *)
+(* **** 練習問題: ★★★★, optional (double_even_pfobj) *)
 (** Try to predict what proof object is constructed by the above
     tactic proof.  (Before checking your answer, you'll want to
     strip out any uses of [Case], as these will make the proof
     object look a bit cluttered.) *)
+(** 上記のタクティックによる証明で構築されるどのような証明オブジェクトが構築されるかを予想しなさい。
+    (答を確かめる前に、[Case]を除去しましょう。 これがあると証明オブジェクトが少し見づらくなります。)
+*)
 (** [] *)
 
 (* ####################################################### *)
