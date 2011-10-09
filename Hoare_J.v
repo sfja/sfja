@@ -700,7 +700,7 @@ Proof.
     to [True] leads to a postcondition that is [False].)  And second,
     even if we could prove something similar to this, it would be
     awkward to use.  *)
-(** [Q]を算術式を添字とする表明の族として扱うことで、代入規則を Coq で直接
+(** [Q]を、算術式をインデックスとする表明の族として扱うことで、代入規則を Coq で直接
     形式化してみることもできます。例えば次のようになります。
 [[
       Theorem hoare_asgn_firsttry :
@@ -743,7 +743,7 @@ Definition assn_sub V a Q : Assertion :=
   fun (st : state) =>
     Q (update st V (aeval st a)).
 
-(** This gives us the formal proof rule for assignment:
+(* This gives us the formal proof rule for assignment:
 [[[
       ------------------------------ (hoare_asgn)
       {{assn_sub V a Q}} V::=a {{Q}}
