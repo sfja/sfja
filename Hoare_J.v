@@ -82,12 +82,12 @@ Require Export ImpList_J.
     小さなプログラミング言語 Imp の理論の学習に適用し始めています。
 
     - Imp の抽象構文木(_abstract syntax trees_)の型を定義しました。
-      また、操作的意味論(_operational semantics_)を与える
-      評価関係(_evaluation relation_)(状態間の部分関数)も定義しました。
+      また、操作的意味論(_operational semantics_)を与える評価関係
+      (_evaluation relation_)(状態間の部分関数)も定義しました。
       
-      定義した言語は小さいですが、C, C++, Java などの本格的な言語の主要な
-      機能を持っています。その中には変更可能な状態や、いくつかのよく知られた制御構造も
-      含まれます。
+      定義した言語は小さいですが、
+      C, C++, Java などの本格的な言語の主要な機能を持っています。
+      その中には変更可能な状態や、いくつかのよく知られた制御構造も含まれます。
 
     - いくつものメタ理論的性質(_metatheoretic properties_)を証明しました。
       "メタ"というのは、言語で書かれた特定のプログラムの性質ではなく言語自体の性質という意味です。
@@ -102,21 +102,22 @@ Require Export ImpList_J.
         - プログラムの動作の同値性([Equiv_J.v]のオプションの章において)
 
       もしここで止めたとしても、有用なものを持っていることになります。
-      それは、プログラミング言語と言語の特性を定義し議論する、数学的に正確で、
+      それは、プログラミング言語とその特性を定義し議論する、数学的に正確で、
       柔軟で、使いやすい、主要な性質に適合した道具立てです。
 
-      これらの性質は、言語を設計する人、コンパイラを書く人、そしてユーザも知っておく
-      べきものです。実際、その多くは我々が扱うプログラミング言語を理解する上で本当に
-      基本的なことですので、"定理"と意識することはなかったかもしれません。
-      しかし、直観的に明らかだと思っている性質はしばしばとても曖昧で、時には間違っている
-      こともあります!
+      これらの性質は、言語を設計する人、コンパイラを書く人、
+      そしてユーザも知っておくべきものです。
+      実際、その多くは我々が扱うプログラミング言語を理解する上で本当に基本的なことですので、
+      "定理"と意識することはなかったかもしれません。
+      しかし、直観的に明らかだと思っている性質はしばしばとても曖昧で、
+      時には間違っていることもあります!
 
-      この問題については、後に型(_types_)とその健全性(_type soundness_)を
-      議論する際に再度出てきます。
+      この問題については、
+      後に型(_types_)とその健全性(_type soundness_)を議論する際に再度出てきます。
 
     - プログラムの検証(_program verification_)の例を2つ行いました。
-      Imp を厳密に定義し、ある特定のプログラム(つまり階乗計算と遅い引き算)が
-      その動作についての特定の仕様を満たすことを形式的に証明するものでした。*)
+      Imp を厳密に定義し、ある特定のプログラム(つまり階乗計算と遅い引き算)
+      がその動作についての特定の仕様を満たすことを、形式的に証明するものでした。*)
 
 (* In this chapter, we'll take this last idea further.  We'll
     develop a reasoning system called _Floyd-Hoare Logic_ -- commonly,
@@ -130,15 +131,15 @@ Require Export ImpList_J.
     lies at the core of a huge variety of tools that are now being
     used to specify and verify real software systems. *)
 (** この章では、この最後の考え方をさらに進めます。
-    一般にフロイド-ホーア論理(_Floyd-Hoare Logic_)、あるいは、やや不公平に
-    省略してホーア論理(_Hoare Logic_)と呼ばれている推論システムを作ります。
+    一般にフロイド-ホーア論理(_Floyd-Hoare Logic_)、あるいは、
+    やや不公平に省略してホーア論理(_Hoare Logic_)と呼ばれている推論システムを作ります。
     この推論システムの中では、Imp の各構文要素に対して1つの一般的な"証明規則"
-    (proof rule)が与えられ、これによってその構文要素を含むプログラムについての
-    推論ができるようになっています。
+    (proof rule)が与えられ、
+    これによってその構文要素を含むプログラムについての推論ができるようになっています。
 
-    ホーア論理の起源は1960年代です。そして今現在まで継続的にさかんに研究がされています。
-    実際のソフトウェアシステムの仕様を定め検証するために使われている非常に多くのツールの、
-    核となっています。*)
+    ホーア論理の起源は1960年代です。そして今現在まで継続してさかんに研究がされています。
+    実際のソフトウェアシステムの仕様を定め検証するために使われている非常に多くのツールは、
+    ホーア論理を核としているのです。*)
 
 
 (* ####################################################### *)
@@ -151,8 +152,8 @@ Require Export ImpList_J.
     where by "compositional" we mean that the structure of proofs
     directly mirrors the structure of the programs that they are
     about. *)
-(** ホーア論理は2つの重要なことがらを提供します。プログラムの仕様(_specification_)を
-    自然に記述する方法と、その仕様が適合していることを証明する合成的証明法(_compositional
+(** ホーア論理は2つの重要なことがらを提供します。プログラムの仕様(_specification_)
+    を自然に記述する方法と、その仕様が適合していることを証明する合成的証明法(_compositional
     proof technique_)です。ここでの"合成的"(compositional)という意味は、
     証明の構造が証明対象となるプログラムの構造を直接的に反映しているということです。*)
 
@@ -164,9 +165,9 @@ Require Export ImpList_J.
     thing we'll want is a way of making _assertions_ about properties
     that hold at particular points in time -- i.e., properties that
     may or may not be true of a given state of the memory. *)
-(** プログラムの仕様について話そうとするとき、最初に欲しくなるのは、ある特定の時点で成立している
-    性質 -- つまり、与えられたメモリ状態で真になり得るか、なり得ないかの性質 -- についての
-    表明(_assertions_)を作る方法です。*)
+(** プログラムの仕様について話そうとするとき、最初に欲しくなるのは、
+    ある特定の時点で成立している性質 -- つまり、与えられたメモリ状態で真になり得るか、
+    なり得ないかの性質 -- についての表明(_assertions_)を作る方法です。*)
 
 Definition Assertion := state -> Prop.
 
@@ -209,15 +210,19 @@ Definition Assertion := state -> Prop.
     informally, we can make some simplifications: drop the initial
     [fun st =>], write just [X] instead of [st X], and elide [asnat]
     and [aslist]. *)
-(** この方法で表明を書くことは、形式的に正しいのです。-- この方法は意図することを
-    正確に捕えています。そしてこれがまさに Coq の証明で使う方法なのです。しかしこれは
-    いくつかの理由から、若干ヘビーに見えます。最初に、すべての個々の表明は、[fun st=> ]
-    から始まっています。(2)状態[st]は変数を参照するために使うただ1つのものです(2つの
-    別々の状態を同時に考える必要はありません)。(3)表明で参照するすべての変数は
-    [asnat]または[aslist]の強制型変換により取り散らかっています。
+(** この方法で表明を書くことは、形式的に正しいのです。
+    -- この方法は意図することを正確におさえています。
+    そしてこれがまさに Coq の証明で使う方法なのです。
+    しかしこれはいくつかの理由から、若干ヘビーに見えます。
+    最初に、すべての個々の表明は、[fun st=> ]から始まっています。
+    (2)状態[st]は変数を参照するために使うただ1つのものです
+    (2つの別々の状態を同時に考える必要はありません)。
+    (3)表明で参照するすべての変数は[asnat]または[aslist]の強制型変換により、
+    取り散らかっています。
     (訳注：「最初に」「(2)」「(3)」は変な並びだが、原文がそうなっている
-    ("First,","(2)","(3)")ためそう訳した。) 表明をインフォーマルに書くときには、
-    いくらか簡単にします。最初の[fun st =>]は書かず、[st X]のかわりに単に[X]と書きます。
+    ("First,","(2)","(3)")ためそう訳した。) 
+    表明を非形式的に書くときには、いくらか簡単にします。
+    最初の[fun st =>]は書かず、[st X]のかわりに単に[X]と書きます。
     また[asnat]と[aslist]は略します。*)
 (* Informally, instead of writing
 [[
@@ -230,7 +235,7 @@ Definition Assertion := state -> Prop.
       /\ ~((S Z) * (S Z) <= x).
 ]]
 *)
-(** インフォーマルには、次のように書くかわりに
+(** 非形式的には、次のように書くかわりに
 [[
       fun st =>  (asnat (st Z)) * (asnat (st Z)) <= x 
                  /\ ~ ((S (asnat (st Z))) * (S (asnat (st Z))) <= x)
@@ -248,8 +253,8 @@ Definition Assertion := state -> Prop.
 
 (* Next, we need a way of specifying -- making claims about -- the
     behavior of commands. *)
-(** 次に、コマンドのふるまいの仕様を定める -- つまりコマンドのふるまい
-    についての表明を作る -- 方法が必要です。*)
+(** 次に、コマンドの振舞いの仕様を定める -- つまりコマンドの振舞いについての表明を作る 
+    -- 方法が必要です。*)
 
 (* Since we've defined assertions as a way of making claims about the
     properties of states, and since the behavior of a command is to
@@ -267,17 +272,17 @@ Definition Assertion := state -> Prop.
     また、コマンドのふるまいは、状態を別の状態に変換するものであることから、
     コマンドについての表明は次の形をとります:
 
-      - "もし [c] が表明 [P] を満たす状態から開始され、また、[c]が
-        いつかは停止するならば、最終状態では、表明[Q]が成立することを保証する。"
+      - "もし [c] が表明 [P] を満たす状態から開始され、また、
+        [c]がいつかは停止するならば、最終状態では、表明[Q]が成立することを保証する。"
 
-    この表明は ホーアの三つ組(_Hoare Triple_)と呼ばれます。性質[P]は[c]の
-    事前条件(_precondition_)と呼ばれます。[Q]は[c]の事後条件(_postcondition_)と
-    呼ばれます。*)
+    この表明は ホーアの三つ組(_Hoare Triple_)と呼ばれます。
+    性質[P]は[c]の事前条件(_precondition_)と呼ばれます。
+    [Q]は[c]の事後条件(_postcondition_)と呼ばれます。*)
 
 (* (Traditionally, Hoare triples are written [{P} c {Q}], but single
     braces are already used for other things in Coq.)  *)
-(** (伝統的に、ホーアの三つ組は [{P} c {Q}]と書かれます。しかし Coq では一重の中カッコは
-    別の意味で既に使われています。) *)
+(** (伝統的に、ホーアの三つ組は [{P} c {Q}]と書かれます。
+    しかし Coq では一重の中カッコは別の意味で既に使われています。) *)
 
 Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
   forall st st',
@@ -310,12 +315,12 @@ Open Scope hoare_spec_scope.
     not actually be used here; it's just a placeholder for a notation
     that we'll want to define later, when we discuss decorated
     programs.) *)
-(** この[hoare_spec_scope]アノテーションは、Coqにこの記法はグローバルではなく、
-    特定のコンテキストで使うものであることを伝えるものです。[Open Scope]は
-    このファイルがそのコンテキストであることを Coq に伝えます。最初の記法、
-    -- 事前条件を持たないもの -- はここで実際に使うことはありません。
-    これは単に後に定義する記法のための場所を用意したものです。後に修飾付きプログラムについて
-    議論する際に使います。*)
+(** この[hoare_spec_scope]アノテーションは、Coqに、
+    この記法はグローバルではなく特定のコンテキストで使うものであることを伝えるものです。
+    [Open Scope]は、このファイルがそのコンテキストであることを Coq に伝えます。
+    最初の記法 -- 事前条件を持たないもの -- はここで実際に使うことはありません。
+    これは単に後に定義する記法のための場所を用意したものです。
+    後に修飾付きプログラムについて議論する際に使います。*)
 
 (* **** Exercise: 1 star (triples) *)
 (** **** 練習問題: ★ (triples) *)
@@ -416,14 +421,13 @@ Open Scope hoare_spec_scope.
 (* (Note that we're using informal mathematical notations for
    expressions inside of commands, for readability.  We'll continue
    doing so throughout the chapter.) *)
-(** (読みやすくするため、コマンド内の式について、非形式的な数学記法を
-      使います。この章の最後までその方針をとります。) *)
+(** (読みやすくするため、コマンド内の式について、
+    非形式的な数学記法を使います。この章の最後までその方針をとります。) *)
 (** [] *)
 
 (* To get us warmed up, here are two simple facts about Hoare
     triples. *)
-(** ウォーミングアップとして、ホーアの三つ組についての2つの事実をみてみ
-    ます。*)
+(** ウォーミングアップとして、ホーアの三つ組についての2つの事実をみてみます。*)
 
 Theorem hoare_post_true : forall (P Q : Assertion) c,
   (forall st, Q st) ->
@@ -477,8 +481,8 @@ Proof.
 ]]
     はあまり興味深いものではありません。これは完全に正しいものです。しかし、
     何も有用なことを伝えてくれません。事前条件がどのような状態でも満たされないことから、
-    コマンド [X ::= Y + 1] によって事後条件 [X <= 5] に至るどのような
-    状況も記述していません。
+    コマンド [X ::= Y + 1] によって事後条件 [X <= 5] 
+    に至るどのような状況も記述していません。
  
     一方、
 [[
@@ -486,14 +490,14 @@ Proof.
 ]]
     は有用です。これは、何らかの方法で[Y <= 4 /\ Z = 0]であるという状況を作りあげた後、
     このコマンドを実行すると事後条件を満たす状態になる、ということを伝えています。
-    しかしながら、この三つ組はもう少し改良できます。なぜなら、事前条件の[Z = 0]という節は
-    実際には事後条件[X <= 5]に何の影響も与えないからです。
+    しかしながら、この三つ組はもう少し改良できます。なぜなら、
+    事前条件の[Z = 0]という節は、実際には事後条件[X <= 5]に何の影響も与えないからです。
     (このコマンドと事後条件のもとで)最も有効な三つ組は次のものです:
 [[
       {{ Y <= 4 }}  X ::= Y + 1  {{ X <= 5 }}
 ]]
-    言いかえると、[Y <= 4] は事後条件[X <= 5]に対してコマンド[X ::= Y + 1]の
-    最弱の(_weakest_)正しい事前条件です。*)
+    言いかえると、[Y <= 4] は事後条件[X <= 5]に対してコマンド[X ::= Y + 1]
+    の最弱の(_weakest_)正しい事前条件です。*)
 (* In general, we say that "[P] is the weakest precondition of
     [c] for [Q]" if
 
@@ -512,8 +516,9 @@ Proof.
     if (a) [P] _is_ a precondition for [Q] and [c], and (b) [P] is the
     _weakest_ (easiest to satisfy) assertion that guarantees [Q] after
     [c]. *)
-(** つまり、[P]は[Q]に対する[c]の最弱事前条件であるとは、(a) [P] は [Q] と [c] の事前条件
-    で、かつ、(b) [P]は[c]の後で[Q]を保証する最弱の(_weakest_)(もっとも簡単に充足できる)
+(** つまり、[P]は[Q]に対する[c]の最弱事前条件であるとは、
+    (a) [P] は [Q] と [c] の事前条件で、かつ、
+    (b) [P]は[c]の後で[Q]を保証する最弱の(_weakest_)(もっとも簡単に充足できる)
     表明である、ということです。*)
 
 (* **** Exercise: 1 star (wp) *)
@@ -577,11 +582,12 @@ Proof.
     a couple of "structural" rules that are useful for gluing things
     together. *)
 (** ホーア論理のゴールは、ホーアの三つ組の正しさを証明する"合成的"手法を提供することです。
-    つまり、プログラムの正しさの証明の構造は、プログラムの構造をそのまま反映したものになる
-    ということです。このゴールのために、以降の節では、Impのコマンドのいろいろな構文要素の
-    それぞれ対して、その構文要素について推論するための規則を1つずつ導入します。代入文に1つ、
-    合成文に1つ、条件文に1つ、等です。それに加えて、複数のものを結合するために有用な
-    2つの"構造的"規則を導入します。*)
+    つまり、プログラムの正しさの証明の構造は、
+    プログラムの構造をそのまま反映したものになるということです。
+    このゴールのために、以降の節では、Impのコマンドのいろいろな構文要素のそれぞれ対して、
+    その構文要素について推論するための規則を1つずつ導入します。代入文に1つ、
+    合成文に1つ、条件文に1つ、等です。それに加えて、
+    複数のものを結合するために有用な2つの"構造的"規則を導入します。*)
 
 (* ####################################################### *)
 (* *** Assignment *)
@@ -643,8 +649,8 @@ Proof.
        {{ Y = 1 }}  X ::= Y  {{ X = 1 }}
 ]]
     日本語で言うと、[Y]の値が[1]である状態から始めて、[X]を[Y]に代入するならば、
-    [X]が[1]である状態になる、ということです。つまり、[1]である、という性質が
-    [X]から[Y]に移された、ということです。
+    [X]が[1]である状態になる、ということです。
+    つまり、[1]である、という性質が[X]から[Y]に移された、ということです。
 
     同様に、
 [[
@@ -700,16 +706,17 @@ Proof.
     to [True] leads to a postcondition that is [False].)  And second,
     even if we could prove something similar to this, it would be
     awkward to use.  *)
-(** [Q]を、算術式をインデックスとする表明の族として扱うことで、代入規則を Coq で直接
-    形式化してみることもできます。例えば次のようになります。
+(** [Q]を、算術式をインデックスとする表明の族として扱うことで、
+    代入規則を Coq で直接形式化してみることもできます。例えば次のようになります。
 [[
       Theorem hoare_asgn_firsttry :
         forall (Q : aexp -> Assertion) V a,
         {{fun st => Q a st}} (V ::= a) {{fun st => Q (AId V) st}}.
 ]]
-    しかし、この形式化は2つの理由であまり良くないのです。第一に、この式は本当に正しい
-    とは言えないのです!(反例として、[Q]として自分の引数の「構文」を調べるものを考えて
-    みましょう。次のようなものです:
+    しかし、この形式化は2つの理由であまり良くないのです。
+    第一に、この式は本当に正しいとは言えないのです!
+    (反例として、[Q]として自分の引数の「構文」を調べるものを考えてみましょう。
+    次のようなものです:
 [[
     Definition Q (a:aexp) : Prop :=
        match a with
@@ -733,8 +740,8 @@ Proof.
 (* That is, asserting that a substituted variant of [Q] holds in
     some state is the same as asserting that [Q] itself holds in
     a substituted variant of the state.  *)
-(** つまり、ある状態で、[Q]を置換してできるものを表明することは、その状態を置換してできる
-    状態で、[Q]を表明することと同じだということです。*)
+(** つまり、ある状態で、[Q]を置換してできるものを表明することは、
+    その状態を置換してできる状態で、[Q]を表明することと同じだということです。*)
 
 (* Here is the definition of substitution in a state: *)
 (** 状態の置換を次のように定義します: *)
@@ -789,13 +796,15 @@ Proof.
     Fortunately, there are easier alternatives.  One simple one is
     to state a slightly more general theorem that introduces an
     explicit equality hypothesis: *)
-(** この証明はあまり綺麗ではありません。なぜなら、[hoare_asgn]規則が最初のゴールに
-    直接適用されてはいないからです。この規則は、事前条件が、何らかの[Q]、[V]、[a]について
-    [assn_sub Q V a]という形をしているときのみに適用できます。このため、ゴールを
-    この形にするためのちょっとした補題から始めなければならないのです。
+(** この証明はあまり綺麗ではありません。なぜなら、
+    [hoare_asgn]規則が最初のゴールに直接適用されてはいないからです。
+    この規則は、事前条件が、
+    何らかの[Q]、[V]、[a]について[assn_sub Q V a]という形をしているときのみに適用できます。
+    このため、ゴールをこの形にするためのちょっとした補題から始めなければならないのです。
 
-    [hoare_asgn]を使おうとするときに毎回ゴール状態に対してこのような小細工を
-    するのは、すぐにいやになります。幸運なことに、より簡単な方法があります。
+    [hoare_asgn]を使おうとするときに、
+    毎回ゴール状態に対してこのような小細工をするのは、すぐにいやになります。
+    幸い、より簡単な方法があります。
     その一つは、明示的な等式の形の仮定を導く、いくらか一般性の高い定理を示すことです: *)
 
 Theorem hoare_asgn_eq : forall Q Q' V a,
@@ -847,8 +856,8 @@ Proof.
 
     (* FILL IN HERE *)
 *)
-(** 代入規則は、最初に見たとき、ほとんどの人が後向きの規則であるように見えます。もし今でも
-    後向きに見えるならば、前向きバージョンの規則を考えてみるのも良いかもしれません。
+(** 代入規則は、最初に見たとき、ほとんどの人が後向きの規則であるように見えます。
+    もし今でも後向きに見えるならば、前向きバージョンの規則を考えてみるのも良いかもしれません。
     次のものは自然に見えます:
 [[
       {{ True }} X ::= a {{ X = a }}
@@ -944,9 +953,9 @@ Proof.
     (または [hoare_asgn_eq]) のインスタンスではないのです。
     なぜなら、[True] と [3 = 3] は、構文的に等しい表明ではないからです。
 
-    一般に、[{{P}} c {{Q}}] が導出できるとき、[P']ならば[P]が言えるだ
-    け[P']が強いならば[P]を[P']に置き換えることは正しく、また[Q]ならば
-    [Q']が言えるならば、[Q]を[Q']に置き換えることは正しいのです。
+    一般に、[{{P}} c {{Q}}] が導出できるとき、
+    [P']ならば[P]が言えるだけ[P']が十分強ければ、[P]を[P']に置き換えることは正しく、
+    また[Q]ならば[Q']が言えるときには、[Q]を[Q']に置き換えることは正しいのです。
 
     この洞察をまとめたものが、次の帰結規則(_Rule of Consequence_)です。
 [[[
@@ -956,8 +965,8 @@ Proof.
          -----------------------------  (hoare_consequence)
                 {{P}} c {{Q}}
 ]]]
-   便宜上、さらに2つの帰結規則を用意します。1つは事前条件を強めるだけのもの、もう1つは
-   事後条件を弱めるだけのものです。
+   便宜上、さらに2つの帰結規則を用意します。1つは事前条件を強めるだけのもの、
+   もう1つは事後条件を弱めるだけのものです。
 [[[
                 {{P'}} c {{Q}}
          P implies P' (in every state)
@@ -1034,15 +1043,23 @@ Proof.
 
 
 (* ####################################################### *)
-(** *** Digression: The [eapply] Tactic *)
+(* *** Digression: The [eapply] Tactic *)
+(** *** 余談: [eapply] タクティック *)
 
-(** This is a good moment to introduce another convenient feature
+(* This is a good moment to introduce another convenient feature
     of Coq.  Having to write [P'] explicitly in the example above
     is a bit annoying because the very next thing we are going to
     do -- applying the [hoare_asgn] rule -- is going to determine
     exactly what it should be.  We can use [eapply] instead of
     [apply] to tell Coq, essentially, "The missing part is going
     to be filled in later." *)
+(** ここらで、良い機会ですので、Coq の別の便利な機能を紹介しておきましょう。
+    上述の例で明示的に[P']と書かなければならないことは、少々やっかいです。
+    なぜなら、すぐ次にやること、つまり[hoare_asgn]規則を適用すること、が、
+    まさに、それがどうでなければならないかを決定することだからです。    
+    こういう場合、[apply]の代わりに[eapply]を使うことができます。
+    そうすることは、本質的に、「抜けている部分は後で埋めます」と 
+    Coq に伝えることになります。*)
 
 Example hoare_asgn_example1' :
   {{fun st => True}}
@@ -1053,7 +1070,7 @@ Proof.
   apply hoare_asgn_eq. reflexivity. (* or just [apply hoare_asgn.] *)
   intros st H. reflexivity.  Qed.
 
-(** In general, [eapply H] tactic works just like [apply H]
+(* In general, [eapply H] tactic works just like [apply H]
     except that, instead of failing if unifying the goal with the
     conclusion of [H] does not determine how to instantiate all
     of the variables appearing in the premises of [H], [eapply H]
@@ -1062,12 +1079,27 @@ Proof.
     determined (by further unification) later in the proof.
 
     There is also an [eassumption] tactic that works similarly. *)
+(** 一般に、[eapply H]タクティックは[apply H]とほぼ同様にはたらきますが、
+    ゴールと[H]の結論部とを単一化することでは
+    [H]の前提部に現れる変数のすべてを具体化する方法が決められなかった場合に、
+    [apply H]の場合は失敗しますが、[eapply H]の場合は残った変数を存在変数(
+    _existential variables_)([?nnn]と記述される)に置換する点が違います。
+    存在変数は、証明の以降の部分で(さらなる単一化により)決定される式が入る場所を示します。
+
+    他に同様のはたらきをするものには、[eassumption]タクティックがあります。*)
 
 (* ####################################################### *)
+(* *** Skip *)
 (** *** Skip *)
 
-(** Since [SKIP] doesn't change the state, it preserves any
+(* Since [SKIP] doesn't change the state, it preserves any
     property P:
+[[[
+      --------------------  (hoare_skip)
+      {{ P }} SKIP {{ P }}
+]]]
+*)
+(** [SKIP]は状態を変えないことから、任意の性質 P を保存します:
 [[[
       --------------------  (hoare_skip)
       {{ P }} SKIP {{ P }}
