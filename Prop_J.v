@@ -1,4 +1,4 @@
-(** * Prop: 命題と論拠 *)
+(** * Prop: 命題と根拠 *)
 
 (* $Date: 2011-06-27 09:22:51 -0400 (Mon, 27 Jun 2011) $ *)
 
@@ -16,7 +16,7 @@ Require Export Poly_J.
 
 (** ここまでは宣言したり証明した文は等価性の形をしたものだけでした。
     しかし、数学で用いられる文や証明はもっとリッチです。
-    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類とその証明を論拠(_evidence_)を与えることでどのように行なうかをもっと近くでもっと根本的な部分を見ていきましょう。
+    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類とその証明を根拠(_evidence_)を与えることでどのように行なうかをもっと近くでもっと根本的な部分を見ていきましょう。
 *)
 
 (** 命題( _proposition_ )は"2足す2は4と等しい"のような事実に基づく主張を表現するための文です。
@@ -82,8 +82,8 @@ Definition strange_prop2 :=
     definition of what it means to be even is "[n] is even iff [evenb
     n = true]." *)
 (** 最後に、パラメータ化された命題(_parameterized proposition_)の定義を紹介します。
-    例えば、"数値nが偶数である"という主張はどのようになるでしょうか？
-    偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数のとき、かつそのときに限り[evenb n = true]である"が考えられます。 *)
+    例えば、"数nが偶数である"という主張はどのようになるでしょうか？
+    偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数であることと[evenb n = true]は同値である"が考えられます。 *)
 
 Definition even (n:nat) : Prop :=
   evenb n = true.
@@ -91,7 +91,7 @@ Definition even (n:nat) : Prop :=
 (* This defines [even] as a _function_ that, when applied to a number
     [n], _yields a proposition_ asserting that [n] is even.  *)
 (** これは[even]を関数として定義します。
-    その関数は数値[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
+    その関数は数[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
 
 Check even.
 (* ===> even : nat -> Prop *)
@@ -105,9 +105,9 @@ Check (even 3).
     propositions," (2) "[even] is a _family_ of propositions, indexed
     by a number [n]," or (3) "[even] is a _property_ of numbers."  *)
 (** [even]の型 [nat->Prop]は3つの意味を持っています。
-   (1) "[even]は数値から命題への関数である。"
-   (2) "[even]は数値[n]でインデックスされた命題の集りである"。
-   (3) "[even]は数値の性質(_property_)である。" *)
+   (1) "[even]は数から命題への関数である。"
+   (2) "[even]は数[n]でインデックスされた命題の集りである"。
+   (3) "[even]は数の性質(_property_)である。" *)
 
 (* Propositions -- including parameterized propositions -- are
     first-class citizens in Coq.  We can use them in other
@@ -175,10 +175,10 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
      (preserved_by_S P) ->
      (true_for_all_numbers P).
 
-(* ##################################################### *)
-(** * Evidence *)
+(* * Evidence *)
+(** * 根拠 *)
 
-(** We've seen that well-formed expressions of type [Prop] can
+(* We've seen that well-formed expressions of type [Prop] can
     embody both provable and unprovable propositions.  Naturally,
     we're particularly interested in the provable ones.  When [P] is a
     proposition and [e] is a proof of [P] -- i.e., [e] is evidence
@@ -187,14 +187,23 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     that there is a fundamental and fruitful analogy between data
     values inhabiting types and evidence "inhabiting" propositions. *)
 
-(** The next question is "what are proofs?" -- i.e., what sorts of
+(** [Prop]型として妥当な式には証明可能な命題も証明不能な命題もあることを見てきました。
+    当然、証明可能なものには強い興味があります。
+    [P]が命題であり[e]が[P]の証明である場合、すなわち[e]がPが真であるという根拠である場合、"[e : P]"と書きます。
+    "型を持っている"や"属してる"を表わす記法とかぶっているのはたまたまではありません。
+     型に属する値と命題に"属する"根拠の間には根本的で有益な類似性があることを見ていきます。 *)
+
+(* The next question is "what are proofs?" -- i.e., what sorts of
     things would we be willing to accept as evidence that particular
     propositions are true? *)
+(** 次の疑問は"証明とはなにか?"です。
+    すなわち、ある命題が真であるという根拠として使えるものは、どようなものでしょうか? *)
 
 (* ##################################################### *)
-(** ** Inductively Defined Propositions *)
+(* ** Inductively Defined Propositions *)
+(** ** 帰納的に定義された命題 *)
 
-(** The answer, of course, depends on the form of the
+(* The answer, of course, depends on the form of the
     proposition -- evidence for implication propositions ([P->Q]) is
     different from evidence for conjunctions ([P/\Q]), etc.  In this
     chapter and the next, we'll address a number of specific cases.
@@ -211,11 +220,22 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     [d] is either [saturday] or [sunday].  The following declaration
     achieves this: *)
 
+(** もちろん、その答は命題の形に依存します。
+    例えば、含意の命題[P->Q]に対する根拠と連言の命題[P/\Q]に対する根拠は異なります。
+    この章では次に、たくさんの具体的な例を示します。
+
+    まずは、不可分( _atomic_ )な命題を考えましょう。
+    それは私達が使っている論理には組み込むのではなく、特定のドメインに有用な概念を導入するものです。
+    例えば、Basic_J.v で [day] 型を定義したので、[saturday] と [sunday] は"良い"日であるといったような、特定の日に対して何らかの概念を思い浮かべるかもしれません。
+    良い日に関する定理を宣言し証明したい場合は、"良い"とはどういう意味かをCoqに教えなければなりません。
+    ある日[d]が良い(すなわち[d]が[saturday]か[sunday]である)とする根拠として何を使うかを決める必要があります。
+    これをするためには次のように宣言します。 *)
+
 Inductive good_day : day -> Prop :=
   | gd_sat : good_day saturday
   | gd_sun : good_day sunday.
 
-(** The [Inductive] keyword means exactly the same thing whether
+(* The [Inductive] keyword means exactly the same thing whether
     we are using it to define sets of data values (in the [Type]
     world) or sets of evidence (in the [Prop] world).  Consider the
     parts of the definition above:
@@ -228,22 +248,35 @@ Inductive good_day : day -> Prop :=
 
     - The third line declares that the constructor [gd_sun] can be
       taken as evidence for the assertion [good_day sunday]. *)
+(** [Inductive] キーワードは、データ値を集合を定義する場合([Type]の世界)であっても根拠の集合を定義する場合([Prop]の世界)であってもまったく同じ意味です。
+    上記の定義の意味はそれぞれ次のような意味になっています:
 
-(** That is, we're _defining_ what we mean by days being good by
+    - 最初の行は[good_day]は日によってインデックスされた命題であることを宣言しています。
+
+    - 二行目は[gd_sat]コンストラクタを宣言してます。このコンストラクタは[good_day saturday]という主張の根拠として使えます。
+
+    - 三行目は[gd_sun]コンストラクタを宣言したす。このコンストラクタは[good_day sunday]という主張の根拠として使えます。
+*)
+
+(* That is, we're _defining_ what we mean by days being good by
     saying "Saturday is good, sunday is good, and that's all."  Then
     someone can _prove_ that Sunday is good simply by observing that
     we said it was when we defined what [good_day] meant. *)
+(** 言い換えると、ある日が良いとは"土曜日は良い、日曜日は良い、それだけだ"と言うことで定義しています。
+    なので、日曜日が良いということを証明したいときは、[good_day]の意味を定義したときにそう言っていたかを調べるだけで済みます。 *)
 
 Theorem gds : good_day sunday.
 Proof. apply gd_sun. Qed.
 
-(** The constructor [gd_sun] is "primitive evidence" -- an _axiom_ --
+(* The constructor [gd_sun] is "primitive evidence" -- an _axiom_ --
     justifying the claim that Sunday is good. *)
+(** コンストラクタ[gd_sun」は、日曜日が良いという主張を正当化する"素朴(primitive)な根拠"、つまり公理です。*)
 
-(** Similarly, we can define a proposition [day_before]
+(* Similarly, we can define a proposition [day_before]
     parameterized by _two_ days, together with axioms stating that
     Monday comes before Tuesday, Tuesday before Wednesday, and so
     on. *)
+(** 同様に、月曜日は火曜日の前に来て、火曜日は水曜日の前に来て、...、ということを宣言する公理を、2つの日をパラメータとして取る命題 [day_before] として定義できます。*)
 
 Inductive day_before : day -> day -> Prop :=
   | db_tue : day_before tuesday monday
@@ -254,10 +287,11 @@ Inductive day_before : day -> day -> Prop :=
   | db_sun : day_before sunday saturday
   | db_mon : day_before monday sunday.
 
-(** The axioms that we introduce along with an inductively
+(* The axioms that we introduce along with an inductively
     defined proposition can also involve universal quantifiers.  For
-    example, it is well known that _every_ day is a fine day for
-    singing a song: *)
+    example, it is well known that every day is a fine day forsinging a song: *)
+(** 帰納的な定義による命題で導入される公理では全称記号を使うこともできます。
+    例えば、歌うためには毎日がすばらしい日であるということは有名です。 *)
 
 Inductive fine_day_for_singing : day -> Prop :=
   | fdfs_any : forall d:day, fine_day_for_singing d.
@@ -269,22 +303,34 @@ Inductive fine_day_for_singing : day -> Prop :=
 
     In particular, Wednesday is a fine day for singing. *)
 
+(** この行は、もし[d]が日ならば、[fdfs_any d]は[fine_day_for_singing d]の根拠として使えるということを宣言してます。
+    言い換えると、[d]が[fine_day_for_singing]であるという根拠を[fdfs_any]を[d]に適用することで作ることができます。
+
+    具体的には、水曜日は歌うにはすばらしい日です。
+*)
+
 Theorem fdfs_wed : fine_day_for_singing wednesday.
 Proof. apply fdfs_any. Qed.
 
-(** As always, the first line here can be read "I'm about to
+(* As always, the first line here can be read "I'm about to
     show you some evidence for the proposition [fine_day_for_singing
     wednesday], and I want to introduce the name [fdfs_wed] to refer
     to that evidence later on."  The second line then instructs Coq
     how to assemble the evidence. *)
 
-(* ##################################################### *)
-(** ** Proof Objects *)
+(** いつもどおり、最初の行は"私は命題[fine_day_for_singing wednesday]に対する根拠を示し、その根拠をあとで参照するために[fdfs_wed]という名前を導入したいと思います"と読みます。
+    二行目は、Coqにその根拠をどのように組み立てるかを指示しています。 *)
 
-(** There's another -- more primitive -- way to accomplish the
+(* ##################################################### *)
+(* ** Proof Objects *)
+(** ** 証明オブジェクト *)
+
+(* There's another -- more primitive -- way to accomplish the
     same thing: we can use a [Definition] whose left-hand side is the
     name we're introducing and whose right-hand side is the evidence
     _itself_, rather than a script for how to build it.  *)
+(** 同じことをやる、もっと素朴な別の方法があります。
+    [Definiton]の左辺を導入しようとしている名前にし、右辺を根拠の構築方法ではなく、根拠そのものにします。 *)
 
 Definition fdfs_wed' : fine_day_for_singing wednesday :=
   fdfs_any wednesday.
@@ -292,7 +338,7 @@ Definition fdfs_wed' : fine_day_for_singing wednesday :=
 Check fdfs_wed.
 Check fdfs_wed'.
 
-(** The expression [fdfs_any wednesday] can be thought of as
+(* The expression [fdfs_any wednesday] can be thought of as
     instantiating the parameterized axiom [fdfs_any] with the specific
     argument [wednesday].  Alternatively, we can think of [fdfs_any]
     as a primitive "evidence constructor" that, when applied to a
@@ -303,9 +349,17 @@ Check fdfs_wed'.
     that the constructor [nil] can be thought of as a function from
     types to empty lists with elements of that type. *)
 
+(** 式[fdfs_any wednesday]は、パラメータを受け取る公理[fdfs_any]を特定の引数[wednesday]によって具体化したものととらえることができます。
+    別の見方として、[fdfs_any]を素朴な"根拠コンストラクタ"として捉えることもできます。この根拠コンストラクタは、特定の日を適用されると、その日が歌うのがよい日である根拠を表します。
+    型 [forall d:day, fine_day_for_singing d] はこの機能を表しています。
+    これは、前章で登場した多相型 [forall X, list X] において [nil] コンストラクタが型からその型を持つ空リストを返す関数であったことと同様です。 *)
+
 (** Let's take a slightly more interesting example.  Let's say
     that a day of the week is "ok" if either (1) it is a good day or
     else (2) it falls the day before an ok day. *)
+
+(** もうちょっと面白い例を見てみましょう。
+    "OK"な日とは(1)良い日であるか(2)OKな日の前日であるとしましょう。*)
 
 Inductive ok_day : day -> Prop :=
   | okd_gd : forall d,
@@ -316,16 +370,22 @@ Inductive ok_day : day -> Prop :=
       day_before d2 d1 ->
       ok_day d1.
 
-(** The first constructor can be read "One way to show that [d]
+(* The first constructor can be read "One way to show that [d]
     is an ok day is to present evidence that [d] is good."  The second
     can be read, "Another way to show that a day [d1] is ok is to
     present evidence that it is the day before some other day [d2]
     together with evidence that [d2] is ok." *)
+(** 最初のコンストラクタは"[d]がOKな日であることを示す一つ目の方法は、[d]が良い日であるという根拠を示すことである"と読みます。
+    二番目のは"[d1]がOKであることを示す別の方法は、その日が別の日 [d2] の前日であり、[d2]がOKであるという根拠を示すことである"と読みます。 *)
 
-(** Now suppose that we want to prove that [wednesday] is ok.
+(* Now suppose that we want to prove that [wednesday] is ok.
     There are two ways to do it.  First, we have the primitive way,
     where we simply write down an expression that has the right
     type -- a big nested application of constructors: *)
+(** ここで[wednesday]がOKであることを証明したいとしましょう。
+    証明するには2つの方法があります
+    1つめは素朴な方法であり、コンストラクタの適用を何度もネストすることで、
+    正しい型を持つ式を書き下します。 *)
 
 Definition okdw : ok_day wednesday :=
   okd_before wednesday thursday
@@ -336,9 +396,10 @@ Definition okdw : ok_day wednesday :=
        db_fri)
     db_thu.
 
-(** Second, we have the machine-assisted way, where we go into [Proof]
+(* Second, we have the machine-assisted way, where we go into [Proof]
     mode and Coq guides us through a series of goals and subgoals
     until it is finally satisfied: *)
+(** 2つめの方法は、機械に支援してもらう方法です。証明モードに入り、最終的に満たされるまでゴールやサブゴールを通してCoqに案内してもらいます。 *)
 
 Theorem okdw' : ok_day wednesday.
 Proof.
@@ -360,10 +421,13 @@ Proof.
   (* "subgoal: show that the day before thursday is wednesday". *)
   apply db_thu. Qed.
 
-(** Fundamentally, though, these two ways of making proofs are the
-    same, in the sense that what Coq is actually doing when it's
-    following the commands in a [Proof] script is _literally_
-    attempting to construct an expression with the desired type. *)
+(* Fundamentally, though, these two ways of making proofs are the
+   same, in the sense that what Coq is actually doing when it's
+   following the commands in a [Proof] script is _literally_
+   attempting to construct an expression with the desired type. *)
+(** しかし、根本的にはこの2つの証明方法は同じです。
+    証明スクリプト内のコマンドを実行するときにCoqが実際にやっていることは、目的の型を持つ式を構築しようとしてるときとまったく同じ意味です。
+*)
 
 Print okdw'.
 (* ===> okdw' = okd_before wednesday thursday
@@ -374,9 +438,10 @@ Print okdw'.
                   db_thu
               : ok_day wednesday *)
 
-(** These expressions are often called _proof objects_. *)
+(* These expressions are often called _proof objects_. *)
+(** この式は証明オブエジェクト(Proof object)と呼ばれることが多いです。  *)
 
-(** Proof objects are the bedrock of Coq.  Tactic proofs are
+(* Proof objects are the bedrock of Coq.  Tactic proofs are
     essentially _programs_ that instruct Coq how to construct proof
     objects for us instead of our writing them out explicitly.  Here,
     of course, the proof object is actually shorter than the tactic
@@ -385,31 +450,53 @@ Print okdw'.
     painful.  Moreover, we'll see later on in the course that Coq has
     a number of automation tactics that can construct quite complex
     proof objects without our needing to specify every step. *)
+(** 証明オジェクトはCoqの基本的な部分です。
+    タクティックによる証明は、自分で証明オブジェクトを書く代わりに、証明オブジェクトを構築する方法をCoqに指示する基本的なプログラムです。
+    もちろん、この例では証明オブジェクトはタクティックによる証明よりも短くなっています。
+    しかし、もっと興味深い証明では証明オブジェクトは手で構築することが苦痛に思えるほど大きく複雑になります。
+    さらに、あとの章では、各ステップを書くことなく複雑な証明オブジェクトを構築できる自動化されたタクティックをたくさん紹介します。 *)
 
 (* ##################################################### *)
-(** ** The Curry-Howard Correspondence *)
+(* ** The Curry-Howard Correspondence *)
+(** ** カリー・ハワード対応 *)
 
-(** The analogy
+(* The analogy
 <<
                  propositions  ~  sets / types
                  proofs        ~  data values
 >>
     is called the _Curry-Howard correspondence_ (or _Curry-Howard
     isomorphism_).  Many wonderful things follow from it. *)
+(** この
+<<
+                 propositions  ~  sets / types
+                 proofs        ~  data values
+>>
+    という類似性は、カリー・ハワード対応(もしくはカリー・ハワード同型, Curry-Howard correspondence, Curry-Howard isomorphism)と呼ばれます。
+    これにより多くのおもしろい性質が導けます。
+*)
 
-(** Just as a set can be empty, a singleton, finite, or infinite -- it
+(* Just as a set can be empty, a singleton, finite, or infinite -- it
     can have zero, one, or many inhabitants -- a proposition may be
     inhabited by zero, one, many, or infinitely many proofs.  Each
     inhabitant of a proposition [P] is a different way of giving
     evidence for [P].  If there are none, then [P] is not provable.
     If there are many, then [P] has many different proofs. *)
+(** 集合に空集合、単集合、有限集合、無限集合があり、それぞれが0個、個1、多数の元を持っているように、命題も0個、1個、多数、無限の証明を持ちえます。
+    命題[P]の各要素は、それぞれ異なる[P]の根拠です。
+    もし要素がないならば、[P]は証明不能です。
+    もしたくさんの要素あるならば、[P]には多数の異なった証明があります。 *)
 
 (* ##################################################### *)
-(** ** Implication *)
+(* ** Implication *)
+(** ** 含意 *)
 
-(** We've seen that the [->] operator (implication) builds bigger
+(* We've seen that the [->] operator (implication) builds bigger
     propositions from smaller ones.  What constitutes evidence for
     propositions built in this way?  Consider this statement: *)
+(** これまで[->]演算子(含意)を小さい命題から大きな命題を作るために使ってきました。
+    このような命題に対する根拠はどのようになるでしょうか?
+    次の文を考えてみてください。 *)
 
 Definition okd_before2 := forall d1 d2 d3,
   ok_day d3 ->
@@ -417,20 +504,25 @@ Definition okd_before2 := forall d1 d2 d3,
   day_before d3 d2 ->
   ok_day d1.
 
-(** In English: if we have three days, [d1] which is before [d2]
+(* In English: if we have three days, [d1] which is before [d2]
     which is before [d3], and if we know [d3] is ok, then so is
     [d1].
 
     It should be easy to see how we'd construct a tactic proof of
     [okd_before2]... *)
 
-(** **** Exercise: 1 star, optional (okd_before2_valid) *)
+(** 日本語にすると、 もし3つの日があるとして、[d1]が[d2]の前日であり、[d2]が[d3]の前日であり、かつ[d3]がOKであるということがわかっているならば、[d1]もOKである、という意味になります。
+
+    [okd_before2]をタクティッックを使って証明するのは簡単なはずです... *)
+
+(* **** Exercise: 1 star, optional (okd_before2_valid) *)
+(** **** 練習問題: ★, optional (okd_before2_valid) *)
 Theorem okd_before2_valid : okd_before2.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** But what should the corresponding proof object look like?
+(* But what should the corresponding proof object look like?
 
     Answer: We've made a notational pun between [->] as implication
     and [->] as the type of functions.  If we take this pun seriously,
@@ -440,6 +532,14 @@ Proof.
     arguments (three days and three pieces of evidence) and returns a
     piece of evidence!  Here it is: *)
 
+(** ところで、対応する証明オブエジェクトはどんな感じでしょうか?
+
+    答: 含意としての[->]と、関数の型の[->]の記法はそっくりです。
+    これをまじめに捉えると、[forall d1 d2 d3, ok_day d3 -> day_before d2 d1 -> day_before d3 d2 -> ok_day d1]という型をもった式を見付ける必要があります。
+    なので探すものは6個の引数(3つの日と、3個の根拠)を受け取り、1個の根拠を返す関数です!
+    それはこんな感じです。
+*)
+
 Definition okd_before2_valid' : okd_before2 :=
   fun (d1 d2 d3 : day) =>
   fun (H : ok_day d3) =>
@@ -447,20 +547,28 @@ Definition okd_before2_valid' : okd_before2 :=
   fun (H1 : day_before d3 d2) =>
   okd_before d1 d2 (okd_before d2 d3 H H1) H0.
 
-(** **** Exercise: 1 star, optional (okd_before2_valid_defn) *)
-(** Predict what Coq will print in response to this: *)
+(* **** Exercise: 1 star, optional (okd_before2_valid_defn) *)
+(** **** 練習問題: ★, optional (okd_before2_valid_defn) *)
+(* Predict what Coq will print in response to this: *)
+(** 下記の結果としてCoqが出力するものを予測しなさい。 *)
 
 Print okd_before2_valid.
 
 (* ##################################################### *)
-(** ** Induction Principles for Inductively Defined Types *)
+(* ** Induction Principles for Inductively Defined Types *)
+(** ** 帰納的に定義された型に対する帰納法の原理 *)
 
-(** Every time we declare a new [Inductive] datatype, Coq
+(* Every time we declare a new [Inductive] datatype, Coq
     automatically generates an axiom that embodies an _induction
     principle_ for this type.
 
     The induction principle for a type [t] is called [t_ind].  Here is
     the one for natural numbers: *)
+
+(** [Inductive]でデータ型を新たに定義するたびに、Coqは帰納法の原理に対応する公理を自動生成します。
+
+    型[t]に対応する帰納法の原理は[t_ind]という名前になります。
+    ここでは自然数に対するものを示します。 *)
 
 Check nat_ind.
 (*  ===> nat_ind : forall P : nat -> Prop,
@@ -468,15 +576,19 @@ Check nat_ind.
                       (forall n : nat, P n -> P (S n))  ->
                       forall n : nat, P n  *)
 
-(** Note that this is exactly the [our_nat_induction] property from
+(* Note that this is exactly the [our_nat_induction] property from
     above. *)
+(** これは先ほど定義した[our_nat_induction]性質とまったく同じであることに注意してください。 *)
 
-(** The [induction] tactic is a straightforward wrapper that, at
+(* The [induction] tactic is a straightforward wrapper that, at
     its core, simply performs [apply t_ind].  To see this more
     clearly, let's experiment a little with using [apply nat_ind]
     directly, instead of the [induction] tactic, to carry out some
     proofs.  Here, for example, is an alternate proof of a theorem
     that we saw in the [Basics] chapter. *)
+(** [induction]タクティックは、基本的には[apply t_ind]の単純なラッパーです。
+    もっとわかりやすくするために、[induction]タクティックのかわりに[apply nat_ind]を使っていくつかの証明をしてみる実験をしてみましょう。
+    例えば、[Basics_J]の章で見た定理の別の証明を見てみましょう。 *)
 
 Theorem mult_0_r' : forall n:nat,
   n * 0 = 0.
@@ -486,7 +598,7 @@ Proof.
   Case "S". simpl. intros n IHn. rewrite -> IHn.
     reflexivity.  Qed.
 
-(** This proof is basically the same as the earlier one, but a
+(* This proof is basically the same as the earlier one, but a
     few minor differences are worth noting.  First, in the induction
     step of the proof (the ["S"] case), we have to do a little
     bookkeeping manually (the [intros]) that [induction] does
@@ -512,9 +624,24 @@ Proof.
     principles like [nat_ind] directly.  But it is important to
     realize that, modulo this little bit of bookkeeping, applying
     [nat_ind] is what we are really doing. *)
+(** この証明は基本的には前述のものと同じですが、細かい点で特筆すべき違いがあります。
+    1つめは、帰納段階の証明(["S"]の場合)において、[induction]が自動でやってくれること([intros])を手作業で行なう必要があります。
 
-(** **** Exercise: 2 stars (plus_one_r') *)
-(** Complete this proof without using the [induction] tactic. *)
+    2つめは、[nat_ind]を適用する前にコンテキストに[n]を導入していません。
+    [nat_ind]の結論は限量子を含む式であり、[apply]で使うためにはこの結論と限量子を含んだゴールの形とぴったりと一致する必要があります。
+    [induction]タクティックはコンテキストにある変数にもゴール内の量子化された変数のどちらにでも使えます。
+
+    3つめは、[appl]タクティックは変数名(この場合はサブゴール内で使われる変数名)を自動で選びますが、[induction]は([as ...]節によって)使う名前を指定できます。
+    実際には、この自動選択にはちょっと不都合な点があります。元の定理の[n]とは別の変数として[n]を再利用してしまいます。
+    これは[Case]注釈がただの[S]だからです。
+    ほかの証明で使ってきたように省略しない形で書くと、これは[n = S n]という意味のなさない形になります。
+    このような便利な点があるため、実際には[nat_ind]のような帰納法の原理を直接適用するよりも[induction]を使ったほうがよいでしょう。
+    しかし、ちょっとした例外を除けば実際にやりたいのは[nat_ind]の適用であるということを知っておくのは重要です。 *)
+
+(* **** Exercise: 2 stars (plus_one_r') *)
+(** **** 練習問題: ★★  (plus_one_r') *)
+(* Complete this proof without using the [induction] tactic. *)
+(** [induction]タクティックを使わずに、下記の証明を完成させなさい。 *)
 
 Theorem plus_one_r' : forall n:nat,
   n + 1 = S n.
@@ -522,7 +649,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** The induction principles that Coq generates for other
+(* The induction principles that Coq generates for other
     datatypes defined with [Inductive] follow a similar pattern. If we
     define a type [t] with constructors [c1] ... [cn], Coq generates a
     theorem with this shape:
@@ -539,6 +666,21 @@ Proof.
     corresponding constructor.  Before trying to write down a general
     rule, let's look at some more examples. First, an example where
     the constructors take no arguments: *)
+(** ほかの[Inductive]によって定義されたデータ型に対しても、Coqは似た形の帰納法の原理を生成します。
+    コンストラクタ[c1] ... [cn]を持った型[t]を定義すると、Coqは次の形の定理を生成します。
+[[
+    t_ind :
+       forall P : t -> Prop,
+            ... c1の場合 ... ->
+            ... c2の場合 ... ->
+            ...                 ->
+            ... cnの場合 ... ->
+            forall n : t, P n
+]]
+    各場合分けの形は、対応するコンストラクタの引数の数によって決まります。
+    一般的な規則を紹介する前に、もっと例を見てみましょう。
+    最初は、コンストラクタが引数を取らない場合です。
+*)
 
 Inductive yesno : Type :=
   | yes : yesno
@@ -550,10 +692,13 @@ Check yesno_ind.
                       P no  ->
                       forall y : yesno, P y *)
 
-(** **** Exercise: 1 star (rgb) *)
-(** Write out the induction principle that Coq will generate for
+(* **** Exercise: 1 star (rgb) *)
+(** **** 練習問題: ★ (rgb) *)
+(* Write out the induction principle that Coq will generate for
     the following datatype.  Write down your answer on paper, and
     then compare it with what Coq prints. *)
+(** 次のデータ型に対してCoqが生成する帰納法の原理を予測しなさい。
+    紙に答えを書いたのち、Coqの出力と比較しなさい。 *)
 
 Inductive rgb : Type :=
   | red : rgb
@@ -562,8 +707,9 @@ Inductive rgb : Type :=
 Check rgb_ind.
 (** [] *)
 
-(** Here's another example, this time with one of the constructors
+(* Here's another example, this time with one of the constructors
     taking some arguments. *)
+(** 別の例を見てみましょう。引数を受け取るコンストラクタがある場合です。 *)
 
 Inductive natlist : Type :=
   | nnil : natlist
@@ -577,18 +723,21 @@ Check natlist_ind.
          (forall (n : nat) (l : natlist), P l -> P (ncons n l)) ->
          forall n : natlist, P n *)
 
-(** **** Exercise: 1 star (natlist1) *)
-(** Suppose we had written the above definition a little
+(* **** Exercise: 1 star (natlist1) *)
+(** **** 練習問題: ★ (natlist1) *)
+(* Suppose we had written the above definition a little
    differently: *)
+(** 上記の定義をすこし変えたとしましょう。 *)
 
 Inductive natlist1 : Type :=
   | nnil1 : natlist1
   | nsnoc1 : natlist1 -> nat -> natlist1.
 
-(** Now what will the induction principle look like? *)
+(* Now what will the induction principle look like? *)
+(** このとき、帰納法の原理はどのようになるでしょうか? *)
 (** [] *)
 
-(** From these examples, we can extract this general rule:
+(* From these examples, we can extract this general rule:
 
     - The type declaration gives several constructors; each
       corresponds to one clause of the induction principle.
@@ -601,8 +750,18 @@ Inductive natlist1 : Type :=
            [P] holds for each of the [x]s of type [t], then [P]
            holds for [c x1 ... xn]". *)
 
-(** **** Exercise: 1 star (ExSet) *)
-(** Here is an induction principle for an inductively defined
+(** これらの例より、一般的な規則を導くことができます。
+
+    - 型宣言は複数のコンストラクタを持ち、各コンストラクタが帰納法の原理の各節に対応する。
+    - 各コンストラクタ[c]は引数[a1]..[an]を取る。
+    - [ai]は[t](定義しようとしているデータ型)、もしくは別の型[s]かのどちらかである。
+    - 帰納法の原理において各節は以下のことを述べている。
+        - "型[a1]...[an]のすべての値[x1]...[xn]について、各[x]について[P]が成り立つならば、[c x1 ... xn]についても[P]が成り立つ"
+*)
+
+(* **** Exercise: 1 star (ExSet) *)
+(** **** 練習問題: ★ (ExSet) *)
+(* Here is an induction principle for an inductively defined
     set.
 [[
       ExSet_ind :
@@ -612,6 +771,15 @@ Inductive natlist1 : Type :=
              forall e : ExSet, P e
 ]]
     Give an [Inductive] definition of [ExSet]: *)
+(** 帰納的に定義された集合に対する帰納法の原理が次のようなものだとします。
+[[
+      ExSet_ind :
+         forall P : ExSet -> Prop,
+             (forall b : bool, P (con1 b)) ->
+             (forall (n : nat) (e : ExSet), P e -> P (con2 n e)) ->
+             forall e : ExSet, P e
+]]
+    [ExSet]の帰納的な定義を示しなさい。 *)
 
 Inductive ExSet : Type :=
   (* FILL IN HERE *)
@@ -619,7 +787,7 @@ Inductive ExSet : Type :=
 
 (** [] *)
 
-(** What about polymorphic datatypes?
+(* What about polymorphic datatypes?
 
     The inductive definition of polymorphic lists
 [[
@@ -646,10 +814,35 @@ Inductive ExSet : Type :=
    applied to a type [X], gives us back an induction principle
    specialized to the type [list X]. *)
 
-(** **** Exercise: 1 star (tree) *)
-(** Write out the induction principle that Coq will generate for
+(** 多相的なデータ型ではどのようになるでしょうか?
+
+    多相的なリストの帰納的定義は[natlist]によく似ています。
+[[
+      Inductive list (X:Type) : Type :=
+        | nil : list X
+        | cons : X -> list X -> list X.
+]]
+     ここでの主な違いは、定義全体が集合[X]によってパラメータ化されていることです。
+     つまり、それぞれの[X]ごとに帰納型[list X]を定義していることになります。
+     (定義本体で[list]が登場するときは、常にパラメータ[X]に適用されていることに注意してください。)
+     帰納法の原理も同様に[X]によってパラメータ化されています。
+[[
+     list_ind :
+       forall (X : Type) (P : list X -> Prop),
+          P [] ->
+          (forall (x : X) (l : list X), P l -> P (x :: l)) ->
+          forall l : list X, P l
+]]
+   この言い回し(と[list_ind]の形)に注意してください。
+   言い換えると、[list_ind]は多相関数を考えることができます。この関数は、型[X]が適用されると、[list X]に特化した帰納法の原理が返ります。 *)
+
+(* **** Exercise: 1 star (tree) *)
+(** **** 練習問題: ★ (tree) *)
+(* Write out the induction principle that Coq will generate for
    the following datatype.  Compare your answer with what Coq
    prints. *)
+(** 次のデータ型に対してCoqが生成する帰納法の原理を予測しなさい。
+    Coqの出力と比較しなさい。 *)
 
 Inductive tree (X:Type) : Type :=
   | leaf : X -> tree X
@@ -657,9 +850,21 @@ Inductive tree (X:Type) : Type :=
 Check tree_ind.
 (** [] *)
 
-(** **** Exercise: 1 star (mytype) *)
-(** Find an inductive definition that gives rise to the
+(* **** Exercise: 1 star (mytype) *)
+(** **** 練習問題: ★ (mytype) *)
+(* Find an inductive definition that gives rise to the
     following induction principle:
+[[
+      mytype_ind :
+        forall (X : Type) (P : mytype X -> Prop),
+            (forall x : X, P (constr1 X x)) ->
+            (forall n : nat, P (constr2 X n)) ->
+            (forall m : mytype X, P m ->
+               forall n : nat, P (constr3 X m n)) ->
+            forall m : mytype X, P m
+]]
+*)
+(** 以下の帰納法の原理を生成する帰納的定義を探しなさい。
 [[
       mytype_ind :
         forall (X : Type) (P : mytype X -> Prop),
@@ -672,9 +877,21 @@ Check tree_ind.
 *)
 (** [] *)
 
-(** **** Exercise: 1 star, optional (foo) *)
-(** Find an inductive definition that gives rise to the
+(* **** Exercise: 1 star, optional (foo) *)
+(** **** 練習問題: ★, optional (foo) *)
+(* Find an inductive definition that gives rise to the
     following induction principle:
+[[
+      foo_ind :
+        forall (X Y : Type) (P : foo X Y -> Prop),
+             (forall x : X, P (bar X Y x)) ->
+             (forall y : Y, P (baz X Y y)) ->
+             (forall f1 : nat -> foo X Y,
+               (forall n : nat, P (f1 n)) -> P (quux X Y f1)) ->
+             forall f2 : foo X Y, P f2
+]]
+*)
+(** 以下の帰納法の原理を生成する帰納的定義を探しなさい。
 [[
       foo_ind :
         forall (X Y : Type) (P : foo X Y -> Prop),
@@ -687,15 +904,30 @@ Check tree_ind.
 *)
 (** [] *)
 
-(** **** Exercise: 1 star, optional (foo') *)
-(** Consider the following inductive definition: *)
+(* **** Exercise: 1 star, optional (foo') *)
+(** **** 練習問題: ★, optional (foo') *)
+
+(* Consider the following inductive definition: *)
+(** 次のような帰納的定義があるとします。 *)
 
 Inductive foo' (X:Type) : Type :=
   | C1 : list X -> foo' X -> foo' X
   | C2 : foo' X.
 
-(** What induction principle will Coq generate for [foo']?  Fill
+(* What induction principle will Coq generate for [foo']?  Fill
    in the blanks, then check your answer with Coq.)
+[[
+     foo'_ind :
+        forall (X : Type) (P : foo' X -> Prop),
+              (forall (l : list X) (f : foo' X),
+                    _______________________ ->
+                    _______________________   ) ->
+             ___________________________________________ ->
+             forall f : foo' X, ________________________
+]]
+*)
+(** [foo']に対してCoqはどのような帰納法の原理を生成するでしょうか?
+    空欄を埋め、Coqの結果と比較しなさい
 [[
      foo'_ind :
         forall (X : Type) (P : foo' X -> Prop),
