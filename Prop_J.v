@@ -1080,7 +1080,7 @@ Definition four_ev : ev 4 :=
   (* FILL IN HERE *) admit.
 (** [] *)
 
-(** **** Exercise: 2 stars (ev_plus4) *)
+(* **** Exercise: 2 stars (ev_plus4) *)
 (** **** 練習問題: ★★ (ev_plus4) *)
 (** Give a tactic proof and a proof object showing that, if [n] is
     even, then so is [4+n]. *)
@@ -1106,7 +1106,7 @@ Proof.
 
 (* **** Exercise: 4 stars, optional (double_even_pfobj) *)
 (* **** 練習問題: ★★★★, optional (double_even_pfobj) *)
-(** Try to predict what proof object is constructed by the above
+(* Try to predict what proof object is constructed by the above
     tactic proof.  (Before checking your answer, you'll want to
     strip out any uses of [Case], as these will make the proof
     object look a bit cluttered.) *)
