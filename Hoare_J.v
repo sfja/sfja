@@ -1,5 +1,5 @@
-(** * Hoare: Hoare Logic *)
 (** * Hoare_J: ホーア論理 *)
+(* * Hoare: Hoare Logic *)
 
 (* $Date: 2011-06-22 14:56:13 -0400 (Wed, 22 Jun 2011) $ *)
 
@@ -27,7 +27,7 @@
    
 Require Export ImpList_J.
 
-(** We've begun applying the mathematical tools developed in the
+(* We've begun applying the mathematical tools developed in the
     first part of the course to studying the theory of a small
     programming language, Imp.
 
@@ -118,7 +118,7 @@ Require Export ImpList_J.
       Imp を厳密に定義し、ある特定のプログラム(つまり階乗計算と遅い引き算)が
       その動作についての特定の仕様を満たすことを形式的に証明するものでした。*)
 
-(** In this chapter, we'll take this last idea further.  We'll
+(* In this chapter, we'll take this last idea further.  We'll
     develop a reasoning system called _Floyd-Hoare Logic_ -- commonly,
     if somewhat unfairly, shortened to just _Hoare Logic_ -- in which
     each of the syntactic constructs of Imp is equipped with a single,
@@ -142,25 +142,25 @@ Require Export ImpList_J.
 
 
 (* ####################################################### *)
-(** * Hoare Logic *)
+(* * Hoare Logic *)
 (** * ホーア 論理 *)
 
-(** Hoare Logic offers two important things: a natural way of
+(* Hoare Logic offers two important things: a natural way of
     writing down _specifications_ of programs, and a _compositional
     proof technique_ for proving that these specifications are met --
     where by "compositional" we mean that the structure of proofs
     directly mirrors the structure of the programs that they are
     about. *)
-(** ホーア 論理は2つの重要なことがらを提供します。プログラムの仕様(_specification_)を
+(** ホーア論理は2つの重要なことがらを提供します。プログラムの仕様(_specification_)を
     自然に記述する方法と、その仕様が適合していることを証明する合成的証明法(_compositional
     proof technique_)です。ここでの"合成的"(compositional)という意味は、
     証明の構造が証明対象となるプログラムの構造を直接的に反映しているということです。*)
 
 (* ####################################################### *)
-(** ** Assertions *)
+(* ** Assertions *)
 (** ** 表明 *)
 
-(** If we're going to talk about specifications of programs, the first
+(* If we're going to talk about specifications of programs, the first
     thing we'll want is a way of making _assertions_ about properties
     that hold at particular points in time -- i.e., properties that
     may or may not be true of a given state of the memory. *)
@@ -170,9 +170,9 @@ Require Export ImpList_J.
 
 Definition Assertion := state -> Prop.
 
-(** **** Exercise: 1 star (assertions) *)
+(* **** Exercise: 1 star (assertions) *)
 (** **** 練習問題: ★ (assertions) *)
-(** Paraphrase the following assertions in English.
+(* Paraphrase the following assertions in English.
 [[
       fun st =>  asnat (st X) = 3
       fun st =>  asnat (st X) = x
@@ -197,7 +197,7 @@ Definition Assertion := state -> Prop.
 ]]
 [] *)
 
-(** This way of writing assertions is formally correct -- it
+(* This way of writing assertions is formally correct -- it
     precisely captures what we mean, and it is exactly what we will
     use in Coq proofs -- but it is a bit heavy to look at, for several
     reasons.  First, every single assertion that we ever write is
@@ -219,7 +219,7 @@ Definition Assertion := state -> Prop.
     ("First,","(2)","(3)")ためそう訳した。) 表明をインフォーマルに書くときには、
     いくらか簡単にします。最初の[fun st =>]は書かず、[st X]のかわりに単に[X]と書きます。
     また[asnat]と[aslist]は略します。*)
-(** Informally, instead of writing
+(* Informally, instead of writing
 [[
       fun st =>  (asnat (st Z)) * (asnat (st Z)) <= x
                  /\ ~ ((S (asnat (st Z))) * (S (asnat (st Z))) <= x)
@@ -243,15 +243,15 @@ Definition Assertion := state -> Prop.
 *)
 
 (* ####################################################### *)
-(** ** Hoare Triples *)
+(* ** Hoare Triples *)
 (** ** ホーアの三つ組 *)
 
-(** Next, we need a way of specifying -- making claims about -- the
+(* Next, we need a way of specifying -- making claims about -- the
     behavior of commands. *)
 (** 次に、コマンドのふるまいの仕様を定める -- つまりコマンドのふるまい
     についての表明を作る -- 方法が必要です。*)
 
-(** Since we've defined assertions as a way of making claims about the
+(* Since we've defined assertions as a way of making claims about the
     properties of states, and since the behavior of a command is to
     transform one state to another, a claim about a command takes the
     following form:
@@ -274,7 +274,7 @@ Definition Assertion := state -> Prop.
     事前条件(_precondition_)と呼ばれます。[Q]は[c]の事後条件(_postcondition_)と
     呼ばれます。*)
 
-(** (Traditionally, Hoare triples are written [{P} c {Q}], but single
+(* (Traditionally, Hoare triples are written [{P} c {Q}], but single
     braces are already used for other things in Coq.)  *)
 (** (伝統的に、ホーアの三つ組は [{P} c {Q}]と書かれます。しかし Coq では一重の中カッコは
     別の意味で既に使われています。) *)
@@ -285,7 +285,7 @@ Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
        P st  ->
        Q st'.
 
-(** Since we'll be working a lot with Hoare triples, it's useful to
+(* Since we'll be working a lot with Hoare triples, it's useful to
     have a compact notation:
 [[
        {{P}}  c  {{Q}}.
@@ -303,7 +303,7 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q) (at level 90, c at next l
                                   : hoare_spec_scope.
 Open Scope hoare_spec_scope.
 
-(** (The [hoare_spec_scope] annotation here tells Coq that this
+(* (The [hoare_spec_scope] annotation here tells Coq that this
     notation is not global but is intended to be used in particular
     contexts.  The [Open Scope] tells Coq that this file is one such
     context.  The first notation -- with missing postcondition -- will
@@ -317,9 +317,9 @@ Open Scope hoare_spec_scope.
     これは単に後に定義する記法のための場所を用意したものです。後に修飾付きプログラムについて
     議論する際に使います。*)
 
-(** **** Exercise: 1 star (triples) *)
+(* **** Exercise: 1 star (triples) *)
 (** **** 練習問題: ★ (triples) *)
-(** Paraphrase the following Hoare triples in English.
+(* Paraphrase the following Hoare triples in English.
 [[
       {{True}} c {{X = 5}}
 
@@ -359,9 +359,9 @@ Open Scope hoare_spec_scope.
  *)
 (** [] *)
 
-(** **** Exercise: 1 star (valid_triples) *)
+(* **** Exercise: 1 star (valid_triples) *)
 (** **** 練習問題: ★ (valid_triples) *)
-(** Which of the following Hoare triples are _valid_ -- i.e., the
+(* Which of the following Hoare triples are _valid_ -- i.e., the
     claimed relation between [P], [c], and [Q] is true?
 [[
       {{True}} X ::= 5 {{X = 5}}
@@ -413,14 +413,14 @@ Open Scope hoare_spec_scope.
       {{X = 100}}
 ]]
 *)
-(** (Note that we're using informal mathematical notations for
+(* (Note that we're using informal mathematical notations for
    expressions inside of commands, for readability.  We'll continue
    doing so throughout the chapter.) *)
 (** (読みやすくするため、コマンド内の式について、非形式的な数学記法を
       使います。この章の最後までその方針をとります。) *)
 (** [] *)
 
-(** To get us warmed up, here are two simple facts about Hoare
+(* To get us warmed up, here are two simple facts about Hoare
     triples. *)
 (** ウォーミングアップとして、ホーアの三つ組についての2つの事実をみてみ
     ます。*)
@@ -443,10 +443,10 @@ Proof.
   inversion HP.  Qed.
 
 (* ####################################################### *)
-(** ** Weakest Preconditions *)
+(* ** Weakest Preconditions *)
 (** ** 最弱事前条件 *)
 
-(** Some Hoare triples are more interesting than others.  For example,
+(* Some Hoare triples are more interesting than others.  For example,
 [[
       {{ False }}  X ::= Y + 1  {{ X <= 5 }}
 ]]
@@ -494,7 +494,7 @@ Proof.
 ]]
     言いかえると、[Y <= 4] は事後条件[X <= 5]に対してコマンド[X ::= Y + 1]の
     最弱の(_weakest_)正しい事前条件です。*)
-(** In general, we say that "[P] is the weakest precondition of
+(* In general, we say that "[P] is the weakest precondition of
     [c] for [Q]" if
 
     - [{{P}} c {{Q}}], and
@@ -508,7 +508,7 @@ Proof.
     - [P'] が [{{P'}} c {{Q}}] を満たす表明ならば, 
       すべての状態 [st] について、[P' st] ならば [P st] となる。  *)
    
-(** That is, [P] is the weakest precondition of [c] for [Q]
+(* That is, [P] is the weakest precondition of [c] for [Q]
     if (a) [P] _is_ a precondition for [Q] and [c], and (b) [P] is the
     _weakest_ (easiest to satisfy) assertion that guarantees [Q] after
     [c]. *)
@@ -516,9 +516,9 @@ Proof.
     で、かつ、(b) [P]は[c]の後で[Q]を保証する最弱の(_weakest_)(もっとも簡単に充足できる)
     表明である、ということです。*)
 
-(** **** Exercise: 1 star (wp) *)
+(* **** Exercise: 1 star (wp) *)
 (** **** 練習問題: ★ (wp) *)
-(** What are the weakest preconditions of the following commands
+(* What are the weakest preconditions of the following commands
    for the following postconditions?
 [[
      {{ ? }}  SKIP  {{ X = 5 }}
@@ -564,10 +564,10 @@ Proof.
 (** [] *)
 
 (* ####################################################### *)
-(** ** Proof Rules *)
+(* ** Proof Rules *)
 (** ** 証明規則 *)
 
-(** The goal of Hoare logic is to provide a _compositional_
+(* The goal of Hoare logic is to provide a _compositional_
     method for proving the validity of Hoare triples.  That is, the
     structure of a program's correctness proof should mirror the
     structure of the program itself.  To this end, in the sections
@@ -584,10 +584,10 @@ Proof.
     2つの"構造的"規則を導入します。*)
 
 (* ####################################################### *)
-(** *** Assignment *)
+(* *** Assignment *)
 (** *** 代入 *)
 
-(** The rule for assignment is the most fundamental of the Hoare logic
+(* The rule for assignment is the most fundamental of the Hoare logic
     proof rules.  Here's how it works.
 
     Consider this (valid) Hoare triple:
@@ -678,7 +678,7 @@ Proof.
 ]]
 *)
 
-(** We could try to formalize the assignment rule directly in Coq by
+(* We could try to formalize the assignment rule directly in Coq by
     treating [Q] as a family of assertions indexed by arithmetic
     expressions -- something like this:
 [[
@@ -721,7 +721,7 @@ Proof.
     事後条件は[False]になります。)第二の理由は、たとえ同様のことが証明できたとしても、
     これは使いにくいのです。*)
 
-(** A much smoother way of formalizing the rule arises from the
+(* A much smoother way of formalizing the rule arises from the
     following observation:
 
     - "[Q] where a is substituted for [X]" holds in a state [st] iff
@@ -730,13 +730,13 @@ Proof.
     - "[Q]において[X]を a で置換したもの"が状態[st]で成立する必要十分条件は、
       [Q]が状態 [update st X (aeval st a)] で成立することである。*)
 
-(** That is, asserting that a substituted variant of [Q] holds in
+(* That is, asserting that a substituted variant of [Q] holds in
     some state is the same as asserting that [Q] itself holds in
     a substituted variant of the state.  *)
 (** つまり、ある状態で、[Q]を置換してできるものを表明することは、その状態を置換してできる
     状態で、[Q]を表明することと同じだということです。*)
 
-(** Here is the definition of substitution in a state: *)
+(* Here is the definition of substitution in a state: *)
 (** 状態の置換を次のように定義します: *)
 
 Definition assn_sub V a Q : Assertion :=
@@ -764,7 +764,7 @@ Proof.
   inversion HE. subst.
   unfold assn_sub in HQ. assumption.  Qed.
 
-(** Here's a first formal proof using this rule. *)
+(* Here's a first formal proof using this rule. *)
 (** この規則を使った最初の形式的証明が次のものです。*)
 
 Example assn_sub_example :
@@ -778,7 +778,7 @@ Proof.
     unfold assn_sub. reflexivity.
   rewrite -> H. apply hoare_asgn.  Qed.
 
-(** This proof is a little clunky because the [hoare_asgn] rule
+(* This proof is a little clunky because the [hoare_asgn] rule
     doesn't literally apply to the initial goal: it only works with
     triples whose precondition has precisely the form [assn_sub Q V a]
     for some [Q], [V], and [a].  So we have to start with asserting a
@@ -804,7 +804,7 @@ Theorem hoare_asgn_eq : forall Q Q' V a,
 Proof.
   intros Q Q' V a H. rewrite H. apply hoare_asgn.  Qed.
 
-(** With this version of [hoare_asgn], we can do the proof much
+(* With this version of [hoare_asgn], we can do the proof much
     more smoothly. *)
 (** [hoare_asgn]のこのバージョンを使うことで、証明をよりスムーズに行うことができます。*)
 
@@ -815,9 +815,9 @@ Example assn_sub_example' :
 Proof.
   apply hoare_asgn_eq. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars (hoare_asgn_examples) *)
+(* **** Exercise: 2 stars (hoare_asgn_examples) *)
 (** **** 練習問題: ★★ (hoare_asgn_examples) *)
-(** Translate these informal Hoare triples...
+(* Translate these informal Hoare triples...
 [[
        {{ X + 1 <= 5 }}  X ::= X + 1  {{ X <= 5 }}
        {{ 0 <= 3 /\ 3 <= 5 }}  X ::= 3  {{ 0 <= X /\ X <= 5 }}
@@ -834,9 +834,9 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars (hoarestate2) *)
+(* **** Exercise: 3 stars (hoarestate2) *)
 (** **** 練習問題: ★★★ (hoarestate2) *)
-(** The assignment rule looks backward to almost everyone the first
+(* The assignment rule looks backward to almost everyone the first
     time they see it.  If it still seems backward to you, it may help
     to think a little about alternative "forward" rules.  Here is a
     seemingly natural one:
@@ -859,9 +859,9 @@ Proof.
 *)
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (hoare_asgn_weakest) *)
+(* **** Exercise: 3 stars, optional (hoare_asgn_weakest) *)
 (** **** 練習問題: ★★★, optional (hoare_asgn_weakest) *)
-(** Show that the precondition in the rule [hoare_asgn] is in fact the
+(* Show that the precondition in the rule [hoare_asgn] is in fact the
     weakest precondition. *)
 (** [hoare_asgn]規則の事前条件が、本当に最弱事前条件であることを示しなさい。*)
 
@@ -874,10 +874,10 @@ Proof.
 
 
 (* ####################################################### *)
-(** *** Consequence *)
+(* *** Consequence *)
 (** *** 帰結 *)
 
-(** The discussion above about the awkwardness of applying the
+(* The discussion above about the awkwardness of applying the
     assignment rule illustrates a more general point: sometimes the
     preconditions and postconditions we get from the Hoare rules won't
     quite be the ones we want -- they may (as in the above example) be
@@ -971,7 +971,7 @@ Proof.
 ]]]
  *)
 
-(** Here are the formal versions: *)
+(* Here are the formal versions: *)
 (** 以下が形式化版です: *)
 
 Theorem hoare_consequence : forall (P P' Q Q' : Assertion) c,
@@ -1005,7 +1005,7 @@ Proof.
     try assumption.
   intros st H. apply H.  Qed.
 
-(** For example, we might use (the "[_pre]" version of) the
+(* For example, we might use (the "[_pre]" version of) the
     consequence rule like this:
 [[
                 {{ True }} =>
