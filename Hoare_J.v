@@ -585,8 +585,8 @@ Proof.
     つまり、プログラムの正しさの証明の構造は、
     プログラムの構造をそのまま反映したものになるということです。
     このゴールのために、以降の節では、Impのコマンドのいろいろな構文要素のそれぞれ対して、
-    その構文要素について推論するための規則を1つずつ導入します。代入文に1つ、
-    合成文に1つ、条件文に1つ、等です。それに加えて、
+    その構文要素について推論するための規則を1つずつ導入します。代入に1つ、
+    コマンド合成に1つ、条件分岐に1つ、等です。それに加えて、
     複数のものを結合するために有用な2つの"構造的"規則を導入します。*)
 
 (* ####################################################### *)
@@ -641,7 +641,7 @@ Proof.
       {{ 0 <= 3 /\ 3 <= 5 }}  X ::= 3  {{ 0 <= X /\ X <= 5 }}
 ]]
 *)
-(** 代入文の規則は、ホーア論理の証明規則の中で最も基本的なものです。
+(** 代入の規則は、ホーア論理の証明規則の中で最も基本的なものです。
     この規則は次のように働きます。
 
     次の(正しい)ホーアの三つ組を考えます。
@@ -724,7 +724,7 @@ Proof.
        | _          => fun st => True
        end.
 ]]
-    このとき、代入文として、[V = Id 0] を考えると、事前条件は[True]となりますが、
+    このとき、代入として、[V = Id 0] を考えると、事前条件は[True]となりますが、
     事後条件は[False]になります。)第二の理由は、たとえ同様のことが証明できたとしても、
     これは使いにくいのです。*)
 
@@ -803,7 +803,7 @@ Proof.
     このため、ゴールをこの形にするためのちょっとした補題から始めなければならないのです。
 
     [hoare_asgn]を使おうとするときに、
-    毎回ゴール状態に対してこのような小細工をするのは、すぐにいやになります。
+    毎回ゴール状態に対してこのような小細工をするのは面倒です。
     幸い、より簡単な方法があります。
     その一つは、明示的な等式の形の仮定を導く、いくらか一般性の高い定理を示すことです: *)
 
@@ -1053,7 +1053,7 @@ Proof.
     exactly what it should be.  We can use [eapply] instead of
     [apply] to tell Coq, essentially, "The missing part is going
     to be filled in later." *)
-(** ここらで、良い機会ですので、Coq の別の便利な機能を紹介しておきましょう。
+(** ここで、良い機会ですので、Coq の別の便利な機能を紹介しておきましょう。
     上述の例で明示的に[P']と書かなければならないことは、少々やっかいです。
     なぜなら、すぐ次にやること、つまり[hoare_asgn]規則を適用すること、が、
     まさに、それがどうでなければならないかを決定することだからです。    
@@ -1113,13 +1113,25 @@ Proof.
   assumption.  Qed.
 
 (* ####################################################### *)
-(** *** Sequencing *)
+(* *** Sequencing *)
+(** *** コマンド合成 *)
 
-(** More interestingly, if the command [c1] takes any state where
+
+(* More interestingly, if the command [c1] takes any state where
     [P] holds to a state where [Q] holds, and if [c2] takes any
     state where [Q] holds to one where [R] holds, then doing [c1]
     followed by [c2] will take any state where [P] holds to one
     where [R] holds:
+[[[
+        {{ P }} c1 {{ Q }}
+        {{ Q }} c2 {{ R }}
+       ---------------------  (hoare_seq)
+       {{ P }} c1;c2 {{ R }}
+]]]
+*)
+(** より興味深いことに、コマンド[c1]が、[P]が成立する任意の状態を[Q]が成立する状態にし、
+    [c2]が、[Q]が成立する任意の状態を[R]が成立する状態にするとき、
+    [c1]に続いて[c2]を行うことは、[P]が成立する任意の状態を[R]が成立する状態にします:
 [[[
         {{ P }} c1 {{ Q }}
         {{ Q }} c2 {{ R }}
@@ -1138,14 +1150,27 @@ Proof.
   apply (H1 st'0 st'); try assumption.
   apply (H2 st st'0); try assumption. Qed.
 
-(** Note that, in the formal rule [hoare_seq], the premises are
+(* Note that, in the formal rule [hoare_seq], the premises are
     given in "backwards" order ([c2] before [c1]).  This matches the
     natural flow of information in many of the situations where we'll
     use the rule. *)
+(** 形式的規則[hoare_seq]においては、
+    前提部分が「逆順」である([c1]の前に[c2]が来る)ことに注意してください。
+    この順は、規則を使用する多くの場面で情報の自然な流れにマッチするのです。*)
 
-(** Informally, a nice way of recording a proof using this rule
+(* Informally, a nice way of recording a proof using this rule
     is as a "decorated program" where the intermediate assertion
     [Q] is written between [c1] and [c2]:
+[[
+      {{ a = n }}
+    X ::= a;
+      {{ X = n }}      <---- decoration for Q
+    SKIP
+      {{ X = n }}
+]]
+*)
+(** 非形式的には、この規則を利用した証明を記録する良い方法は、
+    [c1]と[c2]の間に中間表明を記述する"修飾付きプログラム"の様にすることです:
 [[
       {{ a = n }}
     X ::= a;
@@ -1167,8 +1192,20 @@ Proof.
     eapply hoare_consequence_pre. apply hoare_asgn.
     intros st H.  subst.  reflexivity. Qed.
 
-(** **** Exercise: 2 stars (hoare_asgn_example4) *)
-(** Translate this decorated program into a formal proof:
+(* **** Exercise: 2 stars (hoare_asgn_example4) *)
+(** **** 練習問題: ★★ (hoare_asgn_example4) *)
+(* Translate this decorated program into a formal proof:
+[[
+                   {{ True }} =>
+                   {{ 1 = 1 }}
+    X ::= 1;
+                   {{ X = 1 }} =>
+                   {{ X = 1 /\ 2 = 2 }}
+    Y ::= 2
+                   {{ X = 1 /\ Y = 2 }}
+]]
+*)
+(** 次の修飾付きプログラムを形式的証明に直しなさい:
 [[
                    {{ True }} =>
                    {{ 1 = 1 }}
@@ -1187,10 +1224,17 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (swap_exercise) *)
-(** Write an Imp program [c] that swaps the values of [X] and [Y]
+(* **** Exercise: 3 stars, optional (swap_exercise) *)
+(** **** 練習問題: ★★★, optional (swap_exercise) *)
+(* Write an Imp program [c] that swaps the values of [X] and [Y]
     and show (in Coq) that it satisfies the following
     specification:
+[[
+      {{X <= Y}} c {{Y <= X}}
+]]
+*)
+(** [X]と[Y]の値を交換するImpプログラム[c]を書き、
+    それが次の仕様を満たすことを(Coq で)示しなさい:
 [[
       {{X <= Y}} c {{Y <= X}}
 ]]
@@ -1199,8 +1243,16 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (hoarestate1) *)
-(** Explain why the following proposition can't be proven:
+(* **** Exercise: 3 stars, optional (hoarestate1) *)
+(** **** 練習問題: ★★★, optional (hoarestate1) *)
+(* Explain why the following proposition can't be proven:
+[[
+      forall (a : aexp) (n : nat),
+         {{fun st => aeval st a = n}} (X ::= (ANum 3); Y ::= a)
+         {{fun st => asnat (st Y) = n}}.
+]]
+*)
+(** 次の命題が証明できない理由を説明しなさい:
 [[
       forall (a : aexp) (n : nat),
          {{fun st => aeval st a = n}} (X ::= (ANum 3); Y ::= a)
@@ -1212,9 +1264,10 @@ Proof.
 (** [] *)
 
 (* ####################################################### *)
-(** *** Conditionals *)
+(* *** Conditionals *)
+(** *** 条件分岐 *)
 
-(** What sort of rule do we want for reasoning about conditional
+(* What sort of rule do we want for reasoning about conditional
     commands?  Certainly, if the same assertion [Q] holds after
     executing either branch, then it holds after the whole
     conditional.  So we might be tempted to write:
@@ -1251,8 +1304,43 @@ Proof.
       {{P}} IFB b THEN c1 ELSE c2 FI {{Q}}
 ]]]
 *)
+(** 条件分岐コマンドについて推論するために、どのような規則が必要でしょうか？
+    確かに、分岐のどちらの枝を実行した後でも表明[Q]が成立するならば、
+    条件分岐全体でも[Q]が成立するでしょう。
+    これから次のように書くべきかもしれません:
+[[[
+              {{P}} c1 {{Q}}
+              {{P}} c2 {{Q}}
+      --------------------------------
+      {{P}} IFB b THEN c1 ELSE c2 {{Q}}
+]]]
+   しかし、これはかなり弱いのです。例えば、この規則を使っても次のことを示すことができません:
+[[
+     {{True}}
+     IFB X == 0
+     THEN Y ::= 2
+     ELSE Y ::= X + 1
+     FI
+     {{ X <= Y }}
+]]
+   なぜなら、この規則では、"then"部と"else"部のどちらの代入が起こる状態なのかについて、
+   何も言っていないからです。
 
-(** To interpret this rule formally, we need to do a little work.
+   しかし、実際には、より詳しいことを言うことができます。
+   "then"の枝では、ブール式[b]の評価結果が[true]になることがわかっています。
+   また"else"の枝では、それが[false]になることがわかっています。
+   この情報を補題の前提部分で利用できるようにすることで、
+   [c1]と[c2]の振舞いについて(つまり事後条件[Q]が成立する理由について)推論するときに、
+   より多くの情報を使うことができるようになります。
+[[[
+              {{P /\  b}} c1 {{Q}}
+              {{P /\ ~b}} c2 {{Q}}
+      ------------------------------------  (hoare_if)
+      {{P}} IFB b THEN c1 ELSE c2 FI {{Q}}
+]]]
+*)
+
+(* To interpret this rule formally, we need to do a little work.
 
     Strictly speaking, the assertion we've written, [P /\ b], is the
     conjunction of an assertion and a boolean expression, which
@@ -1260,11 +1348,18 @@ Proof.
     "lifting" any bexp [b] to an assertion.  We'll write [bassn b] for
     the assertion "the boolean expression [b] evaluates to [true] (in
     the given state)." *)
+(** この規則を形式的に解釈するために、もう少しやることがあります。
+
+    厳密には、上述の表明において、表明とブール式の連言[P /\ b]は、型チェックを通りません。
+    これを修正するために、ブール式[b]を形式的に「持ち上げ」て、表明にしなければなりません。
+    このために[bassn b]と書きます。
+    これは"ブール式[b]の評価結果が(任意の状態で)[true]になる"という表明です。*)
 
 Definition bassn b : Assertion :=
   fun st => (beval st b = true).
 
-(** A couple of useful facts about [bassn]: *)
+(* A couple of useful facts about [bassn]: *)
+(** [bassn]についての2つの便利な事実です: *)
 
 Lemma bexp_eval_true : forall b st,
   beval st b = true -> (bassn b) st.
@@ -1279,8 +1374,9 @@ Proof.
   unfold bassn in contra.
   rewrite -> contra in Hbe. inversion Hbe.  Qed.
 
-(** Now we can formalize the Hoare proof rule for conditionals
+(* Now we can formalize the Hoare proof rule for conditionals
     and prove it correct. *)
+(** いよいよ条件分岐についてのホーア証明規則を形式化し、正しいことを証明できます。*)
 
 Theorem hoare_if : forall P Q b c1 c2,
   {{fun st => P st /\ bassn b st}} c1 {{Q}} ->
@@ -1300,8 +1396,9 @@ Proof.
       split. assumption.
              apply bexp_eval_false. assumption. Qed.
 
-(** Here is a formal proof that the program we used to motivate the
+(* Here is a formal proof that the program we used to motivate the
     rule satisfies the specification we gave. *)
+(** 以下が、最初に挙げたプログラムが与えられた条件を満たすことの証明です。*)
 
 Example if_example :
     {{fun st => True}}
@@ -1325,9 +1422,10 @@ Proof.
 Qed.
 
 (* ####################################################### *)
-(** *** Loops *)
+(* *** Loops *)
+(** *** ループ *)
 
-(** Finally, we need a rule for reasoning about while loops.  Suppose
+(* Finally, we need a rule for reasoning about while loops.  Suppose
     we have a loop
 [[
       WHILE b DO c END
@@ -1381,6 +1479,53 @@ Qed.
         {{P}} WHILE b DO c END {{P /\ ~b}}
 ]]]
 *)
+(** 最後に、ループについての推論規則が必要です。
+    次のループを考えます:
+[[
+      WHILE b DO c END
+]]
+    そして、次の三つ組が正しくなる事前条件[P]と事後条件[Q]を探します:
+[[
+      {{P}} WHILE b DO c END {{Q}}
+]]
+    まず、[b]が最初から偽であるときを考えましょう。
+    このときループの本体はまったく実行されません。
+    この場合は、ループは[SKIP]と同様の振舞いをしますので、
+    次のように書いても良いかもしれません。
+[[
+      {{P}} WHILE b DO c END {{P}}.
+]]
+    しかし、条件分岐について議論したのと同様に、最後でわかっていることはもう少し多いのです。
+    最終状態では[P]であるだけではなく[b]が偽になっているのです。
+    そこで、事後条件にちょっと付け足すことができます:
+[[
+      {{P}} WHILE b DO c END {{P /\ ~b}}
+]]
+    それでは、ループの本体が実行されるときはどうなるでしょう？
+    ループを最後に抜けるときには[P]が成立することを確実にするために、
+    コマンド[c]の終了時点で常に[P]が成立することを確認する必要があるのは確かでしょう。
+    さらに、[P]が[c]の最初の実行の前に成立しており、[c]を実行するたびに、
+    終了時点で[P]の成立が再度確立されることから、
+    [P]が[c]の実行前に常に成立していると仮定することができます。
+    このことから次の規則が得られます:
+[[[
+                   {{P}} c {{P}}
+        -----------------------------------
+        {{P}} WHILE b DO c END {{P /\ ~b}}
+]]]
+    命題[P]は不変条件(_invariant_)と呼ばれます。
+
+    これは求める規則にかなり近付いたのですが、もうちょっとだけ改良できます。
+    ループ本体の開始時点で、[P]が成立しているだけでなく、
+    ガード[b]が現在の状態で真であるということも言えます。
+    このことは、[c]についての推論の際にいくらかの情報を与えてくれます。
+    結局、規則の最終バージョンはこうなります:
+[[[
+               {{P /\ b}} c {{P}}
+        -----------------------------------  [hoare_while]
+        {{P}} WHILE b DO c END {{P /\ ~b}}
+]]]
+*)
 
 Lemma hoare_while : forall P b c,
   {{fun st => P st /\ bassn b st}} c {{P}} ->
@@ -1390,6 +1535,9 @@ Proof.
   (* Like we've seen before, we need to reason by induction
      on He, because, in the "keep looping" case, its hypotheses
      talk about the whole loop instead of just c *)
+  (* 先に見たように、Heについての帰納法を使う必要がある。
+     なぜなら、ループを抜けない場合には、
+     仮定は[c]だけでなくループ全体について言及しているからである。*)
   remember (WHILE b DO c END) as wcom.
   ceval_cases (induction He) Case; try (inversion Heqwcom); subst.
 
@@ -1420,8 +1568,10 @@ Proof.
      symmetry in Heqle. apply ble_nat_false in Heqle. omega.
 Qed.
 
-(** We can also use the while rule to prove the following Hoare
+(* We can also use the while rule to prove the following Hoare
     triple, which may seem surprising at first... *)
+(** while規則を使うと、次のホーアの三つ組も証明できます。
+    これは最初は驚くでしょう...*)
 
 Theorem always_loop_hoare : forall P Q,
   {{P}} WHILE BTrue DO SKIP END {{Q}}.
@@ -1438,15 +1588,20 @@ Proof.
   Case "Precondition implies invariant".
     intros st H. constructor.  Qed.
 
-(** Actually, this result shouldn't be surprising.  If we look back at
+(* Actually, this result shouldn't be surprising.  If we look back at
     the definition of [hoare_triple], we can see that it asserts
     something meaningful _only_ when the command terminates. *)
+(** 実際は、この結果は驚くことはないのです。
+    ふり返って[hoare_triple]の定義を見てみると、
+    コマンドが停止した場合「のみ」に意味がある表明をしているのです。*)
 
 Print hoare_triple.
 
-(** If the command doesn't terminate, we can prove anything we like
+(* If the command doesn't terminate, we can prove anything we like
     about the post-condition.  Here's a more direct proof of the same
     fact: *)
+(** もしコマンドが停止しなければ、事後条件で何でも好きなことが証明できます。
+    以下は、同じことのより直接的な証明です: *)
 
 Theorem always_loop_hoare' : forall P Q,
   {{P}} WHILE BTrue DO SKIP END {{Q}}.
@@ -1455,10 +1610,14 @@ Proof.
   apply loop_never_stops in contra.  inversion contra.
 Qed.
 
-(** Hoare rules that only talk about terminating commands are often
+(* Hoare rules that only talk about terminating commands are often
     said to describe a logic of "partial" correctness.  It is also
     possible to give Hoare rules for "total" correctness, which build
     in the fact that the commands terminate. *)
+(** 停止するコマンドについてだけを議論するホーア規則は、「部分」正当性("partial" correctness)
+    を記述していると言われます。
+    「完全」正当性("total" correctness)についてのホーア規則を与えることも可能です。
+    それは、コマンドが停止するという事実を組み込んだものです。*)
 
 (* ####################################################### *)
 (** *** Exercise: Hoare Rules for [REPEAT] *)
