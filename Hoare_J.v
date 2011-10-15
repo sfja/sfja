@@ -144,7 +144,7 @@ Require Export ImpList_J.
 
 (* ####################################################### *)
 (* * Hoare Logic *)
-(** * ホーア 論理 *)
+(** * ホーア論理 *)
 
 (* Hoare Logic offers two important things: a natural way of
     writing down _specifications_ of programs, and a _compositional
@@ -268,9 +268,9 @@ Definition Assertion := state -> Prop.
     Such a claim is called a _Hoare Triple_.  The property [P] is
     called the _precondition_ of [c]; [Q] is the _postcondition_ of
     [c]. *)
-(** 表明を、状態の性質について表明するものとして定義してきたことから、
-    また、コマンドのふるまいは、状態を別の状態に変換するものであることから、
-    コマンドについての表明は次の形をとります:
+(** 表明を、状態の性質について表明するものとして定義してきました。
+    そして、コマンドの振舞いは、状態を別の状態に変換するものです。
+    これから、コマンドについての表明は次の形をとります:
 
       - "もし [c] が表明 [P] を満たす状態から開始され、また、
         [c]がいつかは停止するならば、最終状態では、表明[Q]が成立することを保証する。"
@@ -318,7 +318,7 @@ Open Scope hoare_spec_scope.
 (** この[hoare_spec_scope]アノテーションは、Coqに、
     この記法はグローバルではなく特定のコンテキストで使うものであることを伝えるものです。
     [Open Scope]は、このファイルがそのコンテキストであることを Coq に伝えます。
-    最初の記法 -- 事前条件を持たないもの -- はここで実際に使うことはありません。
+    最初の記法 -- 事後条件を持たないもの -- はここで実際に使うことはありません。
     これは単に後に定義する記法のための場所を用意したものです。
     後に修飾付きプログラムについて議論する際に使います。*)
 
@@ -427,7 +427,7 @@ Open Scope hoare_spec_scope.
 
 (* To get us warmed up, here are two simple facts about Hoare
     triples. *)
-(** ウォーミングアップとして、ホーアの三つ組についての2つの事実をみてみます。*)
+(** ウォーミングアップとして、ホーアの三つ組についての2つの事実を見てみます。*)
 
 Theorem hoare_post_true : forall (P Q : Assertion) c,
   (forall st, Q st) ->
@@ -505,7 +505,7 @@ Proof.
 
     - whenever [P'] is an assertion such that [{{P'}} c {{Q}}], we
       have [P' st] implies [P st] for all states [st].  *)
-(** 一般に、次の条件が成立するとき"[P]は[Q]に対する[c]の最弱事前条件である"と言います:
+(** 一般に、次が成立するとき"[P]は[Q]に対する[c]の最弱事前条件である"と言います:
    
     - [{{P}} c {{Q}}], かつ
 
@@ -856,7 +856,7 @@ Proof.
 
     (* FILL IN HERE *)
 *)
-(** 代入規則は、最初に見たとき、ほとんどの人が後向きの規則であるように見えます。
+(** 代入規則は、最初に見たとき、ほとんどの人が後向きの規則であるように感じます。
     もし今でも後向きに見えるならば、前向きバージョンの規則を考えてみるのも良いかもしれません。
     次のものは自然に見えます:
 [[
@@ -1080,11 +1080,11 @@ Proof.
 
     There is also an [eassumption] tactic that works similarly. *)
 (** 一般に、[eapply H]タクティックは[apply H]とほぼ同様にはたらきますが、
-    ゴールと[H]の結論部とを単一化することでは
-    [H]の前提部に現れる変数のすべてを具体化する方法が決められなかった場合に、
-    [apply H]の場合は失敗しますが、[eapply H]の場合は残った変数を存在変数(
-    _existential variables_)([?nnn]と記述される)に置換する点が違います。
-    存在変数は、証明の以降の部分で(さらなる単一化により)決定される式が入る場所を示します。
+    次の点が違います。
+    [H]の結論部とゴールとの単一化では[H]の前提部に現れる変数のすべてが具体化されなかった場合、
+    [apply H]は失敗しますが、[eapply H]は残った変数を存在変数
+    (_existential variables_、[?nnn]と記述される)に置換します。
+    存在変数は、証明の以降の部分で(さらなる単一化により)決定される式が入る場所を示すものです。
 
     他に同様のはたらきをするものには、[eassumption]タクティックがあります。*)
 
@@ -1170,11 +1170,11 @@ Proof.
 ]]
 *)
 (** 非形式的には、この規則を利用した証明を記録する良い方法は、
-    [c1]と[c2]の間に中間表明を記述する"修飾付きプログラム"の様にすることです:
+    [c1]と[c2]の間に中間表明[Q]を記述する"修飾付きプログラム"の様にすることです:
 [[
       {{ a = n }}
     X ::= a;
-      {{ X = n }}      <---- decoration for Q
+      {{ X = n }}      <---- 修飾 Q
     SKIP
       {{ X = n }}
 ]]
@@ -1620,12 +1620,14 @@ Qed.
     それは、コマンドが停止するという事実を組み込んだものです。*)
 
 (* ####################################################### *)
-(** *** Exercise: Hoare Rules for [REPEAT] *)
+(* *** Exercise: Hoare Rules for [REPEAT] *)
+(** *** 練習問題: [REPEAT]のホーア規則 *)
 
 Module RepeatExercise.
 
-(** **** Exercise: 4 stars (hoare_repeat) *)
-(** In this exercise, we'll add a new constructor to our language of
+(* **** Exercise: 4 stars (hoare_repeat) *)
+(** **** 練習問題: ★★★★ (hoare_repeat) *)
+(* In this exercise, we'll add a new constructor to our language of
     commands: [CRepeat].  You will write the evaluation rule for
     [repeat] and add a new hoare logic theorem to the language for
     programs involving it.
@@ -1633,6 +1635,12 @@ Module RepeatExercise.
     We recommend that you do this exercise before the ones that
     follow, as it should help solidify your understanding of the
     material. *)
+(** この練習問題では、コマンド言語に新たなコンストラクタ[CRepeat]を追加します。
+    [repeat]の評価規則を記述し、
+    このコマンドを含むプログラムについての新たなホーア論理の定理を、言語に追加しなさい。
+
+    以降の問題に進む前にこの練習問題をやっておくことをお勧めします。
+    この問題は、素材の理解を確固としたものにする助けになるからです。*)
 
 Inductive com : Type :=
   | CSkip : com
@@ -1642,10 +1650,14 @@ Inductive com : Type :=
   | CWhile : bexp -> com -> com
   | CRepeat : com -> bexp -> com.
 
-(** [REPEAT] behaves like [WHILE], except that the loop guard is
+(* [REPEAT] behaves like [WHILE], except that the loop guard is
     checked _after_ each execution of the body, with the loop
     repeating as long as the guard stays _false_.  Because of this,
     the body will always execute at least once. *)
+(** [REPEAT]は[WHILE]と同じように振舞います。ただし、
+    ループのガードが本体の実行の「後で」評価され、
+    それが「偽」である間はループがくりかえされるという点が違います。
+    このことにより、本体は常に少なくとも1回は実行されることになります。*)
 
 Tactic Notation "com_cases" tactic(first) ident(c) :=
   first;
@@ -1665,11 +1677,16 @@ Notation "'IFB' e1 'THEN' e2 'ELSE' e3 'FI'" :=
 Notation "'REPEAT' e1 'UNTIL' b2 'END'" :=
   (CRepeat e1 b2) (at level 80, right associativity).
 
-(** Add new rules for [REPEAT] to [ceval] below.  You can use the rules
+(* Add new rules for [REPEAT] to [ceval] below.  You can use the rules
     for [WHILE] as a guide, but remember that the body of a [REPEAT]
     should always execute at least once, and that the loop ends when
     the guard becomes true.  Then update the [ceval_cases] tactic to
     handle these added cases.  *)
+(** 以下の[ceval]に[REPEAT]の新たな規則を追加しなさい。
+    [WHILE]の規則を参考にして構いません。ただ、
+    [REPEAT]の本体は1度は実行されることと、
+    ループの終了はガードが真になったときであることは忘れないで下さい。
+    そして、この場合を扱えるように、[ceval_cases]タクティックを更新しなさい。*)
 
 Inductive ceval : state -> com -> state -> Prop :=
   | E_Skip : forall st,
@@ -1708,8 +1725,9 @@ Tactic Notation "ceval_cases" tactic(first) ident(c) :=
 (* FILL IN HERE *)
 ].
 
-(** A couple of definitions from above, copied here so they use the
+(* A couple of definitions from above, copied here so they use the
     new [ceval]. *)
+(** 上記から2つの定義のコピーし、新しい[ceval]を使うようにしました。*)
 
 Notation "c1 '/' st '||' st'" := (ceval st c1 st')
                                  (at level 40, st at level 39).
@@ -1718,9 +1736,11 @@ Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion)
   forall st st', (c / st || st') -> P st -> Q st'.
 Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q) (at level 90, c at next level).
 
-(** Now state and prove a theorem, [hoare_repeat], that expresses an
+(* Now state and prove a theorem, [hoare_repeat], that expresses an
      appropriate proof rule for [repeat] commands.  Use [hoare_while]
      as a model. *)
+(** [repeat]コマンドの適切な証明規則を表現する定理[hoare_repeat]を述べ、証明しなさい。
+    このときに[hoare_while]をモデルとして利用しなさい。*)
 
 (* FILL IN HERE *)
 
@@ -1728,9 +1748,10 @@ End RepeatExercise.
 (** [] *)
 
 (* ####################################################### *)
-(** ** Decorated Programs *)
+(* ** Decorated Programs *)
+(** ** 修飾付きプログラム *)
 
-(** The whole point of Hoare Logic is that it is compositional -- the
+(* The whole point of Hoare Logic is that it is compositional -- the
     structure of proofs exactly follows the structure of programs.
     This fact suggests that we we could record the essential ideas of
     a proof informally (leaving out some low-level calculational
@@ -1763,8 +1784,39 @@ End RepeatExercise.
       {{ Z = z - x + 1 }}
 ]]
 *)
+(** ホーア論理の一番のポイントは、合成的ということです。証明の構造は常にプログラムの構造に従います。
+    このことから、それぞれの文の周辺を適切な表明で修飾することで
+    (低レベルの計算の詳細を省いた)証明の本質的アイデアを非形式的に記録できるのではないか、
+    と考えられます。そういった修飾付きプログラム(_decorated program_)は、
+    自身の正しさの(非形式的)証明を伴っています。
 
-(** Concretely, a decorated program consists of the program text
+    例えば、次は完全な修飾付きプログラムです:
+[[
+      {{ True }} =>
+      {{ x = x }}
+    X ::= x;
+      {{ X = x }} =>
+      {{ X = x /\ z = z }}
+    Z ::= z;
+      {{ X = x /\ Z = z }} =>
+      {{ Z - X = z - x }}
+    WHILE X <> 0 DO
+        {{ Z - X = z - x /\ X <> 0 }} =>
+        {{ (Z - 1) - (X - 1) = z - x }}
+      Z ::= Z - 1;
+        {{ Z - (X - 1) = z - x }}
+      X ::= X - 1
+        {{ Z - X = z - x }}
+    END;
+      {{ Z - X = z - x /\ ~ (X <> 0) }} =>
+      {{ Z = z - x }} =>
+      {{ Z + 1 = z - x + 1 }}
+    Z ::= Z + 1
+      {{ Z = z - x + 1 }}
+]]
+*)
+
+(* Concretely, a decorated program consists of the program text
     interleaved with assertions.  To check that a decorated program
     represents a valid proof, we check that each individual command is
     _locally_ consistent with its accompanying assertions in the
@@ -1835,14 +1887,98 @@ End RepeatExercise.
           {{ P' }}
 ]]
 *)
+(** 具体的には、修飾付きプログラムはプログラムテキストと表明が交互に記述されたものです。
+    修飾付きプログラムが正しい証明を表現していることをチェックするには、
+    個々のコマンドが前後の表明と整合していることを「ローカルに」チェックします。
+    このローカルな整合性チェックは次のようになります:
+
+    - [SKIP]は事前条件と事後条件が同じときに、整合しています。
+[[
+          {{ P }}
+          SKIP
+          {{ P }}
+]]
+    - [c1]と[c2]のコマンド合成が(表明[P]と[R]に関して)ローカルに整合的であるとは、
+      [c1]が([P]と[Q]に関して)整合的であり、[c2]が([Q]と[R]に関して)整合的であることです:
+[[
+          {{ P }}
+          c1;
+          {{ Q }}
+          c2
+          {{ R }}
+]]
+
+    - 代入がローカルに整合的であるとは、事後条件を適切に置換したものが事前条件であることです:
+[[
+          {{ P where a is substituted for X }}
+          X ::= a
+          {{ P }}
+]]
+
+    - 条件分岐が(表明[P]と[Q]に関して)ローカルに整合的であるとは、
+      "then"と"else"の枝の最初の表明がそれぞれ[P/\b]と[P/\~b]であり、
+      "then"枝が([P/\b]と[Q]に関して)ローカルに整合的で、
+      "else"枝が([P/\~b]と[Q]に関して)ローカルに整合的であることです:
+[[
+          {{ P }}
+          IFB b THEN
+            {{ P /\ b }}
+            c1
+            {{ Q }}
+          ELSE
+            {{ P /\ ~b }}
+            c2
+            {{ Q }}
+          FI
+]]
+
+    - While ループがローカルに整合的であるとは、(事前条件を[P]とするとき)
+      事後条件が[P/\~b]であって、
+      ループ本体の事前条件と事後条件がそれぞれ[P/\b]と[P]であることです:
+[[
+          {{ P }}
+          WHILE b DO
+            {{ P /\ b }}
+            c1
+            {{ P }}
+          END
+          {{ P /\ ~b }}
+]]
+
+    - [=>]の前後に1つずつの表明が並べられたものがローカルに整合的であるとは、
+      [=>]の前の表明が成立するならば[=>]の後の表明が成立するということが(すべての状態で)
+      言えることです:
+[[
+          {{ P }} =>
+          {{ P' }}
+]]
+*)
 
 (* ####################################################### *)
-(** * Reasoning About Programs with Hoare Logic *)
+(* * Reasoning About Programs with Hoare Logic *)
+(** * ホーア論理によるプログラムについての推論 *)
 
 (* ####################################################### *)
-(** ** Example: Slow Subtraction *)
+(* ** Example: Slow Subtraction *)
+(** ** 例: 遅い引き算 *)
 
-(** Informally:
+(* Informally:
+[[
+      {{ X = x /\ Z = z }} =>
+      {{ Z - X = z - x }}
+    WHILE X <> 0 DO
+        {{ Z - X = z - x /\ X <> 0 }} =>
+        {{ (Z - 1) - (X - 1) = z - x }}
+      Z ::= Z - 1;
+        {{ Z - (X - 1) = z - x }}
+      X ::= X - 1
+        {{ Z - X = z - x }}
+    END
+      {{ Z - X = z - x /\ ~ (X <> 0) }} =>
+      {{ Z = z - x }}
+]]
+*)
+(** 非形式的には:
 [[
       {{ X = x /\ Z = z }} =>
       {{ Z - X = z - x }}
@@ -1859,7 +1995,8 @@ End RepeatExercise.
 ]]
 *)
 
-(** Formally: *)
+(* Formally: *)
+(** 形式的には: *)
 
 Definition subtract_slowly : com :=
   WHILE BNot (BEq (AId X) (ANum 0)) DO
@@ -1878,57 +2015,78 @@ Proof.
   (* Note that we do NOT unfold the definition of hoare_triple
      anywhere in this proof!  The goal is to use only the hoare
      rules.  Your proofs should do the same. *)
+  (* 証明内でhoare_tripleの定義のunfoldは使っていないことに注意してください!
+     ホーア規則だけを使うことが目的です。
+     読者の証明も同様にしてください。*)
 
   intros x z. unfold subtract_slowly.
   (* First we need to transform the pre and postconditions so
      that hoare_while will apply.  In particular, the
      precondition should be the loop invariant. *)
+  (* 最初に、事前条件、事後条件を変換して、
+     hoare_while に合うようにしなければなりません。
+     特に、事前条件はループ不変条件にしなければなりません。 *)
   eapply hoare_consequence with (P' := subtract_slowly_invariant x z).
   apply hoare_while.
 
   Case "Loop body preserves invariant".
     (* Split up the two assignments with hoare_seq - using eapply
        lets us solve the second one immediately with hoare_asgn *)
+    (* 2つの代入をhoare_seqで分離します。
+       そしてすぐに、hoare_asgnのeapplyで2つ目の代入を解決します。*)
     eapply hoare_seq. apply hoare_asgn.
     (* Now for the first assignment, transform the precondition
        so we can use hoare_asgn *)
+    (* 続いて最初の代入にとりかかります。
+       hoare_asgnを使うため、事前条件を変換します。*)
     eapply hoare_consequence_pre. apply hoare_asgn.
     (* Finally, we need to justify the implication generated by
        hoare_consequence_pre (this bit of reasoning is elided in the
        informal proof) *)
+    (* 最後に、hoare_consequence_preで生成された含意の正しさを確認しなければいけません。
+       (この部分のちょっとした推論は、非形式的証明では省かれています。) *)
     unfold subtract_slowly_invariant, assn_sub, update, bassn. simpl.
     intros st [Inv GuardTrue].
     (* There are several ways to do the case analysis here...this
        one is fairly general: *)
+    (* 場合分け分析を行う方法はいろいろありますが、この方法はかなり一般的です: *)
     remember (beq_nat (asnat (st X)) 0) as Q; destruct Q.
      inversion GuardTrue.
      symmetry in HeqQ.  apply beq_nat_false in HeqQ.
-     omega. (* slow but effective! *)
+     omega. (* slow but effective! *)(* 遅いですが、効果的です! *)
   Case "Initial state satisfies invariant".
     (* This is the subgoal generated by the precondition part of our
        first use of hoare_consequence.  It's the first implication
        written in the decorated program (though we elided the actual
        proof there). *)
+    (* 次は、hoare_consequence の初めての使用の事前条件部分から作られたサブゴールです。
+       修飾付きプログラムで記述された最初の含意です。
+       (ただ、ここでは実際の証明は省略します。) *)
     unfold subtract_slowly_invariant.
     intros st [HX HZ]. omega.
   Case "Invariant and negated guard imply postcondition".
    (* This is the subgoal generated by the postcondition part of
       out first use of hoare_consequence.  This implication is
       the one written after the while loop in the informal proof. *)
+   (* 次は、hoare_consequence の初めての使用の事前条件部分から生成されたサブゴールです。
+      非形式証明で while ループの後に記述された含意にあたるものです。*)
     intros st [Inv GuardFalse].
     unfold subtract_slowly_invariant in Inv.
     unfold bassn in GuardFalse. simpl in GuardFalse.
     (* Here's a slightly different alternative for the case analysis that
        works out well here (but is less general)... *)
+    (* 場合分け分析のちょっと違うバージョンです。ここではこれがうまくはたらきます
+       (ただし、一般性は下がっています)... *)
     destruct (asnat (st X)).
       omega.
       apply ex_falso_quodlibet.   apply GuardFalse. reflexivity.
     Qed.
 
 (* ####################################################### *)
-(** ** Exercise: Reduce to Zero *)
+(* ** Exercise: Reduce to Zero *)
+(** ** 練習問題: ゼロへの簡約 *)
 
-(** Here is a while loop that is so simple it needs no invariant:
+(* Here is a while loop that is so simple it needs no invariant:
 [[
           {{ True }}
         WHILE X <> 0 DO
@@ -1943,8 +2101,24 @@ Proof.
    Your job is to translate this proof to Coq.  It may help to look
    at the [slow_subtraction] proof for ideas.
 *)
+(** 次の while ループは、非常にシンプルなため、不変条件が必要ありません:
+[[
+          {{ True }}
+        WHILE X <> 0 DO
+            {{ True /\ X <> 0 }} =>
+            {{ True }}
+          X ::= X - 1
+            {{ True }}
+        END
+          {{ True /\ X = 0 }} =>
+          {{ X = 0 }}
+]]
+   この証明を Coq に変換しなさい。[slow_subtraction]の証明がアイデアの参考になるでしょう。
+*)
 
-(** **** Exercise: 2 stars (reduce_to_zero_correct) *)
+
+(* **** Exercise: 2 stars (reduce_to_zero_correct) *)
+(** **** 練習問題: ★★ (reduce_to_zero_correct) *)
 Definition reduce_to_zero : com :=
   WHILE BNot (BEq (AId X) (ANum 0)) DO
     X ::= AMinus (AId X) (ANum 1)
@@ -1959,10 +2133,13 @@ Proof.
 (** [] *)
 
 (* ####################################################### *)
-(** ** Exercise: Slow Addition *)
+(* ** Exercise: Slow Addition *)
+(** ** 練習問題: 遅い足し算 *)
 
 (** The following program adds the variable X into the variable Z
     by repeatedly decrementing X and incrementing Z. *)
+(** 次のプログラムは変数Xを変数Zに足します。
+    そのために、Xを減らしてZを増やすということを繰り返します。*)
 
 Definition add_slowly : com :=
   WHILE BNot (BEq (AId X) (ANum 0)) DO
@@ -1970,30 +2147,44 @@ Definition add_slowly : com :=
     X ::= AMinus (AId X) (ANum 1)
   END.
 
-(** **** Exercise: 3 stars (add_slowly_decoration) *)
-(** Following the pattern of the [subtract_slowly] example above, pick
+(* **** Exercise: 3 stars (add_slowly_decoration) *)
+(** **** 練習問題: ★★★ (add_slowly_decoration) *)
+(* Following the pattern of the [subtract_slowly] example above, pick
     a precondition and postcondition that give an appropriate
     specification of [add_slowly]; then (informally) decorate the
     program accordingly. *)
+(** 上記の例[subtract_slowly]のパターンに従って、
+    [add_slowly]の適切な事前条件と事後条件を与えなさい。
+    次に(非形式的に)そのプログラムを前例にならって修飾しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars (add_slowly_formal) *)
-(** Now write down your specification of [add_slowly] formally, as a
+(* **** Exercise: 3 stars (add_slowly_formal) *)
+(** **** 練習問題: ★★★ (add_slowly_formal) *)
+(* Now write down your specification of [add_slowly] formally, as a
     Coq [Hoare_triple], and prove it valid. *)
+(** Coq の [Hoare_triple]のように、[add_slowly]の仕様を形式的に記述しなさい。
+    そして正しさを証明しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ####################################################### *)
-(** ** Example: Parity *)
+(* ** Example: Parity *)
+(** ** 例: パリティ *)
 
-(** Here's another, slightly trickier example.  Make sure you
+(* Here's another, slightly trickier example.  Make sure you
     understand the decorated program completely.  Understanding
     all the details of the Coq proof is not required, though it
     is not actually very hard -- all the required ideas are
     already in the informal version. *)
+(** 次は、よりトリッキーな例です。
+    修飾付きプログラムを完全に理解していることを確認してください。
+    Coqの証明の詳細のすべてを理解することが必要なわけではありません
+    (それは、それほど大変ではないですが)。
+    すべての必要なアイデアは非形式的なバージョンの中に含まれています。*)
+(* 訳注： 次はもとのまま *)
 (**
 [[
     {{ X = x }} =>
@@ -2027,6 +2218,7 @@ Definition find_parity_invariant x :=
     /\ (asnat (st Y) = 0 /\ ev (x - asnat (st X)) \/ asnat (st Y) = 1 /\ ~ev (x - asnat (st X))).
 
 (* It turns out that we'll need the following lemma... *)
+(* 次の補題が必要になることがわかった... *)
 Lemma not_ev_ev_S_gen: forall n,
   (~ ev n -> ev (S n)) /\
   (~ ev (S n) -> ev (S (S n))).
@@ -2113,24 +2305,30 @@ Proof.
     left. split. reflexivity.
     apply ev_0.  Qed.
 
-(** **** Exercise: 3 stars (wrong_find_parity_invariant) *)
-(** A plausible first attempt at stating an invariant for [find_parity]
+(* **** Exercise: 3 stars (wrong_find_parity_invariant) *)
+(** **** 練習問題: ★★★ (wrong_find_parity_invariant) *)
+(* A plausible first attempt at stating an invariant for [find_parity]
     is the following. *)
+(** [find_parity]の不変条件の主張として次のものはもっともらしく見えます。*)
 
 Definition find_parity_invariant' x :=
   fun st =>
     (asnat (st Y)) = 0 <-> ev (x - asnat (st X)).
 
-(** Why doesn't this work?  (Hint: Don't waste time trying to answer
+(* Why doesn't this work?  (Hint: Don't waste time trying to answer
     this exercise by attempting a formal proof and seeing where it
     goes wrong.  Just think about whether the loop body actually
     preserves the property.) *)
+(** これがなぜうまくはたらかないかを説明しなさい。
+    (ヒント: 形式的証明を考え、その問題を探そうとするのは時間の無駄です。
+    ループの本体が実際に性質を保存するかどうかだけを考えなさい。) *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ####################################################### *)
 (** ** Example: Finding Square Roots *)
+(** ** 例: 平方根の探索 *)
 
 Definition sqrt_loop : com :=
   WHILE BLe (AMult (APlus (ANum 1) (AId Z))
@@ -2240,15 +2438,18 @@ Proof.
     intros st H.
     unfold assn_sub. rewrite update_eq; auto.  Qed.
 
-(** **** Exercise: 3 stars, optional (sqrt_informal) *)
-(** Write a decorated program corresponding to the above
+(* **** Exercise: 3 stars, optional (sqrt_informal) *)
+(** **** 練習問題: ★★★, optional (sqrt_informal) *)
+(* Write a decorated program corresponding to the above
     correctness proof. *)
+(** 上記の正しさの証明に対応する修飾付きプログラムを記述しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ####################################################### *)
-(** ** Exercise: Factorial *)
+(* ** Exercise: Factorial *)
+(** ** 練習問題: 階乗 *)
 
 Module Factorial.
 
@@ -2258,7 +2459,8 @@ Fixpoint real_fact (n:nat) : nat :=
   | S n' => n * (real_fact n')
   end.
 
-(** Recall the factorial Imp program: *)
+(* Recall the factorial Imp program: *)
+(** 階乗を計算する Imp program を思い出してください: *)
 
 Definition fact_body : com :=
   Y ::= AMult (AId Y) (AId Z);
@@ -2274,8 +2476,9 @@ Definition fact_com : com :=
   Y ::= ANum 1;
   fact_loop.
 
-(** **** Exercise: 3 stars, optional (fact_informal) *)
-(** Decorate the [fact_com] program to show that it satisfies the
+(* **** Exercise: 3 stars, optional (fact_informal) *)
+(** **** 練習問題: ★★★, optional (fact_informal) *)
+(* Decorate the [fact_com] program to show that it satisfies the
     specification given by the pre and postconditions below.  Just as
     we have done above, you may elide the algebraic reasoning about
     arithmetic, the less-than relation, etc., that is (formally)
@@ -2293,13 +2496,33 @@ Definition fact_com : com :=
     {{ Y = real_fact x }}
 ]]
 *)
+(** [fact_com]を修飾して、以下の事前条件、事後条件として与えられる仕様を満たすことを示しなさい。
+    帰結規則のために(形式的には)算術式や不等号などが必要になりますが、
+    ここまでと同様、それらについての推論は省略して構いません。
+
+(* FILL IN HERE *)
+[[
+    {{ X = x }}
+  Z ::= X;
+  Y ::= 1;
+  WHILE Z <> 0 DO
+    Y ::= Y * Z;
+    Z ::= Z - 1
+  END
+    {{ Y = real_fact x }}
+]]
+*)
 (** [] *)
 
 
-(** **** Exercise: 4 stars, optional (fact_formal) *)
-(** Prove formally that fact_com satisfies this specification,
+(* **** Exercise: 4 stars, optional (fact_formal) *)
+(** **** 練習問題: ★★★★, optional (fact_formal) *)
+(* Prove formally that fact_com satisfies this specification,
     using your informal proof as a guide.  You may want to state
     the loop invariant separately (as we did in the examples). *)
+(** fact_com がこの仕様を満たすことを、形式的に証明しなさい。
+    その際、自分のインフォーマルな証明をガイドとして使いなさい。
+    (例で行ったように)ループ不変条件を分離して主張しても構いません。*)
 
 Theorem fact_com_correct : forall x,
   {{fun st => asnat (st X) = x}} fact_com
@@ -2311,11 +2534,14 @@ Proof.
 End Factorial.
 
 (* ####################################################### *)
-(** ** Reasoning About Programs with Lists *)
+(* ** Reasoning About Programs with Lists *)
+(** ** リストを扱うプログラムについての推論 *)
 
-(** **** Exercise: 3 stars (list_sum) *)
-(** Here is a direct definition of the sum of the elements of a list,
+(* **** Exercise: 3 stars (list_sum) *)
+(** **** 練習問題: ★★★ (list_sum) *)
+(* Here is a direct definition of the sum of the elements of a list,
     and an Imp program that computes the sum. *)
+(** 以下は、リストの要素の合計の直接的定義と、その合計を計算するImpプログラムです *)
 
 Definition sum l := fold_right plus 0 l.
 
@@ -2326,9 +2552,11 @@ Definition sum_program :=
     X ::= ATail (AId X)
   END.
 
-(** Provide an _informal_ proof of the following specification of
+(* Provide an _informal_ proof of the following specification of
     [sum_program] in the form of a decorated version of the
     program. *)
+(** [sum_program]の以下の仕様の「非形式的な」証明を、
+    修飾を付けたバージョンのプログラムの形で与えなさい。*)
 
 Definition sum_program_spec := forall l,
   {{ fun st => aslist (st X) = l }}
@@ -2338,10 +2566,16 @@ Definition sum_program_spec := forall l,
 (* FILL IN HERE *)
 (** [] **)
 
-(** Next, let's look at a _formal_ Hoare Logic proof for a program
+(* Next, let's look at a _formal_ Hoare Logic proof for a program
     that deals with lists.  We will verify the following program,
     which checks if the number [Y] occurs in the list [X], and if so sets
     [Z] to [1].
+*)
+(** 次に、リストを扱うあるプログラムの「形式的な」
+    ホーア論理の証明を見てみましょう。
+    次のプログラムは、数値[Y]がリスト[X]の中に含まれるかどうかをチェックし、
+    もし含まれたならば[Z]を[1]にします。
+    このプログラムを検証します。
 *)
 
 Definition list_member :=
