@@ -2327,7 +2327,7 @@ Definition find_parity_invariant' x :=
 (** [] *)
 
 (* ####################################################### *)
-(** ** Example: Finding Square Roots *)
+(* ** Example: Finding Square Roots *)
 (** ** 例: 平方根の探索 *)
 
 Definition sqrt_loop : com :=
@@ -2646,6 +2646,56 @@ Definition list_member_spec := forall l n,
   In order to show that such a list [p] exists, in each iteration we
   add the head of [X] to the _end_ of [p]. This needs the function
   [snoc], from Poly.v. *)
+(** 証明は非形式的に書くと次のようになるものを使います:
+[[
+    {{ X = l /\ Y = n /\ Z = 0 }} =>
+    {{ Y = n /\ exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p) }}
+  WHILE (BIsCons X)
+  DO
+      {{ Y = n /\ (exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p))
+               /\ (BIsCons X) }}
+    IFB (Y == head X) THEN
+        {{ Y = n
+           /\ (exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p))
+           /\ (BIsCons X)
+           /\ Y == AHead X }} =>
+        {{ Y = n /\ (exists p, p ++ tail X = l
+                    /\ (1 = 1 <-> appears_in n p)) }}
+      Z ::= 1
+        {{ Y = n /\ (exists p, p ++ tail X = l
+        /\ (Z = 1 <-> appears_in n p)) }}
+    ELSE
+        {{ Y = n
+           /\ (exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p))
+           /\ (BIsCons X)
+           /\ ~ (Y == head X) }} =>
+        {{ Y = n
+           /\ (exists p, p ++ tail X = l /\ (Z = 1 <-> appears_in n p)) }}
+      SKIP
+        {{ Y = n
+           /\ (exists p, p ++ tail X = l /\ (Z = 1 <-> appears_in n p)) }}
+    FI;
+    X ::= ATail X
+        {{ Y = n
+           /\ (exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p)) }}
+  END
+     {{ Y = n
+        /\ (exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p))
+        /\ ~ (BIsCons X) }} =>
+     {{ Z = 1 <-> appears_in n l }}
+]]
+
+  証明で興味深い点はただ1つ、ループ不変条件の選び方です:
+[[
+      exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p)
+]]
+  これは、ループの繰り返しのたびに、
+  もとのリスト[l]が[X]の現在値と別のリスト[p]とを結合したものと同一であることを言っています。
+  この[p]はプログラム内の変数の値ではないですが、最初から証明が進んでいく間、保持されていきます。
+  (このような[p]は、よく"ゴーストバリアブル"と呼ばれます。)
+
+  このようなリスト[p]が存在することを示すために、繰り返しの毎回、
+  [X]の先頭に[p]の「最後」を加えています。このために Poly_J.vの[snoc]を使っています。*)
 
 Fixpoint snoc {X:Type} (l:list X) (v:X) : (list X) :=
   match l with
@@ -2662,7 +2712,8 @@ Proof.
     Case "x = cons". simpl. rewrite IHx. reflexivity.
 Qed.
 
-(** The main proof uses various lemmas. *)
+(* The main proof uses various lemmas. *)
+(** メインの証明はたくさんの補題を使います。 *)
 
 Lemma appears_in_snoc1 : forall a l,
   appears_in a (snoc l a).
@@ -2837,8 +2888,10 @@ Proof.
     apply ex_falso_quodlibet. apply H5. reflexivity.
 Qed.
 
-(** **** Exercise: 4 stars, optional (list_reverse) *)
-(** Recall the function [rev] from Poly.v, for reversing lists. *)
+(* **** Exercise: 4 stars, optional (list_reverse) *)
+(** **** 練習問題: ★★★★, optional (list_reverse) *)
+(* Recall the function [rev] from Poly.v, for reversing lists. *)
+(** Poly_J.vの[rev]を思い出してください。リストを逆順にするものです。*)
 
 Fixpoint rev {X:Type} (l:list X) : list X :=
   match l with
@@ -2846,7 +2899,7 @@ Fixpoint rev {X:Type} (l:list X) : list X :=
   | cons h t => snoc (rev t) h
   end.
 
-(** Write an Imp program [list_reverse_program] that reverses
+(* Write an Imp program [list_reverse_program] that reverses
     lists. Formally prove that it satisfies the following
     specification:
 [[
@@ -2856,6 +2909,16 @@ Fixpoint rev {X:Type} (l:list X) : list X :=
       {{ Y = rev l }}.
 ]]
     You may find the lemmas [append_nil] and [rev_equation] useful.
+*)
+(** リストを逆順にする Imp プログラム[list_reverse_program]を記述しなさい。
+    次の仕様を満たすことを形式的に証明しなさい:
+[[
+    forall l : list nat,
+      {{ X =  l /\ Y = nil }}
+      list_reverse_program
+      {{ Y = rev l }}.
+]]
+    補題[append_nil]と[rev_equation]を使うのが良いでしょう。
 *)
 
 Lemma rev_equation : forall (A : Type) (h : A) (x y : list A),
@@ -2868,9 +2931,10 @@ Qed.
 (** [] *)
 
 (* ####################################################### *)
-(** * Formalizing Decorated Programs *)
+(* * Formalizing Decorated Programs *)
+(** * 修飾付きプログラムの形式化 *)
 
-(** The informal conventions for decorated programs amount to a way of
+(* The informal conventions for decorated programs amount to a way of
     displaying Hoare triples in which commands are annotated with
     enough embedded assertions that checking the validity of the
     triple is reduced to simple algebraic calculations showing that
@@ -2878,12 +2942,20 @@ Qed.
 
     In this section, we show that this informal presentation style can
     actually be made completely formal.  *)
+(** ホーアの三つ組を、非形式的な修飾付きプログラムで記述することは結局、
+    コマンドに十分な表明を付加することで、三つ組の正しさをチェックすることを、
+    ある表明が別のものより強いことを示す簡単な代数的計算に簡約化することになります。
 
-(** ** Syntax *)
+    この節では、この非形式的なスタイルを、実際は完全に形式的に表現できることを示します。*)
 
-(** The first thing we need to do is to formalize a variant of the
+(* ** Syntax *)
+(** ** 構文 *)
+
+(* The first thing we need to do is to formalize a variant of the
     syntax of commands that includes embedded assertions.  We call the
     new commands _decorated commands_, or [dcom]s. *)
+(** 最初にしなければならないことは、表明を埋め込んだコマンド構文を形式化することです。
+    この形のコマンドを修飾付きコマンド(_decorated commands_)または[dcom]と呼びます。*)
 
 Inductive dcom : Type :=
   | DCSkip :  Assertion -> dcom
@@ -2927,11 +2999,19 @@ Notation " d ; d' "
 
 Delimit Scope dcom_scope with dcom.
 
-(** To avoid clashing with the existing [Notation] definitions
+(* To avoid clashing with the existing [Notation] definitions
     for ordinary [com]mands, we introduce these notations in a special
     scope called [dcom_scope], and we wrap examples with the
     declaration [% dcom] to signal that we want the notations to be
     interpreted in this scope.
+
+    Careful readers will note that we've defined two notations for the
+    [DCPre] constructor, one with and one without a [=>].  The
+    "without" version is intended to be used to supply the initial
+    precondition at the very top of the program. *)
+(** 既に定義されているコマンド[com]の記法[Notation]との衝突を避けるため、
+    [dcom_scope]という特別なスコープを導入します。
+    そして、例を[% dcom]で囲んで、記法をこのスコープ内で解釈する印とします。
 
     Careful readers will note that we've defined two notations for the
     [DCPre] constructor, one with and one without a [=>].  The
