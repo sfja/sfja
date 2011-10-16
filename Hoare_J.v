@@ -2593,7 +2593,7 @@ Definition list_member_spec := forall l n,
   list_member
   {{ fun st => st Z = VNat 1 <-> appears_in n l }}.
 
-(** The proof we will use, written informally, looks as follows:
+(* The proof we will use, written informally, looks as follows:
 [[
     {{ X = l /\ Y = n /\ Z = 0 }} =>
     {{ Y = n /\ exists p, p ++ X = l /\ (Z = 1 <-> appears_in n p) }}
@@ -3011,12 +3011,11 @@ Delimit Scope dcom_scope with dcom.
     precondition at the very top of the program. *)
 (** 既に定義されているコマンド[com]の記法[Notation]との衝突を避けるため、
     [dcom_scope]という特別なスコープを導入します。
-    そして、例を[% dcom]で囲んで、記法をこのスコープ内で解釈する印とします。
+    そして、例を宣言[% dcom]で包み、記法をこのスコープ内で解釈する印とします。
 
-    Careful readers will note that we've defined two notations for the
-    [DCPre] constructor, one with and one without a [=>].  The
-    "without" version is intended to be used to supply the initial
-    precondition at the very top of the program. *)
+    注意深い読者は、[DCPre]構成子に対して2つの記法を定義していることに気付くでしょう。
+    [=>]を使うものと使わないものです。[=>]を使わないものは、
+    プログラムの一番最初の事前条件を与える意図で用意したものです。*)
 
 Example dec_while : dcom := (
     {{ fun st => True }}
@@ -3029,8 +3028,9 @@ Example dec_while : dcom := (
     {{ fun st => asnat (st X) = 0 }}
 ) % dcom.
 
-(** It is easy to go from a [dcom] to a [com] by erasing all
+(* It is easy to go from a [dcom] to a [com] by erasing all
     annotations. *)
+(** [dcom]から[com]に変換するのは簡単です。アノテーションをすべて消せば良いのです。*)
 
 Fixpoint extract (d:dcom) : com :=
   match d with
