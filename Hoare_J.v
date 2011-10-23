@@ -83,7 +83,7 @@ Require Export ImpList_J.
 
     - Imp の抽象構文木(_abstract syntax trees_)の型を定義しました。
       また、操作的意味論(_operational semantics_)を与える評価関係
-      (_evaluation relation_)(状態間の部分関数)も定義しました。
+      (_evaluation relation_、状態間の部分関数)も定義しました。
       
       定義した言語は小さいですが、
       C, C++, Java などの本格的な言語の主要な機能を持っています。
@@ -132,7 +132,7 @@ Require Export ImpList_J.
     used to specify and verify real software systems. *)
 (** この章では、この最後の考え方をさらに進めます。
     一般にフロイド-ホーア論理(_Floyd-Hoare Logic_)、あるいは、
-    やや不公平に省略してホーア論理(_Hoare Logic_)と呼ばれている推論システムを作ります。
+    少々不公平に省略してホーア論理(_Hoare Logic_)と呼ばれている推論システムを作ります。
     この推論システムの中では、Imp の各構文要素に対して1つの一般的な"証明規則"
     (proof rule)が与えられ、
     これによってその構文要素を含むプログラムについての推論ができるようになっています。
@@ -214,13 +214,11 @@ Definition Assertion := state -> Prop.
     -- この方法は意図することを正確におさえています。
     そしてこれがまさに Coq の証明で使う方法なのです。
     しかしこれはいくつかの理由から、若干ヘビーに見えます。
-    最初に、すべての個々の表明は、[fun st=> ]から始まっています。
+    (1)すべての個々の表明は、[fun st=> ]から始まっています。
     (2)状態[st]は変数を参照するために使うただ1つのものです
     (2つの別々の状態を同時に考える必要はありません)。
     (3)表明で参照するすべての変数は[asnat]または[aslist]の強制型変換により、
     取り散らかっています。
-    (訳注：「最初に」「(2)」「(3)」は変な並びだが、原文がそうなっている
-    ("First,","(2)","(3)")ためそう訳した。) 
     表明を非形式的に書くときには、いくらか簡単にします。
     最初の[fun st =>]は書かず、[st X]のかわりに単に[X]と書きます。
     また[asnat]と[aslist]は略します。*)
@@ -253,8 +251,8 @@ Definition Assertion := state -> Prop.
 
 (* Next, we need a way of specifying -- making claims about -- the
     behavior of commands. *)
-(** 次に、コマンドの振舞いの仕様を定める -- つまりコマンドの振舞いについての表明を作る 
-    -- 方法が必要です。*)
+(** 次に、コマンドの振舞いの仕様を定める、
+    つまりコマンドの振舞いについての表明を作る方法が必要です。*)
 
 (* Since we've defined assertions as a way of making claims about the
     properties of states, and since the behavior of a command is to
@@ -318,7 +316,7 @@ Open Scope hoare_spec_scope.
 (** この[hoare_spec_scope]アノテーションは、Coqに、
     この記法はグローバルではなく特定のコンテキストで使うものであることを伝えるものです。
     [Open Scope]は、このファイルがそのコンテキストであることを Coq に伝えます。
-    最初の記法 -- 事後条件を持たないもの -- はここで実際に使うことはありません。
+    最初の、事後条件を持たない記法は、ここで実際に使うことはありません。
     これは単に後に定義する記法のための場所を用意したものです。
     後に修飾付きプログラムについて議論する際に使います。*)
 
@@ -343,7 +341,7 @@ Open Scope hoare_spec_scope.
       {{(Z * Z) <= x /\ ~ (((S Z) * (S Z)) <= x)}}
 ]]
  *)
-(** 以下の ホーア の三つ組を日本語に直しなさい。
+(** 以下のホーアの三つ組を日本語に直しなさい。
 [[
       {{True}} c {{X = 5}}
 
@@ -392,7 +390,7 @@ Open Scope hoare_spec_scope.
       {{X = 100}}
 ]]
 *)
-(** 以下の ホーアの三つ組のうち、正しい(_valid_)ものを選択しなさい。
+(** 以下のホーアの三つ組のうち、正しい(_valid_)ものを選択しなさい。
     -- 正しいとは、[P],[c],[Q]の関係が真であるということです。
 [[
       {{True}} X ::= 5 {{X = 5}}
@@ -479,7 +477,7 @@ Proof.
 [[
       {{ False }}  X ::= Y + 1  {{ X <= 5 }}
 ]]
-    はあまり興味深いものではありません。これは完全に正しいものです。しかし、
+    はあまり興味深いものではありません。これは完全に正しいものですが、
     何も有用なことを伝えてくれません。事前条件がどのような状態でも満たされないことから、
     コマンド [X ::= Y + 1] によって事後条件 [X <= 5] 
     に至るどのような状況も記述していません。
@@ -516,7 +514,7 @@ Proof.
     if (a) [P] _is_ a precondition for [Q] and [c], and (b) [P] is the
     _weakest_ (easiest to satisfy) assertion that guarantees [Q] after
     [c]. *)
-(** つまり、[P]は[Q]に対する[c]の最弱事前条件であるとは、
+(** つまり、[P]が[Q]に対する[c]の最弱事前条件であるとは、
     (a) [P] は [Q] と [c] の事前条件で、かつ、
     (b) [P]は[c]の後で[Q]を保証する最弱の(_weakest_)(もっとも簡単に充足できる)
     表明である、ということです。*)
@@ -757,10 +755,10 @@ Definition assn_sub V a Q : Assertion :=
 ]]]
 *)
 (** これを使って、代入の証明規則を形式的に与えます:
-[[[
+[[
       ------------------------------ (hoare_asgn)
       {{assn_sub V a Q}} V::=a {{Q}}
-]]]
+]]
 *)
 
 Theorem hoare_asgn : forall Q V a,
@@ -958,16 +956,16 @@ Proof.
     また[Q]ならば[Q']が言えるときには、[Q]を[Q']に置き換えることは正しいのです。
 
     この洞察をまとめたものが、次の帰結規則(_Rule of Consequence_)です。
-[[[
+[[
                 {{P'}} c {{Q'}}
          P implies P' (in every state)
          Q' implies Q (in every state)
          -----------------------------  (hoare_consequence)
                 {{P}} c {{Q}}
-]]]
+]]
    便宜上、さらに2つの帰結規則を用意します。1つは事前条件を強めるだけのもの、
    もう1つは事後条件を弱めるだけのものです。
-[[[
+[[
                 {{P'}} c {{Q}}
          P implies P' (in every state)
          -----------------------------   (hoare_consequence_pre)
@@ -977,7 +975,7 @@ Proof.
          Q' implies Q (in every state)
          -----------------------------    (hoare_consequence_post)
                 {{P}} c {{Q}}
-]]]
+]]
  *)
 
 (* Here are the formal versions: *)
@@ -1054,7 +1052,7 @@ Proof.
     [apply] to tell Coq, essentially, "The missing part is going
     to be filled in later." *)
 (** ここで、良い機会ですので、Coq の別の便利な機能を紹介しておきましょう。
-    上述の例で明示的に[P']と書かなければならないことは、少々やっかいです。
+    上述の例で明示的に[P']を書かなければならないことは、少々やっかいです。
     なぜなら、すぐ次にやること、つまり[hoare_asgn]規則を適用すること、が、
     まさに、それがどうでなければならないかを決定することだからです。    
     こういう場合、[apply]の代わりに[eapply]を使うことができます。
@@ -1100,10 +1098,10 @@ Proof.
 ]]]
 *)
 (** [SKIP]は状態を変えないことから、任意の性質 P を保存します:
-[[[
+[[
       --------------------  (hoare_skip)
       {{ P }} SKIP {{ P }}
-]]]
+]]
 *)
 
 Theorem hoare_skip : forall P,
@@ -1132,12 +1130,12 @@ Proof.
 (** より興味深いことに、コマンド[c1]が、[P]が成立する任意の状態を[Q]が成立する状態にし、
     [c2]が、[Q]が成立する任意の状態を[R]が成立する状態にするとき、
     [c1]に続いて[c2]を行うことは、[P]が成立する任意の状態を[R]が成立する状態にします:
-[[[
+[[
         {{ P }} c1 {{ Q }}
         {{ Q }} c2 {{ R }}
        ---------------------  (hoare_seq)
        {{ P }} c1;c2 {{ R }}
-]]]
+]]
 *)
 
 Theorem hoare_seq : forall P Q R c1 c2,
@@ -1308,12 +1306,12 @@ Proof.
     確かに、分岐のどちらの枝を実行した後でも表明[Q]が成立するならば、
     条件分岐全体でも[Q]が成立するでしょう。
     これから次のように書くべきかもしれません:
-[[[
+[[
               {{P}} c1 {{Q}}
               {{P}} c2 {{Q}}
       --------------------------------
       {{P}} IFB b THEN c1 ELSE c2 {{Q}}
-]]]
+]]
    しかし、これはかなり弱いのです。例えば、この規則を使っても次のことを示すことができません:
 [[
      {{True}}
@@ -1332,12 +1330,12 @@ Proof.
    この情報を補題の前提部分で利用できるようにすることで、
    [c1]と[c2]の振舞いについて(つまり事後条件[Q]が成立する理由について)推論するときに、
    より多くの情報を使うことができるようになります。
-[[[
+[[
               {{P /\  b}} c1 {{Q}}
               {{P /\ ~b}} c2 {{Q}}
       ------------------------------------  (hoare_if)
       {{P}} IFB b THEN c1 ELSE c2 FI {{Q}}
-]]]
+]]
 *)
 
 (* To interpret this rule formally, we need to do a little work.
@@ -1508,23 +1506,23 @@ Qed.
     終了時点で[P]の成立が再度確立されることから、
     [P]が[c]の実行前に常に成立していると仮定することができます。
     このことから次の規則が得られます:
-[[[
+[[
                    {{P}} c {{P}}
         -----------------------------------
         {{P}} WHILE b DO c END {{P /\ ~b}}
-]]]
+]]
     命題[P]は不変条件(_invariant_)と呼ばれます。
 
-    これは求める規則にかなり近付いたのですが、もうちょっとだけ改良できます。
+    これで求める規則にかなり近付いたのですが、もうちょっとだけ改良できます。
     ループ本体の開始時点で、[P]が成立しているだけでなく、
     ガード[b]が現在の状態で真であるということも言えます。
     このことは、[c]についての推論の際にいくらかの情報を与えてくれます。
     結局、規則の最終バージョンはこうなります:
-[[[
+[[
                {{P /\ b}} c {{P}}
         -----------------------------------  [hoare_while]
         {{P}} WHILE b DO c END {{P /\ ~b}}
-]]]
+]]
 *)
 
 Lemma hoare_while : forall P b c,
@@ -2136,7 +2134,7 @@ Proof.
 (* ** Exercise: Slow Addition *)
 (** ** 練習問題: 遅い足し算 *)
 
-(** The following program adds the variable X into the variable Z
+(* The following program adds the variable X into the variable Z
     by repeatedly decrementing X and incrementing Z. *)
 (** 次のプログラムは変数Xを変数Zに足します。
     そのために、Xを減らしてZを増やすということを繰り返します。*)
@@ -2460,7 +2458,7 @@ Fixpoint real_fact (n:nat) : nat :=
   end.
 
 (* Recall the factorial Imp program: *)
-(** 階乗を計算する Imp program を思い出してください: *)
+(** 階乗を計算する Imp プログラムを思い出してください: *)
 
 Definition fact_body : com :=
   Y ::= AMult (AId Y) (AId Z);
@@ -2497,8 +2495,8 @@ Definition fact_com : com :=
 ]]
 *)
 (** [fact_com]を修飾して、以下の事前条件、事後条件として与えられる仕様を満たすことを示しなさい。
-    帰結規則のために(形式的には)算術式や不等号などが必要になりますが、
-    ここまでと同様、それらについての推論は省略して構いません。
+    帰結規則のために(形式的には)算術式や不等号などについての推論が必要になりますが、
+    ここまでと同様、それらは省略して構いません。
 
 (* FILL IN HERE *)
 [[
@@ -2521,7 +2519,7 @@ Definition fact_com : com :=
     using your informal proof as a guide.  You may want to state
     the loop invariant separately (as we did in the examples). *)
 (** fact_com がこの仕様を満たすことを、形式的に証明しなさい。
-    その際、自分のインフォーマルな証明をガイドとして使いなさい。
+    その際、自分の非形式的な証明をガイドとして使いなさい。
     (例で行ったように)ループ不変条件を分離して主張しても構いません。*)
 
 Theorem fact_com_correct : forall x,
@@ -2692,7 +2690,7 @@ Definition list_member_spec := forall l n,
   これは、ループの繰り返しのたびに、
   もとのリスト[l]が[X]の現在値と別のリスト[p]とを結合したものと同一であることを言っています。
   この[p]はプログラム内の変数の値ではないですが、最初から証明が進んでいく間、保持されていきます。
-  (このような[p]は、よく"ゴーストバリアブル"と呼ばれます。)
+  (このような[p]は、よく"幽霊変数"(ghost variable)と呼ばれます。)
 
   このようなリスト[p]が存在することを示すために、繰り返しの毎回、
   [X]の先頭に[p]の「最後」を加えています。このために Poly_J.vの[snoc]を使っています。*)
@@ -3011,7 +3009,7 @@ Delimit Scope dcom_scope with dcom.
     precondition at the very top of the program. *)
 (** 既に定義されているコマンド[com]の記法[Notation]との衝突を避けるため、
     [dcom_scope]という特別なスコープを導入します。
-    そして、例を宣言[% dcom]で包み、記法をこのスコープ内で解釈する印とします。
+    そして、例を宣言[% dcom]で包み、記法をこのスコープ内で解釈したいことを表します。
 
     注意深い読者は、[DCPre]構成子に対して2つの記法を定義していることに気付くでしょう。
     [=>]を使うものと使わないものです。[=>]を使わないものは、
@@ -3043,7 +3041,7 @@ Fixpoint extract (d:dcom) : com :=
   | DCPost d _        => extract d
   end.
 
-(** The choice of exactly where to put assertions in the definition of
+(* The choice of exactly where to put assertions in the definition of
     [dcom] is a bit subtle.  The simplest thing to do would be to
     annotate every [dcom] with a precondition and postcondition.  But
     this would result in very verbose programs with a lot of repeated
@@ -3060,11 +3058,29 @@ Fixpoint extract (d:dcom) : com :=
        - The _post_-condition expected by each [dcom] [d] is embedded in [d]
 
        - The _pre_-condition is supplied by the context. *)
+(** [dcom]の定義のどこに表明を置くかの選択は、ちょっと微妙です。
+    一番簡単な方法は、すべての[dcom]に事前条件と事後条件の表明を付けてしまうことかもしれません。
+    しかしそうすると、同じアノテーションが繰替えされて、とてもうるさいプログラムになってしまうでしょう。
+    例えば、[SKIP;SKIP]は次のように表明が付加されることになります。
+[[
+        {{P}} ({{P}} SKIP {{P}}) ; ({{P}} SKIP {{P}}) {{P}},
+]]
+    それぞれの[SKIP]の事前条件、事後条件と、さらにセミコロンの事前条件、
+    事後条件として同じものが付加されています!
 
-(** In other words, the invariant of the representation is that a
+    この代わりに、次の規則に従うことにします:
+
+       - [dcom] [d]に対する事後条件は[d]に埋め込む
+
+       - 事前条件はコンテキストから与えられるようにする。 *)
+
+(* In other words, the invariant of the representation is that a
     [dcom] [d] together with a precondition [P] determines a Hoare
     triple [{{P}} (extract d) {{post d}}], where [post] is defined as
     follows: *)
+(** 言い換えると、この表現での不変条件は、
+    [dcom] [d] と事前条件 [P] がホーアの三つ組[{{P}} (extract d) {{post d}}]
+    を決定するということです。ここで [post] は次のように定義されます: *)
 
 Fixpoint post (d:dcom) : Assertion :=
   match d with
@@ -3077,8 +3093,9 @@ Fixpoint post (d:dcom) : Assertion :=
   | DCPost c Q              => Q
   end.
 
-(** We can define a similar function that extracts the "initial
+(* We can define a similar function that extracts the "initial
     precondition" from a decorated program. *)
+(** 修飾付きプログラムから「最初の事前条件」を抽出する同様の関数が定義できます。*)
 
 Fixpoint pre (d:dcom) : Assertion :=
   match d with
@@ -3091,7 +3108,7 @@ Fixpoint pre (d:dcom) : Assertion :=
   | DCPost c Q              => pre c
   end.
 
-(** This function is not doing anything sophisticated like calculating
+(* This function is not doing anything sophisticated like calculating
     a weakest precondition; it just recursively searches for an
     explicit annotation at the very beginning of the program,
     returning default answers for programs that lack an explicit
@@ -3101,31 +3118,48 @@ Fixpoint pre (d:dcom) : Assertion :=
     of always supplying an explicit precondition annotation at the
     very beginning of our decorated programs, we can express what it
     means for a decorated program to be correct as follows: *)
+(** この関数は、最弱事前条件を計算する、というような洗練されたことは何もしません。
+    単に、プログラムの一番最初から明示的に付加されたアノテーションを再帰的に探します。
+    もし(代入だけのものや[SKIP]のように)明示的事前条件を持たない場合には、
+    デフォルトの答えを返します。
+
+    [pre]と[post]を使い、
+    修飾付きプログラムの一番最初には常に明示的な事前条件のアノテーションを付ける慣習を守ることを仮定すると、
+    修飾付きプログラムが正しいとはどういうことかを以下のように表現できます: *)
 
 Definition dec_correct (d:dcom) :=
   {{pre d}} (extract d) {{post d}}.
 
-(** To check whether this Hoare triple is _valid_, we need a way to
+(* To check whether this Hoare triple is _valid_, we need a way to
     extract the "proof obligations" from a decorated program.  These
     obligations are often called _verification conditions_, because
     they are the facts that must be verified (by some process looking
     at the decorated program) to see that the decorations are
     logically consistent and thus add up to a proof of correctness. *)
+(** このホーアの三つ組が正しい(_valid_)かどうかをチェックするには、
+    修飾付きプログラムから「証明課題」("proof obligations")を抽出することが必要となります。
+    この課題は、しばしば検証条件(_verification conditions_)と呼ばれます。
+    なぜなら、修飾が論理的に整合していて、
+    全体として正しさの証明になることを確認するために
+    (修飾付きプログラムを調べるプロセスによって)検証されるべき事実だからです。*)
 
-(** ** Extracting Verification Conditions *)
+(* ** Extracting Verification Conditions *)
+(** ** 検証条件の抽出 *)
 
-(** First, a bit of notation: *)
+(* First, a bit of notation: *)
+(** 最初に、記法について少々: *)
 
 Definition assert_implies (P Q : Assertion) : Prop :=
   forall st, P st -> Q st.
 
-(** We will write [P ~~> Q] (in ASCII, [P ~][~> Q]) for [assert_implies
+(* We will write [P ~~> Q] (in ASCII, [P ~][~> Q]) for [assert_implies
     P Q]. *)
+(** [assert_implies P Q]を[P ~~> Q] (ASCIIでは, [P ~][~> Q])と書きます。*)
 
 Notation "P ~~> Q" := (assert_implies P Q) (at level 80).
 Notation "P <~~> Q" := (P ~~> Q /\ Q ~~> P) (at level 80).
 
-(** Next, the key definition.  The function [verification_conditions]
+(* Next, the key definition.  The function [verification_conditions]
     takes a [dcom] [d] together with a precondition [P] and returns a
     _proposition_ that, if it can be proved, implies that the triple
     [{{P}} (extract d) {{post d}}] is valid.  It does this by walking
@@ -3134,6 +3168,17 @@ Notation "P <~~> Q" := (P ~~> Q /\ Q ~~> P) (at level 80).
     decorated programs.  (Strictly speaking, we need to massage the
     informal rules a little bit to add some uses of the rule of
     consequence, but the correspondence should be clear.) *)
+(** 次に、主要な定義です。
+    関数[verification_conditions]は[dcom] [d]と事前条件[P]をとり、
+    命題(_proposition_)を返します。
+    その命題は、もし証明できたならば、
+    三つ組[{{P}} (extract d) {{post d}}]が正しいことになります。
+    この関数はその命題を作るために、[d]を調べまわって、
+    すべてのローカルチェックの /\ (and)をとります。
+    ローカルチェックとは、
+    前に修飾付きプログラムについての非形式的規則のところでリストアップしたもののことです。
+    (厳密に言うと、帰結規則の使用法を拡げるために非形式的規則をちょっと揉んでやる必要があります。
+    ただ、対応関係は明確でしょう。) *)
 
 Fixpoint verification_conditions (P : Assertion) (d:dcom) : Prop :=
   match d with
@@ -3162,16 +3207,24 @@ Fixpoint verification_conditions (P : Assertion) (d:dcom) : Prop :=
       verification_conditions P d /\ (post d ~~> Q)
   end.
 
-(** And now, the key theorem, which captures the claim that the
+(* And now, the key theorem, which captures the claim that the
     [verification_conditions] function does its job correctly.  Not
     surprisingly, we need all of the Hoare Logic rules in the
     proof. *)
-(** We have used _in_ variants of several tactics before to
+(** そしてついに、主定理です。この定理は、
+    [verification_conditions]関数が正しくはたらくことを主張します。
+    当然ながら、その証明にはホーア論理のすべての規則が必要となります。*)
+(* We have used _in_ variants of several tactics before to
     apply them to values in the context rather than the goal. An
     extension of this idea is the syntax [tactic in *], which applies
     [tactic] in the goal and every hypothesis in the context.  We most
     commonly use this facility in conjunction with the [simpl] tactic,
     as below. *)
+(** これまで、いろいろなタクティックについて、
+    ゴールではなくコンテキストの値に適用する別形を使ってきました。
+    このアイデアの拡張が構文[tactic in *]です。
+    この構文では、[tactic]をゴールとコンテキストのすべての仮定とに適用します。
+    このしくみは、下記のように[simpl]タクティックと組み合わせて使うのが普通です。*)
 
 Theorem verification_correct : forall d P,
   verification_conditions P d -> {{P}} (extract d) {{post d}}.
@@ -3211,10 +3264,13 @@ Proof.
     eapply hoare_consequence_post. apply IHd. apply Hd. assumption.
 Qed.
 
-(** ** Examples *)
+(* ** Examples *)
+(** ** 例 *)
 
-(** The propositions generated by [verification_conditions] are fairly
+(* The propositions generated by [verification_conditions] are fairly
     big, and they contain many conjuncts that are essentially trivial. *)
+(** [verification_conditions]が生成する命題はかなり大きく、
+    /\ でつながれた命題の中には本質的に自明なものも多く含まれます。*)
 
 Eval simpl in (verification_conditions (fun st => True) dec_while).
 (* ====>
@@ -3227,13 +3283,19 @@ Eval simpl in (verification_conditions (fun st => True) dec_while).
     (fun st : state => True /\ bassn (BNot (BEq (AId X) (ANum 0))) st)
      ~~> assn_sub X (AMinus (AId X) (ANum 1)) (fun _ : state => True) *)
 
-(** We can certainly work with them using just the tactics we have so
+(* We can certainly work with them using just the tactics we have so
     far, but we can make things much smoother with a bit of
     automation.  We first define a custom [verify] tactic that applies
     splitting repeatedly to turn all the conjunctions into separate
     subgoals and then uses [omega] and [eauto] (a handy
     general-purpose automation tactic that we'll discuss in detail
     later) to deal with as many of them as possible. *)
+(** ここまで見てきたタクティックだけを使うことでこれらの命題の証明を進めることは確かにできるのですが、
+    いくらか自動化を入れることで、よりスムーズに進められるようにできます。
+    最初に自前のタクティック[verify]を定義します。
+    このタクティックは、split を繰り返し適用して/\でつながれた命題を個々のサブゴールに分割し、
+    その後[omega]と[eauto](便利な一般用途のタクティック。後に詳しく議論します)
+    を適用可能な限り使います。*)
 
 Tactic Notation "verify" :=
   try apply verification_correct;
@@ -3245,8 +3307,10 @@ Tactic Notation "verify" :=
   repeat match goal with [H : _ /\ _ |- _] => destruct H end;
   try eauto; try omega.
 
-(** What's left after [verify] does its thing is "just the interesting
+(* What's left after [verify] does its thing is "just the interesting
     parts" of checking that the decorations are correct.  For example: *)
+(** [verify]適用後残るのは、修飾の正しさをチェックするのに「興味深い部分だけ」です。
+    例えば: *)
 
 Theorem dec_while_correct :
   dec_correct dec_while.
@@ -3262,8 +3326,9 @@ Proof.
     inversion H.
 Qed.
 
-(** Another example (formalizing a decorated program we've seen
+(* Another example (formalizing a decorated program we've seen
     before): *)
+(** 別の例(前に見た修飾付きプログラムを形式化したもの)です: *)
 
 Example subtract_slowly_dec (x:nat) (z:nat) : dcom := (
     {{ fun st => asnat (st X) = x /\ asnat (st Z) = z }}
@@ -3297,14 +3362,21 @@ Proof.
       apply ex_falso_quodlibet. apply H0. reflexivity.
 Qed.
 
-(** **** Exercise: 3 stars (slow_assignment_dec) *)
+(* **** Exercise: 3 stars (slow_assignment_dec) *)
+(** **** 練習問題: ★★★ (slow_assignment_dec) *)
 
-(** A roundabout way of assigning a number currently stored in [X] to
+(* A roundabout way of assigning a number currently stored in [X] to
    the variable [Y] is to start [Y] at [0], then decrement [X] until it
    hits [0], incrementing [Y] at each step.
 
    Here is an informal decorated program that implements this idea
    given a parameter [x]: *)
+(** [X]に現在設定されている値を変数[Y]に代入する遠回りの方法は、
+    [Y]を[0]から始め、
+    [X]を[0]になるまで減らしていきながら、その各ステップで[Y]を増やしていくことです。
+
+   次が、
+   このアイデアを[x]をパラメータとする非形式的な修飾付きプログラムで表したものです: *)
 
 (**
 [[
@@ -3324,14 +3396,17 @@ Qed.
 ]]
 *)
 
-(** Write a corresponding function that returns a value of type [dcom]
+(* Write a corresponding function that returns a value of type [dcom]
     and prove it correct. *)
+(** 対応する[dcom]型の値を返す関数を記述し、その正しさを証明しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (factorial_dec)  *)
-(** Remember the factorial function we worked with before: *)
+(* **** Exercise: 4 stars, optional (factorial_dec)  *)
+(** **** 練習問題: ★★★★, optional (factorial_dec)  *)
+(* Remember the factorial function we worked with before: *)
+(** 以前に扱った階乗関数を思い出してください: *)
 
 Fixpoint real_fact (n:nat) : nat :=
   match n with
@@ -3339,14 +3414,16 @@ Fixpoint real_fact (n:nat) : nat :=
   | S n' => n * (real_fact n')
   end.
 
-(** Following the pattern of [subtract_slowly_dec], write a decorated
+(* Following the pattern of [subtract_slowly_dec], write a decorated
     Imp program that implements the factorial function, and prove it
     correct. *)
+(** [subtract_slowly_dec]のパターンに倣って、
+    階乗計算の修飾付きImpプログラムを記述し、その正しさを証明しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** Finally, for a bigger example, let's redo the proof of
+(* Finally, for a bigger example, let's redo the proof of
     [list_member_correct] from above using our new tools.
 
     Notice that the [verify] tactic leaves subgoals for each use of
@@ -3357,6 +3434,14 @@ Fixpoint real_fact (n:nat) : nat :=
     reasoning about the execution of imperative programs, while the
     user has to prove lemmas that are specific to the problem
     domain (e.g. lists or numbers). *)
+(** 最後に、より大きな例として、
+    新しい道具立てを使って[list_member_correct]の証明を再度行ってみましょう。
+
+    [verify]タクティックは[hoare_consequence]を利用するたびに
+    (つまり修飾付きプログラムに[=>]が現れるたびに)サブゴールを作ることに注意します。
+    これらの含意は、リストについての事実(例えば[l ++ [] = l]など)に依存しています。
+    言い換えると、ホーア論理のインフラは命令型プログラムの実行についての一般的な部分を扱い、
+    一方ユーザは(例えば数値のリストという)問題領域特有の補題を証明しなければなりません。*)
 
 Definition list_member_dec (n : nat) (l : list nat) : dcom := (
     {{ fun st => st X = VList l /\ st Y = VNat n /\ st Z = VNat 0 }}
