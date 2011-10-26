@@ -124,7 +124,7 @@ Proof.
 Theorem lt_trans' :
   transitive lt.
 Proof.
-  (* [m]が[o]より小さい、というエビデンスについての帰納法で証明する *)
+  (* [m]が[o]より小さい、という根拠についての帰納法で証明する *)
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   induction Hmo as [| m' Hm'o].
@@ -310,7 +310,8 @@ Tactic Notation "rsc_cases" tactic(first) ident(c) :=
 
     次に進む前に、二つの定義が同じものを定義していることを確認しなければなりません...
 
-    最初に、[rsc]が「失われた」2つの[rtc]構成子の働きを代替することを示す二つの補題を証明します。*)
+    最初に、[rsc]が、
+    「失われた」2つの[rtc]コンストラクタの働きを代替することを示す二つの補題を証明します。*)
 
 Theorem rsc_R : forall (X:Type) (R:relation X) (x y : X),
        R x y -> refl_step_closure R x y.
