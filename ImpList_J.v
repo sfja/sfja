@@ -1,11 +1,13 @@
-(** * ImpList: Imp Extended with Lists *)
+(** * ImpList_J: Imp のリスト拡張 *)
+(* * ImpList: Imp Extended with Lists *)
 
 Require Export SfLib_J.
 
 (* ####################################################### *)
-(** * Imp Programs with Lists *)
+(* * Imp Programs with Lists *)
+(** * リストを持つ Imp プログラム *)
 
-(** There are only so many numeric functions with interesting
+(* There are only so many numeric functions with interesting
     properties that have simple proofs.  (Of course, there are lots of
     interesting functions on numbers and they have many interesting
     properties -- this is the whole field of number theory! -- but
@@ -22,8 +24,25 @@ Require Export SfLib_J.
     them in the context of the new definitions.
 
     We start by repeating some material from [Imp.v]. *)
+(** 興味深い性質とその簡単な証明を併せ持つ数値関数はそんなにたくさんはありません。
+    (もちろん、興味深い数値関数はたくさんあり、
+    それらはいろいろなおもしろい性質を持っています。
+    なんといっても数論全体なのです!
+    しかし大抵の場合、その性質の証明には、たくさんの補題が必要となるのです。)
+    推論対象として、あといくつかのプログラムを書くことができるようにするために、
+    Impの拡張版を導入します。拡張版では、変数は数値だけでなく数値のリストも変域とします。
+    基本操作には、リストの先頭(head)と後部(tail)を取る操作、
+    リストが空か否かを判定する操作が拡張されます。
 
-(** ** Repeated Definitions *)
+    このためには、[state]、[aexp]、[aeval]、[bexp]、[beval]
+    の定義を変えるだけで良いのです。
+    [com]と[ceval]は字面上の変更なく再利用できます。
+    ただ、新しい定義の中にコピー&ペーストしてやる必要はありますが。
+
+    [Imp_J.v]の素材を繰り返すことから始めましょう。 *)
+
+(* ** Repeated Definitions *)
+(** ** 定義の繰り返し *)
 
 Inductive id : Type :=
   Id : nat -> id.
@@ -68,9 +87,10 @@ Definition X : id := Id 0.
 Definition Y : id := Id 1.
 Definition Z : id := Id 2.
 
-(** ** Extensions *)
+(* ** Extensions *)
+(** ** 拡張 *)
 
-(** Now we come to the key changes.
+(* Now we come to the key changes.
 
     Rather than evaluating to a [nat], an [aexp] in our new language
     will evaluate to a _value_ -- an element of type [val] -- which
@@ -78,6 +98,13 @@ Definition Z : id := Id 2.
 
     Similarly, [state]s will now map identifiers to [val]s rather than
     [nat]s, so that we can store lists in mutable variables. *)
+(** 一番の変更点にかかります。
+
+    新しい言語では、[aexp]の評価は[nat]になるのではなく、値(_value_、型[val]の要素)
+    になります。値は、[nat]か、または[nat]のリストです。    
+
+    同様に、[state]は識別子を[nat]ではなく[val]にマッピングします。
+    それによって、リストを数値と同じ変数に格納できるのです。*)
 
 Inductive val : Type :=
 | VNat : nat -> val
@@ -89,7 +116,7 @@ Definition empty_state : state := fun _ => VNat 0.
 Definition update (st : state) (V:id) (n : val) : state :=
   fun V' => if beq_id V V' then n else st V'.
 
-(** Imp does not have a static type system, so nothing prevents the
+(* Imp does not have a static type system, so nothing prevents the
     programmer from e.g. adding two lists or taking the head of a
     number. We have to decide what to do in such nonsensical
     situations.
@@ -103,6 +130,21 @@ Definition update (st : state) (V:id) (n : val) : state :=
     The two functions [asnat] and [aslist] interpret [val]s in a
     numeric or a list context; [aeval] calls these whenever it
     evaluates an arithmetic or a list operation.*)
+(** Impには静的型システムがありません。
+    そのため、プログラマが2つのリストを足したり、
+    数値の先頭をとったりすることを防ぐことはできません。
+    そういう不条理な状況をどうするかを決めなければなりません。
+
+    これに対しては次のようなシンプルなやり方を採用します。
+    もし算術関数が引数としてリストを受けとったときには、
+    そのリストを数値[0]として扱います。
+    同様に、もしリスト関数が数値を引数として受けとったときには、
+    その数値を[nil]として扱います。
+    (Javascript参照。Javascriptでは[3]を空リストに足すと[3]になる...)
+
+    2つの関数[asnat]と[aslist]は、[val]をそれぞれ数値およびリストのコンテキストで解釈します。
+    [aeval]は、数値操作またはリスト操作を評価するときには常に、
+    [asnat]や[aslist]を呼びます。*)
 
 Definition asnat (v : val) : nat :=
   match v with
@@ -116,8 +158,10 @@ Definition aslist (v : val) : list nat :=
   | VList xs => xs
   end.
 
-(** Now we fill in the definitions of abstract syntax and
+(* Now we fill in the definitions of abstract syntax and
     evaluation functions for arithmetic and boolean expressions. *)
+(** ここで、算術式とブール式について、
+    抽象構文と評価関数の定義の足りないところを埋めます。*)
 
 Inductive aexp : Type :=
   | ANum : nat -> aexp
@@ -164,8 +208,10 @@ Fixpoint aeval (st : state) (e : aexp) : val :=
   | ANil => VList []
   end.
 
-(** We extend [bexp]s with an operation to test if a list is nonempty
+(* We extend [bexp]s with an operation to test if a list is nonempty
     and adapt [beval] acordingly. *)
+(** [bexp]を拡張して、リストが空かどうかをテストする操作を追加します。
+    また、[beval]をそれに合わせて変更します。*)
 
 Inductive bexp : Type :=
   | BTrue : bexp
@@ -198,9 +244,10 @@ Fixpoint beval (st : state) (e : bexp) : bool :=
                    end
   end.
 
-(** ** Repeated Definitions *)
+(* ** Repeated Definitions *)
+(** ** 定義の繰り返し *)
 
-(** Now we need to repeat a little bit of low-level work from Imp.v,
+(* Now we need to repeat a little bit of low-level work from Imp.v,
     plus the definitions of [com] and [ceval].  There are no
     interesting changes -- it's just a matter of repeating the same
     definitions, lemmas, and proofs in the context of the new
@@ -210,6 +257,17 @@ Fixpoint beval (st : state) (e : bexp) : bool :=
     includes a powerful module system that we could use to abstract
     the repeated definitions with respect to the varying parts.  But
     explaining how it works would distract us from the topic at hand.)
+ *)
+(** ここで、Imp_J.vから低レベルの仕事を少々と、
+    [com]と[ceval]の定義を繰り返さなければなりません。
+    おもしろみのある変化は何もありません。
+    算術式とブール式の新しい定義のコンテキストで、同じ定義、同じ補題、
+    同じ証明を繰り返すだけです。
+
+    (このカット&ペーストは本当に必要なのでしょうか？ 
+     答えはNoです。Coq には強力なモジュールシステムがあって、
+     変化する部分に関する同じ定義を抽象化することもできます。
+     ただ、その説明をここですると、主題から逸れていってしまいます。)
  *)
 
 Theorem update_eq : forall n V st,
@@ -267,8 +325,9 @@ Proof.
       apply beq_id_eq in Heqb23.
       subst. apply ex_falso_quodlibet. apply H. reflexivity.  Qed.
 
-(** We can keep exactly the same old definitions of [com] and
+(* We can keep exactly the same old definitions of [com] and
     [ceval]. *)
+(** [com]と[ceval]の定義は、前とまったく同じで済みます。*)
 
 Inductive com : Type :=
   | CSkip : com
