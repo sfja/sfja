@@ -182,7 +182,7 @@ Proof.
 (** 反射性と推移性は後の章で必要となる主要概念ですが、Coq で関係を扱う練習をもう少ししましょう。
     次のいくつかの概念もよく知られたものです。
 
-    関係[R]が対象的(_symmetric_)であるとは、[R a b]ならば[R b a]となることです。 *)
+    関係[R]が対称的(_symmetric_)であるとは、[R a b]ならば[R b a]となることです。 *)
 
 Definition symmetric {X: Type} (R: relation X) :=
   forall a b : X, (R a b) -> (R b a).
