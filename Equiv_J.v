@@ -1,11 +1,12 @@
-(** * Equiv: Program Equivalence *)
+(** * Equiv_J: プログラムの同値性 *)
+(* * Equiv: Program Equivalence *)
 
 (* $Date: 2011-04-05 21:37:47 -0400 (Tue, 05 Apr 2011) $ *)
 
 
 Require Export Imp_J.
 
-(** *** Some general advice for homework assignments
+(* *** Some general advice for homework assignments
 
     - We've tried to make sure that most of the Coq proofs we ask you
       to do are similar to proofs that we've provided.  Before
@@ -26,11 +27,28 @@ Require Export Imp_J.
     - Use automation to save work!  Some of the proofs in this
       chapter's exercises are pretty long if you try to write out all
       the cases explicitly. *)
+(** *** 宿題割当てについての一般的アドバイス
+
+    - Coqによる証明問題は、そこまでに文中で行ってきた証明となるべく同じようにできるようにしています。
+      宿題に取り組む前に、そこまでの証明を自分でも(紙上とCoqの両方で)やってみなさい。
+      そして、細部まで理解していることを確認しなさい。
+      そうすることは、多くの時間を節約することになるでしょう。
+
+    - 問題にする Coq の証明はそれなりに複雑なため、
+      単に怪しそうなところをランダムに探ってみるような方法で解くことはまず無理です。
+      なぜその性質が真で、どう進めば証明になるかを最初に考える必要があります。
+      そのための一番良い方法は、形式的な証明を始める前に、
+      紙の上に非形式的な証明をスケッチでも良いので書いてみることです。
+      そうすることで、定理が成立することを直観的に確信できます。
+
+    - 仕事を減らすために自動化を使いなさい。この章の練習問題の証明のいくつかは、
+      もしすべての場合を明示的に書き出すとすると、とても長くなります。*)
 
 (* ####################################################### *)
-(** * Behavioral Equivalence *)
+(* * Behavioral Equivalence *)
+(** * 振る舞い同値性 *)
 
-(** In the last chapter, we investigated the correctness of a very
+(* In the last chapter, we investigated the correctness of a very
     simple program transformation: the [optimize_0plus] function.  The
     programming language we were considering was the first version of
     the language of arithmetic expressions -- with no variables -- so
@@ -41,13 +59,27 @@ Require Export Imp_J.
     To talk about the correctness of program transformations in the
     full Imp language, we need to think about the role of variables
     and the state. *)
+(** 前の章で、簡単なプログラム変換の正しさを調べました。
+    [optimize_0plus]関数です。
+    対象としたプログラミング言語は、算術式の言語の最初のバージョンでした。
+    それには変数もなく、そのためプログラム変換が正しいとはどういうことを意味する(_means_)
+    かを定義することはとても簡単でした。
+    つまり、変換の結果得られるプログラムが常に、
+    それを評価すると元のプログラムと同じ数値になるということでした。
+
+    Imp言語全体についてプログラム変換の正しさを語るためには、
+    変数の役割、および状態について考えなければなりません。*)
 
 (* ####################################################### *)
-(** ** Definitions *)
+(* ** Definitions *)
+(** ** 定義 *)
 
-(** For [aexp]s and [bexp]s, the definition we want is clear.  We say
+(* For [aexp]s and [bexp]s, the definition we want is clear.  We say
     that two [aexp]s or [bexp]s are _behaviorally equivalent_ if they
     evaluate to the same result _in every state_. *)
+(** [aexp]と[bexp]については、どう定義すれば良いかは明らかです。
+    2つの[aexp]または[bexp]が振る舞い同値である(_behaviorally equivalent_)とは、
+    「すべての状態で」2つの評価結果が同じになることです。*)    
 
 Definition aequiv (a1 a2 : aexp) : Prop :=
   forall (st:state),
@@ -57,7 +89,7 @@ Definition bequiv (b1 b2 : bexp) : Prop :=
   forall (st:state),
     beval st b1 = beval st b2.
 
-(** For commands, the situation is a little more subtle.  We can't
+(* For commands, the situation is a little more subtle.  We can't
     simply say "two commands are behaviorally equivalent if they
     evaluate to the same ending state whenever they are run in the
     same initial state," because some commands (in some starting
@@ -67,13 +99,24 @@ Definition bequiv (b1 b2 : bexp) : Prop :=
     terminate in the same final state.  A compact way to express this
     is "if the first one terminates in a particular state then so does
     the second, and vice versa." *)
+(** コマンドについては、状況はもうちょっと微妙です。
+    簡単に「2つのコマンドが振る舞い同値であるとは、
+    両者を同じ状態から開始すれば同じ状態で終わることである」と言うわけには行きません。
+    コマンドによっては(特定の状態から開始したときには)
+    停止しないためどのような状態にもならないことがあるからです!
+    すると次のように言う必要があります。
+    2つのコマンドが振る舞い同値であるとは、任意の与えられた状態から両者をスタートすると、
+    両者ともに発散するか、両者ともに停止して同じ状態になることです。
+    これを簡潔に表現すると、「1つ目が停止して特定の状態になるならば2つ目も同じになり、
+    逆もまた成り立つ」となります。*)
 
 Definition cequiv (c1 c2 : com) : Prop :=
   forall (st st':state),
     (c1 / st || st') <-> (c2 / st || st').
 
-(** **** Exercise: 2 stars, optional (pairs_equiv) *)
-(** Which of the following pairs of programs are equivalent? Write
+(* **** Exercise: 2 stars, optional (pairs_equiv) *)
+(** **** 練習問題: ★★, optional (pairs_equiv) *)
+(* Which of the following pairs of programs are equivalent? Write
     "yes" or "no" for each one.
 
 (a)
@@ -106,9 +149,43 @@ and
 (* FILL IN HERE *)
 
 [] *)
+(** 以下のプログラムの対の中で、同値なのはどれでしょうか？
+    それぞれについて、"yes" か "no" を書きなさい。
+
+(a)
+[[
+    WHILE (BLe (ANum 1) (AId X)) DO
+      X ::= APlus (AId X) (ANum 1)
+    END
+]]
+    と
+[[
+    WHILE (BLe (ANum 2) (AId X)) DO
+      X ::= APlus (AId X) (ANum 1)
+    END
+]]
+(* FILL IN HERE *)
+
+(b)
+[[
+    WHILE BTrue DO
+      WHILE BFalse DO X ::= APlus (AId X) (ANum 1) END
+    END
+]]
+    と
+[[
+    WHILE BFalse DO
+      WHILE BTrue DO X ::= APlus (AId X) (ANum 1) END
+    END
+]]
+
+(* FILL IN HERE *)
+
+[] *)
 
 (* ####################################################### *)
-(** ** Examples *)
+(* ** Examples *)
+(** ** 例 *)
 
 Theorem aequiv_example:
   aequiv (AMinus (AId X) (AId X)) (ANum 0).
@@ -123,8 +200,10 @@ Proof.
   rewrite aequiv_example. reflexivity.
 Qed.
 
-(** For examples of command equivalence, let's start by looking at
+(* For examples of command equivalence, let's start by looking at
     trivial transformations involving [SKIP]: *)
+(** コマンドの同値性の例として、
+    [SKIP]に関係した自明な変換から見てみましょう: *)
 
 Theorem skip_left: forall c,
   cequiv
@@ -143,7 +222,8 @@ Proof.
     assumption.
 Qed.
 
-(** **** Exercise: 2 stars (skip_right) *)
+(* **** Exercise: 2 stars (skip_right) *)
+(** **** 練習問題: ★★ (skip_right) *)
 Theorem skip_right: forall c,
   cequiv
     (c; SKIP)
@@ -152,8 +232,9 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** We can also explore transformations that simplify [IFB]
+(* We can also explore transformations that simplify [IFB]
     commands: *)
+(** [IFB]コマンドを簡単化する変換を探ることもできます: *)
 
 Theorem IFB_true_simple: forall c1 c2,
   cequiv
