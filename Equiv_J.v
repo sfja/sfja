@@ -636,7 +636,7 @@ Admitted.
     その2つが[eq]であることが証明できないのです。
 
     こういった状況でこれから使おうとしている推論原理は、
-    関数的外延性(_functional extensionality_)と呼ばれます:
+    関数外延性(_functional extensionality_)と呼ばれます:
 [[
                         forall x, f x = g x
                         -------------------
@@ -987,21 +987,29 @@ Proof.
 Qed.
 
 (* ####################################################### *)
-(** * Case Study: Constant Folding *)
+(* * Case Study: Constant Folding *)
+(** * ケーススタディ: 定数畳み込み *)
 
-(** A _program transformation_ is a function that takes a program
+(* A _program transformation_ is a function that takes a program
     as input and produces some variant of the program as its
     output.  Compiler optimizations such as constant folding are
     a canonical example, but there are many others. *)
+(** プログラム変換(_program transformation_)とは、
+    プログラムを入力とし、出力としてそのプログラムの何らかの変形を生成する関数です。
+    定数畳み込みのようなコンパイラの最適化は標準的な例ですが、それ以外のものもたくさんあります。*)
 
 (* ####################################################### *)
-(** ** Soundness of Program Transformations *)
+(* ** Soundness of Program Transformations *)
+(** ** プログラム変換の健全性 *)
 
-(** A program transformation is _sound_ if it preserves the
+(* A program transformation is _sound_ if it preserves the
     behavior of the original program.
 
     We can define a notion of soundness for translations of
     [aexp]s, [bexp]s, and [com]s. *)
+(** プログラム変換が健全(_sound_)とは、その変換が元のプログラムの振る舞いを保存することです。
+    
+    [aexp]、[bexp]、[com]の変換の健全性の概念を定義することができます。*)
 
 Definition atrans_sound (atrans : aexp -> aexp) : Prop :=
   forall (a : aexp),
@@ -1016,13 +1024,17 @@ Definition ctrans_sound (ctrans : com -> com) : Prop :=
     cequiv c (ctrans c).
 
 (* ######################################################## *)
-(** ** The Constant-Folding Transformation *)
+(* ** The Constant-Folding Transformation *)
+(** ** 定数畳み込み変換 *)
 
-(** An expression is _constant_ when it contains no variable
+(* An expression is _constant_ when it contains no variable
     references.
 
     Constant folding is an optimization that finds constant
     expressions and replaces them by their values. *)
+(** 式が定数(_constant_)であるとは、その式が変数参照を含まないことです。
+
+    定数畳み込みは、定数式をその値に置換する最適化です。*)
 
 Fixpoint fold_constants_aexp (a : aexp) : aexp :=
   match a with
@@ -1051,11 +1063,15 @@ Example fold_aexp_ex1 :
   = AMult (ANum 3) (AId X).
 Proof. reflexivity. Qed.
 
-(** Note that this version of constant folding doesn't eliminate
+(* Note that this version of constant folding doesn't eliminate
     trivial additions, etc. -- we are focusing attention on a single
     optimization for the sake of simplicity.  It is not hard to
     incorporate other ways of simplifying expressions; the definitions
     and proofs just get longer. *)
+(** 定数畳み込みのこのバージョンは簡単な足し算等を消去していないことに注意します。
+    複雑になるのを避けるため、1つの最適化に焦点を絞っています。
+    式の単純化の他の方法を組込むことはそれほど難しいことではありません。
+    定義と証明が長くなるだけです。*)
 
 Example fold_aexp_ex2 :
     fold_constants_aexp
@@ -1063,9 +1079,11 @@ Example fold_aexp_ex2 :
   = AMinus (AId X) (APlus (ANum 0) (AId Y)).
 Proof. reflexivity. Qed.
 
-(** Not only can we lift [fold_constants_aexp] to [bexp]s (in the
+(* Not only can we lift [fold_constants_aexp] to [bexp]s (in the
     [BEq] and [BLe] cases), we can also find constant _boolean_
     expressions and reduce them in-place. *)
+(** ([BEq]と[BLe]の場合に)[fold_constants_aexp]を[bexp]
+    に持ち上げることができるだけでなく、定数「ブール」式をみつけてその場で置換することもできます。*)
 
 Fixpoint fold_constants_bexp (b : bexp) : bexp :=
   match b with
@@ -1110,8 +1128,9 @@ Example fold_bexp_ex2 :
   = BAnd (BEq (AId X) (AId Y)) BTrue.
 Proof. reflexivity. Qed.
 
-(** To fold constants in a command, we apply the appropriate folding
+(* To fold constants in a command, we apply the appropriate folding
     functions on all embedded expressions. *)
+(** コマンド内の定数を畳み込みするために、含まれるすべての式に対応する畳み込み関数を適用します。*)
 
 Fixpoint fold_constants_com (c : com) : com :=
   match c with
@@ -1167,10 +1186,12 @@ Example fold_com_ex1 :
 Proof. reflexivity. Qed.
 
 (* ################################################### *)
-(** ** Soundness of Constant Folding *)
+(* ** Soundness of Constant Folding *)
+(** ** 定数畳み込みの健全性 *)
 
-(** Now we need to show that what we've done is correct.  Here's
+(* Now we need to show that what we've done is correct.  Here's
     the proof for arithmetic expressions: *)
+(** 上でやったことが正しいことを示さなければなりません。以下が算術式に対する証明です: *)
 
 Theorem fold_constants_aexp_sound :
   atrans_sound fold_constants_aexp.
@@ -1189,8 +1210,9 @@ Proof.
          destruct (fold_constants_aexp a2);
          rewrite IHa1; rewrite IHa2; reflexivity). Qed.
 
-(** **** Exercise: 3 stars, optional (fold_bexp_BEq_informal) *)
-(** Here is an informal proof of the [BEq] case of the soundness
+(* **** Exercise: 3 stars, optional (fold_bexp_BEq_informal) *)
+(** **** 練習問題: ★★★, optional (fold_bexp_BEq_informal) *)
+(* Here is an informal proof of the [BEq] case of the soundness
     argument for boolean expression constant folding.  Read it
     carefully and compare it to the formal proof that follows.  Then
     fill in the [BLe] case of the formal proof (without looking at the
@@ -1282,6 +1304,97 @@ Proof.
 ]]
        completing the case.  []
 *)
+(** ここに、ブール式の定数畳み込みに関する健全性の議論の[BEq]の場合の非形式的証明を示します。
+    これを丁寧に読みその後の形式的証明と比較しなさい。
+    次に、形式的証明の[BLe]部分を(もし可能ならば[BEq]の場合を見ないで)記述しなさい。
+
+   「定理」:ブール式に対する定数畳み込み関数[fold_constants_bexp]は健全である。
+
+   「証明」:すべてのブール式[b]について[b]が[fold_constants_bexp]
+   と同値であることを示す。
+   [b]についての帰納法を行う。
+   [b]が[BEq a1 a2]という形の場合を示す。
+
+   この場合、
+[[
+       beval st (BEq a1 a2)
+     = beval st (fold_constants_bexp (BEq a1 a2)).
+]]
+   を示せば良い。これには2種類の場合がある:
+
+     - 最初に、ある[n1]と[n2]について、[fold_constants_aexp a1 = ANum n1]かつ
+       [fold_constants_aexp a2 = ANum n2]と仮定する。
+
+       この場合、
+[[
+           fold_constants_bexp (BEq a1 a2)
+         = if beq_nat n1 n2 then BTrue else BFalse
+]]
+       かつ
+[[
+           beval st (BEq a1 a2)
+         = beq_nat (aeval st a1) (aeval st a2).
+]]
+       となる。
+       算術式についての定数畳み込みの健全性(補題[fold_constants_aexp_sound])より、
+[[
+           aeval st a1
+         = aeval st (fold_constants_aexp a1)
+         = aeval st (ANum n1)
+         = n1
+]]
+       かつ
+[[
+           aeval st a2
+         = aeval st (fold_constants_aexp a2)
+         = aeval st (ANum n2)
+         = n2,
+]]
+       である。
+       従って、
+[[
+           beval st (BEq a1 a2)
+         = beq_nat (aeval a1) (aeval a2)
+         = beq_nat n1 n2.
+]]
+       となる。また、([n1 = n2]と[n1 <> n2]の場合をそれぞれ考えると)
+[[
+           beval st (if beq_nat n1 n2 then BTrue else BFalse)
+         = if beq_nat n1 n2 then beval st BTrue else beval st BFalse
+         = if beq_nat n1 n2 then true else false
+         = beq_nat n1 n2.
+]]
+       となることは明らかである。
+       ゆえに
+[[
+           beval st (BEq a1 a2)
+         = beq_nat n1 n2.
+         = beval st (if beq_nat n1 n2 then BTrue else BFalse),
+]]
+       となる。これは求められる性質である。
+
+     - それ以外の場合、[fold_constants_aexp a1]と[fold_constants_aexp a2]
+       のどちらかは定数ではない。この場合、
+[[
+           beval st (BEq a1 a2)
+         = beval st (BEq (fold_constants_aexp a1)
+                         (fold_constants_aexp a2)),
+]]
+       を示せば良い。
+       [beval]の定義から、これは     
+[[
+           beq_nat (aeval st a1) (aeval st a2)
+         = beq_nat (aeval st (fold_constants_aexp a1))
+                   (aeval st (fold_constants_aexp a2)).
+]]
+       を示すことと同じである。
+       算術式についての定数畳み込みの健全性([fold_constants_aexp_sound])より、
+[[
+         aeval st a1 = aeval st (fold_constants_aexp a1)
+         aeval st a2 = aeval st (fold_constants_aexp a2),
+]]
+       となり、この場合も成立する。[]
+*)
 
 Theorem fold_constants_bexp_sound:
   btrans_sound fold_constants_bexp.
@@ -1321,8 +1434,10 @@ Proof.
     destruct b1'; destruct b2'; reflexivity.  Qed.
 (** [] *)
 
-(** **** Exercise: 3 stars (fold_constants_com_sound) *)
-(** Complete the [WHILE] case of the following proof. *)
+(* **** Exercise: 3 stars (fold_constants_com_sound) *)
+(** **** 練習問題: ★★★ (fold_constants_com_sound) *)
+(* Complete the [WHILE] case of the following proof. *)
+(** 次の証明の[WHILE]の場合を完成させなさい。*)
 
 Theorem fold_constants_com_sound :
   ctrans_sound fold_constants_com.
