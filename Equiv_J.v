@@ -203,7 +203,7 @@ Qed.
 (* For examples of command equivalence, let's start by looking at
     trivial transformations involving [SKIP]: *)
 (** コマンドの同値性の例として、
-    [SKIP]に関係した自明な変換から見てみましょう: *)
+    [SKIP]にからんだ自明な変換から見てみましょう: *)
 
 Theorem skip_left: forall c,
   cequiv
@@ -234,7 +234,7 @@ Proof.
 
 (* We can also explore transformations that simplify [IFB]
     commands: *)
-(** [IFB]コマンドを簡単化する変換を探ることもできます: *)
+(** [IFB]コマンドを簡単化する変換を探索することもできます: *)
 
 Theorem IFB_true_simple: forall c1 c2,
   cequiv
@@ -248,7 +248,7 @@ Proof.
   Case "<-".
     apply E_IfTrue. reflexivity. assumption.  Qed.
 
-(** Of course, few programmers would be tempted to write a conditional
+(* Of course, few programmers would be tempted to write a conditional
     whose guard is literally [BTrue].  A more interesting case is when
     the guard is _equivalent_ to true...
 
@@ -289,6 +289,46 @@ Proof.
        c1 ELSE c2 FI / st || st'].  []
 
    Here is the formal version of this proof: *)
+(** もちろん、ガードが[BTrue]そのままである条件文を書こうとするプログラマはほとんどいないでしょう。
+    より興味深いのは、ガードが真と「同値である」場合です...
+
+   「定理」:もし[b]が[BTrue]と同値ならば、[IFB b THEN c1 ELSE c2 FI]は[c1]と同値である。
+
+   「証明」:
+
+     - ([->]) すべての[st]と[st']に対して、もし[IFB b THEN c1 ELSE c2 FI / st || st']
+       ならば[c1 / st || st']となることを示す。
+
+       [IFB b THEN c1 ELSE c2 FI / st || st']を示すのに使うことができた可能性のある規則、
+       つまり[E_IfTrue]と[E_IfFalse]とで、場合分けをする。
+
+       - [IFB b THEN c1 ELSE c2 FI / st || st']
+         の導出の最後の規則が[E_IfTrue]であると仮定する。
+         このとき、[E_IfTrue]の仮定より[c1 / st || st']となる。
+         これはまさに証明したいことである。
+
+       - 一方、[IFB b THEN c1 ELSE c2 FI / st || st']
+         の導出の最後の規則が[E_IfFalse]と仮定する。
+         すると、[beval st b = false]かつ[c2 / st || st']となる。
+
+         [b]が[BTrue]と同値であったことから、
+         すべての[st]について、[beval st b = beval st BTrue]が成立する。
+         これは特に[beval st b = true]を意味する。
+         なぜなら[beval st BTrue = true]だからである。
+         しかしこれは矛盾である。なぜなら、
+         [E_IfFalse]から[beval st b = false]でなければならないからである。
+         従って、最後の規則は[E_IfFalse]ではあり得ない。
+
+     - ([<-]) すべての[st]と[st']について、もし[c1 / st|| st']ならば
+       [IFB b THEN c1 ELSE c2 FI / st || st']となることを示す。
+
+       [b]が[BTrue]と同値であることから、
+       [beval st b] = [beval st BTrue] = [true]となる。
+       仮定[c1 / st || st']より[E_IfTrue]が適用でき、
+       [IFB b THEN c1 ELSE c2 FI / st || st']となる。  []
+       
+
+   以下がこの証明の形式化版です: *)
 
 Theorem IFB_true: forall b c1 c2,
      bequiv b BTrue  ->
@@ -309,7 +349,8 @@ Proof.
     apply E_IfTrue; try assumption.
     rewrite Hb. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, recommended (IFB_false) *)
+(* **** Exercise: 2 stars, recommended (IFB_false) *)
+(** **** 練習問題: ★★, recommended (IFB_false) *)
 Theorem IFB_false: forall b c1 c2,
   bequiv b BFalse  ->
   cequiv
@@ -319,7 +360,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (swap_if_branches) *)
+(* **** Exercise: 3 stars (swap_if_branches) *)
+(** **** 練習問題: ★★★ (swap_if_branches) *)
 Theorem swap_if_branches: forall b e1 e2,
   cequiv
     (IFB b THEN e1 ELSE e2 FI)
@@ -328,11 +370,16 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** For while loops, there is a similar pair of theorems: a loop whose
+(* For while loops, there is a similar pair of theorems: a loop whose
     guard is equivalent to [BFalse] is equivalent to [SKIP], while a
     loop whose guard is equivalent to [BTrue] is equivalent to [WHILE
     BTrue DO SKIP END] (or any other non-terminating program).  The
     first of these facts is easy. *)
+(** whileループについては、同様の2つ定理があります:
+    ガードが[BFalse]と同値であるループは[SKIP]と同値である、というものと、
+    ガードが[BTrue]と同値であるループは[WHILE BTrue DO SKIP END]
+    (あるいは他の任意の停止しないプログラム)と同値である、というものです。
+    1つ目のものは簡単です。*)
 
 Theorem WHILE_false : forall b c,
      bequiv b BFalse ->
@@ -353,14 +400,20 @@ Proof.
     rewrite Hb.
     reflexivity.  Qed.
 
-(** **** Exercise: 2 stars (WHILE_false_informal) *)
-(** Write an informal proof of WHILE_false.
+(* **** Exercise: 2 stars (WHILE_false_informal) *)
+(** **** 練習問題: ★★ (WHILE_false_informal) *)
+(* Write an informal proof of WHILE_false.
+
+(* FILL IN HERE *)
+[]
+*)
+(** WHILE_falseの非形式的証明を記述しなさい。
 
 (* FILL IN HERE *)
 []
 *)
 
-(** To prove the second fact, we need an auxiliary lemma stating that
+(* To prove the second fact, we need an auxiliary lemma stating that
     while loops whose guards are equivalent to [BTrue] never
     terminate:
 
@@ -384,6 +437,29 @@ Proof.
       - Since these are the only rules that could have been used to
         prove [(WHILE b DO c END) / st || st'], the other cases of
         the induction are immediately contradictory. [] *)
+(** 2つ目の事実を証明するためには、
+    ガードが[BTrue]と同値であるwhileループが停止しないことを言う補題が1つ必要です:
+
+    「補題」:[b]が[BTrue]と同値のとき、
+    [(WHILE b DO c END) / st || st']となることはない。
+
+    「証明」:[(WHILE b DO c END) / st || st']と仮定する。
+    [(WHILE b DO c END) / st || st']の導出についての帰納法によって、
+    この仮定から矛盾が導かれることを示す。
+
+      - [(WHILE b DO c END) / st || st']が規則[E_WhileEnd]
+        から証明されると仮定する。すると仮定から[beval st b = false]となる。
+        しかしこれは、[b]が[BTrue]と同値という仮定と矛盾する。
+
+      - [(WHILE b DO c END) / st || st']が規則[E_WhileLoop]
+        を使って証明されると仮定する。
+        すると帰納法の仮定として
+        [(WHILE b DO c END) / st || st']が矛盾するということが得られる。
+        これはまさに証明しようとしていることである。
+
+      - 上記が[(WHILE b DO c END) / st || st']
+        の証明に使うことができる可能性がある規則のすべてであり、
+        帰納法の他の場合は、すぐに矛盾になる。[] *)
 
 Lemma WHILE_true_nonterm : forall b c st st',
      bequiv b BTrue ->
@@ -402,15 +478,22 @@ Proof.
   Case "E_WhileLoop". (* immediate from the IH *)
     apply IHceval2. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, optional (WHILE_true_nonterm_informal) *)
-(** Explain what the lemma [WHILE_true_nonterm] means in English.
+(* **** Exercise: 2 stars, optional (WHILE_true_nonterm_informal) *)
+(** **** 練習問題: ★★, optional (WHILE_true_nonterm_informal) *)
+(* Explain what the lemma [WHILE_true_nonterm] means in English.
+
+(* FILL IN HERE *)
+*)
+(** 補題[WHILE_true_nonterm]が意味するものを日本語で書きなさい。
 
 (* FILL IN HERE *)
 *)
 (** [] *)
 
-(** **** Exercise: 2 stars, recommended (WHILE_true) *)
-(** You'll want to use [WHILE_true_nonterm] here. *)
+(* **** Exercise: 2 stars, recommended (WHILE_true) *)
+(** **** 練習問題: ★★, recommended (WHILE_true) *)
+(* You'll want to use [WHILE_true_nonterm] here. *)
+(** ここで[WHILE_true_nonterm]を使いなさい。*)
 
 Theorem WHILE_true: forall b c,
      bequiv b BTrue  ->
@@ -445,17 +528,22 @@ Proof.
     SCase "loop doesn't run".
       inversion H5; subst. apply E_WhileEnd. assumption.  Qed.
 
-(** **** Exercise: 2 stars, optional (seq_assoc) *)
+(* **** Exercise: 2 stars, optional (seq_assoc) *)
+(** **** 練習問題: ★★, optional (seq_assoc) *)
 Theorem seq_assoc : forall c1 c2 c3,
   cequiv ((c1;c2);c3) (c1;(c2;c3)).
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Finally, let's look at simple equivalences involving assignments.
+(* Finally, let's look at simple equivalences involving assignments.
     This turns out to be a little tricky.
     To start with, we might expect to be able to show that certain
     kinds of "useless" assignments can be removed. Most trivially: *)
+(** 最後に、代入に関する簡単な同値を見てみましょう。
+    これは、ちょっとトリッキーです。
+    まず最初に、ある種の「意味のない」代入が除去できることを示せないか、やってみましょう。
+    一番自明なのは: *)
 
 Theorem identity_assignment_first_try : forall (X:id),
   cequiv
@@ -474,9 +562,15 @@ Proof.
           says that the original and updated states agree at all
           values, but this is not the same thing as saying that they
           are [eq] in Coq's sense! *)
+       (* しかしここで行き詰まります。ゴールは合理的に見えますが、しかし実は証明できません!
+          前の章で[update]に関して証明した補題のセットをふりかえってみましょう。
+          補題[update_same]がほとんどのことをやっていますが、全部ではありません。
+          [update_same]
+          は元の状態と更新された状態がすべての値について一致することを言っていますが、
+          それは、Coqの意味で[eq]だと言っているわけではありません! *)
 Admitted.
 
-(** What is going on here?  Recall that our states are just functions
+(* What is going on here?  Recall that our states are just functions
     from identifiers to values.  For Coq, functions are only equal
     when their definitions are syntactically the same, modulo
     simplification.  (This is the only way we can legally apply the
@@ -514,15 +608,56 @@ Admitted.
 ]]]
     Although this principle is not derivable in Coq's built-in logic,
     it is safe to add it as an additional _axiom_.  *)
+(** 何がどうなっているのでしょう？
+    我々の状態は単に識別子から値への関数であることを思い出してください。
+    Coqでは、関数同士が等しいとは、その定義が簡単化(simplification)
+    の範囲での変形を除いて構文的に同じということです。
+    (簡単化だけが Coq で[eq]コンストラクタに適用することが許されたものなのです!)
+    実際には、[update]操作の繰り返しで構築された関数については、
+    2つの関数が等しいと証明できるのは「同じ」[update]操作を同じ順番で適用した場合だけです。
+    上述の定理では、第一パラメータ[cequiv]のupdateの列は第二パラメータのものより1つ長いので、
+    等しさが成立しないのも当然です。
+
+    しかし、この問題はかなり一般的なものです。
+    何か別の「自明な」事実、例えば
+[[
+    cequiv (X ::= APlus (AId X ANum 1) ;
+            X ::= APlus (AId X ANum 1))
+           (X ::= APlus (AId X ANum 2))
+]]
+    あるいは
+[[
+    cequiv (X ::= ANum 1; Y ::= ANum 2)
+           (y ::= ANum 2; X ::= ANum 1)
+
+]]
+    を証明しようとするとき、同じように行き詰まることになります。
+    つまり、すべての入力に対して同一の振る舞いをする2つの関数が出てくるのですが、
+    その2つが[eq]であることが証明できないのです。
+
+    こういった状況でこれから使おうとしている推論原理は、
+    関数的外延性(_functional extensionality_)と呼ばれます:
+[[
+                        forall x, f x = g x
+                        -------------------
+                               f = g
+]]
+    この原理は Coq のビルトインの論理からは導出できませんが、
+    追加公理(_axiom_)として導入することは安全です。*)    
 
 Axiom functional_extensionality : forall {X Y: Type} {f g : X -> Y},
     (forall (x: X), f x = g x) ->  f = g.
 
-(** It can be shown that adding this axiom doesn't introduce any
+(* It can be shown that adding this axiom doesn't introduce any
     inconsistencies into Coq.  (In this way, it is similar to adding
     one of the classical logic axioms, such as [excluded_middle].)
 
     With the benefit of this axiom we can prove our theorem: *)
+(** Coq にこの公理を導入することが矛盾を生むものではないことを示すことができます。
+    (このように、この公理の導入は、
+     [excluded_middle]のような古典論理の公理を追加するのと同様なのです。)
+
+    この公理のおかげで、先の定理を証明することができます: *)
 
 Theorem identity_assignment : forall (X:id),
   cequiv
@@ -545,7 +680,8 @@ Proof.
        constructor. reflexivity.
 Qed.
 
-(** **** Exercise: 2 stars, recommended (assign_aequiv) *)
+(* **** Exercise: 2 stars, recommended (assign_aequiv) *)
+(** **** 練習問題: ★★, recommended (assign_aequiv) *)
 Theorem assign_aequiv : forall X e,
   aequiv (AId X) e ->
   cequiv SKIP (X ::= e).
@@ -554,17 +690,22 @@ Proof.
 (** [] *)
 
 (* ####################################################### *)
-(** * Properties of Behavioral Equivalence *)
+(* * Properties of Behavioral Equivalence *)
+(** * 振る舞い同値の性質 *)
 
-(** We now turn to developing some of the properties of the program
+(* We now turn to developing some of the properties of the program
     equivalences we have defined. *)
+(** ここからは、定義したプログラムの同値概念の性質を調べていきましょう。*)
 
 (* ####################################################### *)
-(** ** Behavioral Equivalence is an Equivalence *)
+(* ** Behavioral Equivalence is an Equivalence *)
+(** ** 振る舞い同値は同値関係である *)
 
-(** First, we verify that the equivalences on [aexps], [bexps], and
+(* First, we verify that the equivalences on [aexps], [bexps], and
     [com]s really are _equivalences_ -- i.e., that they are reflexive,
     symmetric, and transitive: *)
+(** 最初に、[aexps]、[bexps]、[com]の同値が、本当に「同値関係」であること、つまり、
+    反射性、対称性、推移性を持つことを検証します: *)
 
 Lemma refl_aequiv : forall (a : aexp), aequiv a a.
 Proof.
@@ -625,9 +766,10 @@ Proof.
   apply iff_trans with (c2 / st || st'). apply H12. apply H23.  Qed.
 
 (* ########################################################*)
-(** ** Behavioral Equivalence is a Congruence *)
+(* ** Behavioral Equivalence is a Congruence *)
+(** ** 振る舞い同値は合同関係である *)
 
-(** Less obviously, behavioral equivalence is also a _congruence_.
+(* Less obviously, behavioral equivalence is also a _congruence_.
     That is, the equivalence of two subprograms implies the
     equivalence of the whole programs in which they are embedded:
 [[[
@@ -653,6 +795,30 @@ Proof.
     _without_ doing an explicit proof about the non-varying parts --
     i.e., the "proof burden" of a small change to a large program is
     proportional to the size of the change, not the program. *)
+(** よりわかりにくいですが、振る舞い同値は、合同関係(_congruence_)でもあります。
+    つまり、2つのサブプログラムが同値ならば、それを含むプログラム全体も同値です:
+[[
+              aequiv a1 a1'
+      -----------------------------
+      cequiv (i ::= a1) (i ::= a1')
+
+              cequiv c1 c1'
+              cequiv c2 c2'
+         ------------------------
+         cequiv (c1;c2) (c1';c2')
+]]
+    ...などです。
+    (注意して欲しいのですが、ここで推論規則の記法を使っていますが、これは定義の一部ではありません。
+    単に正しい含意を読みやすい形で書き出しただけです。
+    この含意は以下で証明します。)
+
+    合同性がなぜ重要なのか、
+    次の節で具体的な例([fold_constants_com_sound]の証明)によって見ます。
+    ただ、メインのアイデアは、大きなプログラムの小さな部分を同値の小さな部分で置き換えると、
+    大きなプログラム全体が元のものと同値になることを、
+    変化していない部分についての明示的な証明「なしに」わかるということです。
+    つまり、大きなプログラムの小さな変更についての証明の負担が、
+    プログラムではなく変更に比例するということです。*)
 
 Theorem CAss_congruence : forall i a1 a1',
   aequiv a1 a1' ->
@@ -667,7 +833,7 @@ Proof.
     inversion Hceval. subst. apply E_Ass.
     rewrite Heqv. reflexivity.  Qed.
 
-(** The congruence property for loops is a little more interesting,
+(* The congruence property for loops is a little more interesting,
     since it requires induction.
 
     _Theorem_: Equivalence is a congruence for [WHILE] -- that is, if
@@ -704,6 +870,41 @@ Proof.
             required.
 
       - ([<-]) Similar. [] *)
+(** ループの合同性は帰納法が必要になるので、さらに少しおもしろいものになります。
+
+    「定理」:[WHILE]についての同値は合同関係である。
+    すなわち、もし[b1]が[b1']と同値であり、[c1]が[c1']と同値ならば、
+    [WHILE b1 DO c1 END]は[WHILE b1' DO c1' END]と同値である。
+
+    「証明」:[b1]が[b1']と同値、[c1]が[c1']と同値であるとする。
+    すべての[st]と[st']について、証明すべきことは、
+    [WHILE b1 DO c1 END / st || st']の必要十分条件は
+    [WHILE b1' DO c1' END / st || st']であることである。
+    必要条件と十分条件の両方向を別々に証明する。
+
+      - ([->]) [WHILE b1 DO c1 END / st || st']ならば
+        [WHILE b1' DO c1' END / st || st']であることを、
+        [WHILE b1 DO c1 END / st || st']の導出についての帰納法で示す。
+        自明でないのは、導出の最後の規則が[E_WhileEnd]または[E_WhileLoop]のときだけである。
+
+          - [E_WhileEnd]: この場合、
+            規則の形から[beval st b1 = false]かつ[st = st']となる。
+            しかし[b1]と[b1']が同値であることから
+            [beval st b1' = c1' END / st || st']になる。
+            さらに[E-WhileEnd]を適用すると
+            証明すべき[WHILE b1' DO c1' END / st || st']が得られる。
+
+          - [E_WhileLoop]: 規則の形から
+            [beval st b1 = true]および、ある状態[st'0]について
+            帰納法の仮定[WHILE b1' DO c1' END / st'0 || st']のもとで、
+            [c1 / st || st'0]かつ[WHILE b1 DO c1 END / st'0 || st']となる。
+
+            [c1]と[c1']が同値であることから、[c1' / st || st'0]となる。
+            さらに[b1]と[b1']が同値であることから、[beval st b1' = true]となる。
+            [E-WhileLoop]を適用すると、
+            証明すべき[WHILE b1' DO c1' END / st || st']が得られる。
+
+      - ([<-]) 同様である。[] *)
 
 Theorem CWhile_congruence : forall b1 b1' c1 c1',
   bequiv b1 b1' -> cequiv c1 c1' ->
@@ -737,7 +938,8 @@ Proof.
       SSCase "subsequent loop execution".
         apply IHHce2. reflexivity.  Qed.
 
-(** **** Exercise: 3 stars, optional (CSeq_congruence) *)
+(* **** Exercise: 3 stars, optional (CSeq_congruence) *)
+(** **** 練習問題: ★★★, optional (CSeq_congruence) *)
 Theorem CSeq_congruence : forall c1 c1' c2 c2',
   cequiv c1 c1' -> cequiv c2 c2' ->
   cequiv (c1;c2) (c1';c2').
@@ -745,7 +947,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (CIf_congruence) *)
+(* **** Exercise: 3 stars (CIf_congruence) *)
+(** **** 練習問題: ★★★ (CIf_congruence) *)
 Theorem CIf_congruence : forall b b' c1 c1' c2 c2',
   bequiv b b' -> cequiv c1 c1' -> cequiv c2 c2' ->
   cequiv (IFB b THEN c1 ELSE c2 FI) (IFB b' THEN c1' ELSE c2' FI).
@@ -753,8 +956,9 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** For example, here are two equivalent programs and a proof of their
+(* For example, here are two equivalent programs and a proof of their
     equivalence... *)
+(** 同値である2つのプログラムとその同値の証明の例です... *)
 
 Example congruence_example:
   cequiv
