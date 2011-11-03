@@ -1466,10 +1466,12 @@ Proof.
 (** [] *)
 
 (* ########################################################## *)
-(** *** Soundness of (0 + n) Elimination, Redux *)
+(* *** Soundness of (0 + n) Elimination, Redux *)
+(** *** (0 + n)の消去の健全性、再び *)
 
-(** **** Exercise: 4 stars, optional (optimize_0plus) *)
-(** Recall the definition [optimize_0plus] from Imp.v:
+(* **** Exercise: 4 stars, optional (optimize_0plus) *)
+(** **** 練習問題: ★★★★, optional (optimize_0plus) *)
+(* Recall the definition [optimize_0plus] from Imp.v:
 [[
     Fixpoint optimize_0plus (e:aexp) : aexp :=
       match e with
@@ -1507,14 +1509,51 @@ Proof.
 
    - Prove that the optimizer is sound.  (This part should be _very_
      easy.)  *)
+(** Imp_J.vの[optimize_0plus]の定義をふり返ります。
+[[
+    Fixpoint optimize_0plus (e:aexp) : aexp :=
+      match e with
+      | ANum n =>
+          ANum n
+      | APlus (ANum 0) e2 =>
+          optimize_0plus e2
+      | APlus e1 e2 =>
+          APlus (optimize_0plus e1) (optimize_0plus e2)
+      | AMinus e1 e2 =>
+          AMinus (optimize_0plus e1) (optimize_0plus e2)
+      | AMult e1 e2 =>
+          AMult (optimize_0plus e1) (optimize_0plus e2)
+      end.
+]]
+   この関数は、[aexp]の上で定義されていて、状態を扱わないことに注意します。
+
+   変数を扱えるようにした、この関数の新しいバージョンを記述しなさい。
+   また、[bexp]およびコマンドに対しても、同様のものを記述しなさい:
+[[
+     optimize_0plus_aexp
+     optimize_0plus_bexp
+     optimize_0plus_com
+]]
+   これらの関数の健全性を、[fold_constants_*]について行ったのと同様に証明しなさい。
+   [optimize_0plus_com]の証明においては、合同性補題を確実に使いなさい
+   (そうしなければ証明はとても長くなるでしょう!)。
+
+   次に、コマンドに対して次の処理を行う最適化関数を定義しなさい。行うべき処理は、
+   まず定数畳み込みを([fold_constants_com]を使って)行い、
+   次に[0 + n]項を([optimize_0plus_com]を使って)消去することです。
+
+   - この最適化関数の出力の意味のある例を示しなさい。
+
+   - この最適化関数が健全であることを示しなさい。(この部分は「とても」簡単なはずです。) *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ####################################################### *)
-(** * Proving That Programs Are _Not_ Equivalent *)
+(* * Proving That Programs Are _Not_ Equivalent *)
+(** * プログラムが同値でないことを証明する *)
 
-(** Suppose that [c1] is a command of the form [X ::= a1; Y ::= a2]
+(* Suppose that [c1] is a command of the form [X ::= a1; Y ::= a2]
     and [c2] is the command [X ::= a1; Y ::= a2'], where [a2'] is
     formed by substituting [a1] for all occurrences of [X] in [a2].
     For example, [c1] and [c2] might be:
@@ -1526,14 +1565,31 @@ Proof.
 ]]
     Clearly, this particular [c1] and [c2] are equivalent.  But is
     this true in general? *)
+(** [c1]が[X ::= a1; Y ::= a2]という形のコマンドで、
+    [c2]がコマンド[X ::= a1; Y ::= a2']であると仮定します。ただし[a2']は、
+    [a2]の中のすべてのXを[a1]で置換したものとします。
+    例えば、[c1]と[c2]は次のようなものです。
+[[
+       c1  =  (X ::= 42 + 53;
+               Y ::= Y + X)
+       c2  =  (X ::= 42 + 53;
+               Y ::= Y + (42 + 53))
+]]
+    明らかに、この例の場合は[c1]と[c2]は同値です。
+    しかし、一般にそうだと言えるでしょうか？ *)
 
-(** We will see in a moment that it is not, but it is worthwhile
+(* We will see in a moment that it is not, but it is worthwhile
     to pause, now, and see if you can find a counter-example on your
     own (or remember the one from the discussion in class). *)
+(** この後すぐ、そうではないことを示します。
+    しかし、ここでちょっと立ち止まって、
+    自分の力で反例を見つけることができるか試してみるのは意味があることです。
+    (あるいは、クラスでの議論を思い出してください。) *)
 
-(** Here, formally, is the function that substitutes an arithmetic
+(* Here, formally, is the function that substitutes an arithmetic
     expression for each occurrence of a given variable in another
     expression: *)
+(** 次が、式の中の指定された変数を別の算術式で置換する関数の形式的定義です。*)
 
 Fixpoint subst_aexp (i : id) (u : aexp) (a : aexp) : aexp :=
   match a with
@@ -1549,15 +1605,17 @@ Example subst_aexp_ex :
   (APlus (AId Y) (APlus (ANum 42) (ANum 53))).
 Proof. reflexivity.  Qed.
 
-(** And here is the property we are interested in, expressing the
+(* And here is the property we are interested in, expressing the
     claim that commands [c1] and [c2] as described above are
     always equivalent.  *)
+(** そして次が、興味対象の性質です。
+    上記コマンド[c1]と[c2]が常に同値であることを主張するものです。*)
 
 Definition subst_equiv_property := forall i1 i2 a1 a2,
   cequiv (i1 ::= a1; i2 ::= a2)
          (i1 ::= a1; i2 ::= subst_aexp i1 a1 a2).
 
-(** Sadly, the property does _not_ always hold.
+(* Sadly, the property does _not_ always hold.
 
     _Theorem_: It is not the case that, for all [i1], [i2], [a1],
     and [a2],
@@ -1599,6 +1657,48 @@ Definition subst_equiv_property := forall i1 i2 a1 a2,
 ]]
     where [st2 = { X |-> 1, Y |-> 2 }].  Note that [st1 <> st2]; this
     is a contradiction, since [ceval] is deterministic!  [] *)
+(** 残念ながら、この性質は、常には成立「しません」。
+
+    「定理」:すべての[i1], [i2], [a1], [a2]について、次が成立するわけではない:
+[[
+         cequiv (i1 ::= a1; i2 ::= a2)
+                (i1 ::= a1; i2 ::= subst_aexp i1 a1 a2).
+]]
+    「証明」:仮にすべての[i1], [i2], [a1], [a2]について
+[[
+      cequiv (i1 ::= a1; i2 ::= a2)
+             (i1 ::= a1; i2 ::= subst_aexp i1 a1 a2)
+]]
+    が成立するとする。
+    次のプログラムを考える:
+[[
+         X ::= APlus (AId X) (ANum 1); Y ::= AId X
+]]
+    次のことに注意する:
+[[
+         (X ::= APlus (AId X) (ANum 1); Y ::= AId X)
+         / empty_state || st1,
+]]
+    ここで [st1 = { X |-> 1, Y |-> 1 }]である。
+
+    仮定より、次が言える:
+[[
+        cequiv (X ::= APlus (AId X) (ANum 1); Y ::= AId X)
+               (X ::= APlus (AId X) (ANum 1); Y ::= APlus (AId X) (ANum 1))
+]]
+    すると、[cequiv]の定義より、次が言える:
+[[
+        (X ::= APlus (AId X) (ANum 1); Y ::= APlus (AId X) (ANum 1))
+        / empty_state || st1.
+]]
+    しかし次のことも言える:
+[[
+        (X ::= APlus (AId X) (ANum 1); Y ::= APlus (AId X) (ANum 1))
+        / empty_state || st2,
+]]
+    ただし[st2 = { X |-> 1, Y |-> 2 }]である。
+    [st1 <> st2]に注意すると、これは[ceval]が決定性を持つことに矛盾する!
+      [] *)
 
 Theorem subst_inequiv :
   ~ subst_equiv_property.
@@ -1638,11 +1738,15 @@ Proof.
     by (rewrite Hcontra; reflexivity).
   subst. inversion Hcontra'.  Qed.
 
-(** **** Exercise: 4 stars (better_subst_equiv) *)
-(** The equivalence we had in mind above was not complete nonsense --
+(* **** Exercise: 4 stars (better_subst_equiv) *)
+(** **** 練習問題: ★★★★ (better_subst_equiv) *)
+(* The equivalence we had in mind above was not complete nonsense --
     it was actually almost right.  To make it correct, we just need to
     exclude the case where the variable [X] occurs in the
     right-hand-side of the first assignment statement. *)
+(** 上で成立すると考えていた同値は、完全に意味がないものではありません。
+    それは実際、ほとんど正しいのです。それを直すためには、
+    最初の代入の右辺に変数[X]が現れる場合を排除すれば良いのです。*)
 
 Inductive var_not_used_in_aexp (X:id) : aexp -> Prop :=
   | VNUNum: forall n, var_not_used_in_aexp X (ANum n)
@@ -1666,13 +1770,16 @@ Lemma aeval_weakening : forall i st a ni,
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** Using [var_not_used_in_aexp], formalize and prove a correct verson
+(* Using [var_not_used_in_aexp], formalize and prove a correct verson
     of [subst_equiv_property]. *)
+(** [var_not_used_in_aexp]を使って、[subst_equiv_property]の正しいバージョンを形式化し、
+    証明しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (inequiv_exercise) *)
+(* **** Exercise: 3 stars, recommended (inequiv_exercise) *)
+(** **** 練習問題: ★★★, recommended (inequiv_exercise) *)
 Theorem inequiv_exercise:
   ~ cequiv (WHILE BTrue DO SKIP END) SKIP.
 Proof.
@@ -1680,9 +1787,10 @@ Proof.
 (** [] *)
 
 (* ####################################################### *)
-(** * Doing Without Extensionality (Optional) *)
+(* * Doing Without Extensionality (Optional) *)
+(** * 外延性を使わずに行う (Optional) *)
 
-(** Purists might object to using the [functional_extensionality]
+(* Purists might object to using the [functional_extensionality]
     axiom.  In general, it can be quite dangerous to add axioms,
     particularly several at once (as they may be mutually
     inconsistent). In fact, [functional_extensionality] and
@@ -1695,24 +1803,42 @@ Proof.
     definition of equality to do what we want on functions
     representing states, we could instead give an explicit notion of
     _equivalence_ on states.  For example: *)
+(** 純粋主義者は、[functional_extensionality]を使うことに不服かもしれません。
+    一般に、公理を追加することは非常に危険です。
+    特に、一度にいくつも追加するときは(追加するものが相互に矛盾することもあるため)
+    そうです。
+    実際は、[functional_extensionality]と[excluded_middle]
+    は両者とも何の問題もなく導入できます。
+    しかし、Coqユーザの中には、このような「ヘビーウェイト」の一般テクニックを避け、
+    Coqの標準論理の中で特定の問題のために技巧的解法を使うことを選びたい人もいるでしょう。
+
+    ここで扱っている問題に特定するなら、
+    状態を表現している関数についてやりたいことをやるために等しさの定義を拡張するより、
+    状態の同値(_equivalence_)の概念を明示的に与えることもできたかもしれません。
+    例えば: *)
 
 Definition stequiv (st1 st2 : state) : Prop :=
   forall (X:id), st1 X = st2 X.
 
 Notation "st1 '~' st2" := (stequiv st1 st2) (at level 30).
 
-(** It is easy to prove that [stequiv] is an _equivalence_ (i.e., it
+(* It is easy to prove that [stequiv] is an _equivalence_ (i.e., it
    is reflexive, symmetric, and transitive), so it partitions the set
    of all states into equivalence classes. *)
+(** [stequiv]が同値関係(_equivalence_、 つまり、反射的、対称的、推移的関係)
+    であることを証明することは容易です。この同値関係により、
+    すべての状態の集合は同値類に分割されます。*)
 
-(** **** Exercise: 1 star, optional (stequiv_refl) *)
+(* **** Exercise: 1 star, optional (stequiv_refl) *)
+(** **** 練習問題: ★, optional (stequiv_refl) *)
 Lemma stequiv_refl : forall (st : state),
   st ~ st.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (stequiv_sym) *)
+(* **** Exercise: 1 star, optional (stequiv_sym) *)
+(** **** 練習問題: ★, optional (stequiv_sym) *)
 Lemma stequiv_sym : forall (st1 st2 : state),
   st1 ~ st2 ->
   st2 ~ st1.
@@ -1720,7 +1846,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (stequiv_trans) *)
+(* **** Exercise: 1 star, optional (stequiv_trans) *)
+(** **** 練習問題: ★, optional (stequiv_trans) *)
 Lemma stequiv_trans : forall (st1 st2 st3 : state),
   st1 ~ st2 ->
   st2 ~ st3 ->
@@ -1729,8 +1856,10 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Another useful fact... *)
-(** **** Exercise: 1 star, optional (stequiv_update) *)
+(* Another useful fact... *)
+(** 別の有用な事実です... *)
+(* **** Exercise: 1 star, optional (stequiv_update) *)
+(** **** 練習問題: ★, optional (stequiv_update) *)
 Lemma stequiv_update : forall (st1 st2 : state),
   st1 ~ st2 ->
   forall (X:id) (n:nat),
@@ -1739,10 +1868,13 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** It is then straightforward to show that [aeval] and [beval] behave
+(* It is then straightforward to show that [aeval] and [beval] behave
     uniformly on all members of an equivalence class: *)
+(** [aeval]と[beval]が同値類のすべての要素に対して同じように振る舞うことは、
+    ここからストレートに証明できます: *)
 
-(** **** Exercise: 2 stars, optional (stequiv_aeval) *)
+(* **** Exercise: 2 stars, optional (stequiv_aeval) *)
+(** **** 練習問題: ★★, optional (stequiv_aeval) *)
 Lemma stequiv_aeval : forall (st1 st2 : state),
   st1 ~ st2 ->
   forall (a:aexp), aeval st1 a = aeval st2 a.
@@ -1750,7 +1882,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (stequiv_beval) *)
+(* **** Exercise: 2 stars, optional (stequiv_beval) *)
+(** **** 練習問題: ★★, optional (stequiv_beval) *)
 Lemma stequiv_beval : forall (st1 st2 : state),
   st1 ~ st2 ->
   forall (b:bexp), beval st1 b = beval st2 b.
@@ -1758,9 +1891,11 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** We can also characterize the behavior of [ceval] on equivalent
+(* We can also characterize the behavior of [ceval] on equivalent
     states (this result is a bit more complicated to write down
     because [ceval] is a relation). *)
+(** 同値である状態の面から[ceval]の振る舞いを特徴づけることもできます
+    ([ceval]は関係なので、この結果を書き下すのはもうちょっと複雑です)。 *)
 
 Lemma stequiv_ceval: forall (st1 st2 : state),
   st1 ~ st2 ->
@@ -1808,11 +1943,16 @@ Proof.
       assumption.
 Qed.
 
-(** Now we need to redefine [cequiv] to use [~] instead of [=].  It is
+(* Now we need to redefine [cequiv] to use [~] instead of [=].  It is
     not completely trivial to do this in a way that keeps the
     definition simple and symmetric, but here is one approach (thanks
     to Andrew McCreight). We first define a looser variant of [||]
     that "folds in" the notion of equivalence. *)
+(** ここで[cequiv]を[=]の代わりに[~]を使って再定義する必要があります。
+    定義の簡潔さと対称性を保ったまま再定義するのは、それほど自明なことではありません。
+    しかしその方法はあります(Andrew McCreightに感謝します)。
+    最初に[||]のより緩いバージョンを定義します。
+    これは同値概念の中に「畳み込まれ」ます。*)
 
 Reserved Notation "c1 '/' st '||'' st'" (at level 40, st at level 39).
 
@@ -1823,15 +1963,18 @@ Inductive ceval' : com -> state -> state -> Prop :=
     c / st ||' st''
   where   "c1 '/' st '||'' st'" := (ceval' c1 st st').
 
-(** Now the revised definition of [cequiv'] looks familiar: *)
+(* Now the revised definition of [cequiv'] looks familiar: *)
+(** すると[cequiv']の新しい定義は馴染みのあるものになります: *)
 
 Definition cequiv' (c1 c2 : com) : Prop :=
   forall (st st' : state),
     (c1 / st ||' st') <-> (c2 / st ||' st').
 
-(** A sanity check shows that the original notion of command
+(* A sanity check shows that the original notion of command
    equivalence is at least as strong as this new one.  (The converse
    is not true, naturally.) *)
+(** もとのコマンド同値の概念が、新しいものより弱くはないことをサニティチェックします。
+    (その逆は当然成立しません。) *)
 
 Lemma cequiv__cequiv' : forall (c1 c2: com),
   cequiv c1 c2 -> cequiv' c1 c2.
@@ -1843,9 +1986,11 @@ Proof.
     apply (H st st'0). assumption. assumption.
 Qed.
 
-(** **** Exercise: 2 stars, optional (identity_assignment') *)
-(** Finally, here is our example once more... (You can complete the
+(* **** Exercise: 2 stars, optional (identity_assignment') *)
+(** **** 練習問題: ★★, optional (identity_assignment') *)
+(* Finally, here is our example once more... (You can complete the
     proof.) *)
+(** 最後にもとの例を再度扱います... (証明を完成しなさい。) *)
 
 Example identity_assignment' :
   cequiv' SKIP (X ::= AId X).
@@ -1861,7 +2006,7 @@ Proof.
       (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** On the whole, this explicit equivalence approach is considerably
+(* On the whole, this explicit equivalence approach is considerably
     harder to work with than relying on functional
     extensionality. (Coq does have an advanced mechanism called
     "setoids" that makes working with equivalences somewhat easier, by
@@ -1872,13 +2017,24 @@ Proof.
     functions.  For example, if we chose to represent state mappings
     as binary search trees, we would need to use an explicit
     equivalence of this kind. *)
-
+(** 概して、この明示的な同値のアプローチは、関数外延性を使うものよりかなり難しくなります。
+    (Coqは"setoids"という先進的な仕組みを持っています。
+    setoid は同値関係の扱いをいくらか容易にします。
+    その方法は、同値関係をシステムに登録すると、
+    それを使った書き換えタクティックが、もとの等しさ(equality)
+    に対してとほとんど同じようにはたらくようになるというものです。)
+    しかしこの、状態の同値を明示的に記述する方法は知っておく価値があります。
+    なぜなら、この方法は、問題となる同値が関数についてのもの「ではない」状況でも使えるからです。
+    例えば、状態の写像を二分探索木を使って行ったとすると、
+    このような明示的な同値を使う必要があるでしょう。*)
 
 (* ####################################################### *)
-(** * Additional Exercises *)
+(* * Additional Exercises *)
+(** * さらなる練習問題 *)
 
-(** **** Exercise: 4 stars, optional (for_while_equiv) *)
-(** This exercise extends the optional add_for_loop exercise from
+(* **** Exercise: 4 stars, optional (for_while_equiv) *)
+(** **** 練習問題: ★★★★, optional (for_while_equiv) *)
+(* This exercise extends the optional add_for_loop exercise from
     Imp.v, where you were asked to extend the language of commands
     with C-style [for] loops.  Prove that the command:
 [[
@@ -1895,10 +2051,30 @@ Proof.
        END
 ]]
 *)
+(** この練習問題は、Imp_J.vのoptionalの練習問題 add_for_loop を拡張したものです。
+    もとの add_for_loop は、コマンド言語に C-言語のスタイルの [for]ループを
+    拡張しなさい、というものでした。
+    ここでは次のことを証明しなさい:    
+[[
+      for (c1 ; b ; c2) {
+          c3
+      }
+]]
+    は
+[[
+       c1 ;
+       WHILE b DO
+         c3 ;
+         c2
+       END
+]]
+    と同値である。
+*)
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (swap_noninterfering_assignments) *)
+(* **** Exercise: 3 stars, optional (swap_noninterfering_assignments) *)
+(** **** 練習問題: ★★★, optional (swap_noninterfering_assignments) *)
 Theorem swap_noninterfering_assignments: forall l1 l2 a1 a2,
   l1 <> l2 ->
   var_not_used_in_aexp l1 a2 ->
@@ -1908,6 +2084,7 @@ Theorem swap_noninterfering_assignments: forall l1 l2 a1 a2,
     (l2 ::= a2; l1 ::= a1).
 Proof.
 (* Hint: You'll need [functional_extensionality] *)
+(* ヒント: [functional_extensionality]を必要とするでしょう。 *)
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
