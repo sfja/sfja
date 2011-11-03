@@ -1,8 +1,9 @@
-(** * ImpParser: Lexing and Parsing in Coq *)
+(** * ImpParser_J: Coqでの字句解析と構文解析 *)
+(* * ImpParser: Lexing and Parsing in Coq *)
 
 (* $Date: 2011-02-21 10:21:18 -0500 (Mon, 21 Feb 2011) $ *)
 
-(** The development of the [Imp] language in Imp.v completely ignores
+(* The development of the [Imp] language in Imp.v completely ignores
     issues of concrete syntax -- how an ascii string that a programmer
     might write gets translated into the abstract syntax trees defined
     by the datatypes [aexp], [bexp], and [com].  In this file we
@@ -18,9 +19,24 @@
     programming idioms that may require a little work to make out --
     but most readers will probably want to just skip down to the
     Examples section at the very end to get the punchline. *)
+(** Imp_J.vでの[Imp]言語の開発は、具象構文の問題を完全に無視しています。
+    つまり、プログラマが書くアスキー文字列をデータ型[aexp]、[bexp]、[com]
+    で定義された抽象構文木にどうやって変換するか、という問題です。
+    このファイルでは、
+    Coqの関数プログラミング機能によって簡単な字句解析器と構文解析器(パーサ)を構築することで、
+    この残っている問題を終わらせます。
+
+    ここでやることは、細部まで理解する必要はありません。
+    説明はかなり少なく、練習問題もありません。
+    一番のポイントは単に、それをやることが可能なことを示すことです。
+    コードを眺めてみて欲しいところです。ほとんどの部分はそれほど複雑ではありません。
+    ただパーサはある「モナド的」プログラミング法をしているので、
+    理解するのにちょっと骨が折れるかもしれません。
+    しかし、ほとんどの読者は、一番最後の「例」のオチまで飛ばしたいでしょう。*)
 
 (* ####################################################### *)
-(** * Internals *)
+(* * Internals *)
+(** * 内部処理 *)
 
 Require Import SfLib_J.
 Require Import Imp_J.
@@ -31,7 +47,8 @@ Require Import Ascii.
 Open Scope list_scope.
 
 (* ####################################################### *)
-(** ** Lexical Analysis *)
+(* ** Lexical Analysis *)
+(** ** 字句解析 *)
 
 Definition isWhite (c : ascii) : bool :=
   let n := nat_of_ascii c in
@@ -107,12 +124,15 @@ Example tokenize_ex1 :
 Proof. reflexivity. Qed.
 
 (* ####################################################### *)
-(** ** Parsing *)
+(* ** Parsing *)
+(** ** 構文解析 *)
 
 (* ####################################################### *)
-(** *** Options with Errors *)
+(* *** Options with Errors *)
+(** *** Option と Error *)
 
 (* An option with error messages. *)
+(* エラーメッセージのためのoption。 *)
 Inductive optionE (X:Type) : Type :=
   | SomeE : X -> optionE X
   | NoneE : string -> optionE X.
@@ -122,6 +142,7 @@ Implicit Arguments NoneE [[X]].
 
 (* Some syntactic sugar to make writing nested match-expressions on
    optionE more convenient. *)
+(* ネストされたoptionEの上のマッチ式をより簡単に書くための構文糖衣。*)
 
 Notation "'DO' ( x , y ) <== e1 ;; e2"
    := (match e1 with
@@ -138,12 +159,17 @@ Notation "'DO' ( x , y ) <-- e1 ;; e2 'OR' e3"
    (right associativity, at level 60, e2 at next level).
 
 (* ####################################################### *)
-(** *** Symbol Table *)
+(* *** Symbol Table *)
+(** *** シンボルテーブル *)
 
 (* Build a mapping from [tokens] to [nats].  A real parser would do
    this incrementally as it encountered new symbols, but passing
    around the symbol table inside the parsing functions is a bit
    inconvenient, so instead we do it as a first pass. *)
+(* [tokens]から[nats]への写像を構築する。
+   実際のパーサは新しいシンボルに遭遇するたびにインクリメンタルにこれをやるのかもしれないが、
+   パーサ関数の中でシンボルテーブルを渡してまわるのはちょっと不便なので、
+   ここではその代わりに、第1パスでこれをやることにする。*)
 Fixpoint build_symtable (xs : list token) (n : nat) : (token -> nat) :=
   match xs with
   | [] => (fun s => n)
@@ -154,7 +180,8 @@ Fixpoint build_symtable (xs : list token) (n : nat) : (token -> nat) :=
   end.
 
 (* ####################################################### *)
-(** *** Generic Combinators for Building Parsers *)
+(* *** Generic Combinators for Building Parsers *)
+(** *** パーサ構築のための一般コンビネータ *)
 
 Open Scope string_scope.
 
@@ -169,10 +196,12 @@ match steps, p xs with
 end.
 
 (* A (step-indexed) parser which expects zero or more [p]s *)
+(* (stepをインデックスとする)パーサ。0個以上の[p]をとる。*)
 Fixpoint many {T} (p : parser T) (steps : nat) : parser (list T) :=
   many_helper p [] steps.
 
 (* A parser which expects a given token, followed by p *)
+(* pの前のトークンを引数とするパーサ *)
 Definition firstExpect {T} (t : token) (p : parser T) : parser T :=
   fun xs => match xs with
               | x::xs' => if string_dec x t
@@ -182,13 +211,16 @@ Definition firstExpect {T} (t : token) (p : parser T) : parser T :=
             end.
 
 (* A parser which expects a particular token *)
+(* 特定のトークンを引数とするパーサ *)
 Definition expect (t : token) : parser unit :=
   firstExpect t (fun xs => SomeE(tt, xs)).
 
 (* ####################################################### *)
-(** *** A Recursive-Descent Parser for Imp *)
+(* *** A Recursive-Descent Parser for Imp *)
+(** *** Impの再帰下降パーサ *)
 
 (* Identifiers *)
+(* 識別子 *)
 Definition parseIdentifier (symtable :string->nat) (xs : list token)
                          : optionE (id * list token) :=
 match xs with
@@ -201,6 +233,7 @@ match xs with
 end.
 
 (* Numbers *)
+(* 数値 *)
 Definition parseNumber (xs : list token) : optionE (nat * list token) :=
 match xs with
 | [] => NoneE "Expected number"
@@ -216,6 +249,7 @@ match xs with
 end.
 
 (* Parse arithmetic expressions *)
+(* 算術式の構文解析 *)
 Fixpoint parsePrimaryExp (steps:nat) symtable (xs : list token)
    : optionE (aexp * list token) :=
   match steps with
@@ -266,6 +300,7 @@ with parseSumExp (steps:nat) symtable (xs : list token)  :=
 Definition parseAExp := parseSumExp.
 
 (* Parsing boolean expressions. *)
+(* ブール式の構文解析 *)
 Fixpoint parseAtomicExp (steps:nat) (symtable : string->nat) (xs : list token)  :=
 match steps with
   | 0 => NoneE "Too many recursive calls"
@@ -310,6 +345,7 @@ Eval compute in
 *)
 
 (* Parsing commands *)
+(* コマンドの構文解析 *)
 Fixpoint parseSimpleCommand (steps:nat) (symtable:string->nat) (xs : list token) :=
   match steps with
   | 0 => NoneE "Too many recursive calls"
@@ -357,7 +393,8 @@ Definition parse (str : string) : optionE (com * list token) :=
   parseSequencedCommand 1000 (build_symtable tokens 0) tokens.
 
 (* ####################################################### *)
-(** * Examples *)
+(* * Examples *)
+(** * 例 *)
 
 (*
 Eval compute in parse "
@@ -376,6 +413,28 @@ Eval compute in parse "
                    (ANum 3))
         THEN Id 0 ::= AMult (AId (Id 0)) (ANum 1); Id 1 ::= ANum 0
         ELSE SKIP FI, [])
+*)
+(**
+Eval compute in parse 
+[[
+   "IF x == y + 1 + 2 - y * 6 + 3 THEN
+      x := x * 1;
+      y := 0
+    ELSE
+      SKIP
+    END  ".
+]]
+====>
+[[
+    SomeE
+       (IFB BEq (AId (Id 0))
+                (APlus
+                   (AMinus (APlus (APlus (AId (Id 1)) (ANum 1)) (ANum 2))
+                      (AMult (AId (Id 1)) (ANum 6)))
+                   (ANum 3))
+        THEN Id 0 ::= AMult (AId (Id 0)) (ANum 1); Id 1 ::= ANum 0
+        ELSE SKIP FI, [])
+]]
 *)
 
 (*
@@ -406,6 +465,39 @@ Eval compute in parse "
          END;
          Id 1 ::= AId (Id 0),
         [])
+*)
+(**
+Eval compute in parse 
+[[
+   "SKIP;
+    z:=x*y*(x*x);
+    WHILE x==x DO
+      IF z <= z*z && not x == 2 THEN
+        x := z;
+        y := z
+      ELSE
+        SKIP
+      END;
+      SKIP
+    END;
+    x:=z  ".
+]]
+====>
+[[
+     SomeE
+        (SKIP;
+         Id 0 ::= AMult (AMult (AId (Id 1)) (AId (Id 2)))
+                        (AMult (AId (Id 1)) (AId (Id 1)));
+         WHILE BEq (AId (Id 1)) (AId (Id 1)) DO
+           IFB BAnd (BLe (AId (Id 0)) (AMult (AId (Id 0)) (AId (Id 0))))
+                     (BNot (BEq (AId (Id 1)) (ANum 2)))
+              THEN Id 1 ::= AId (Id 0); Id 2 ::= AId (Id 0)
+              ELSE SKIP FI;
+           SKIP
+         END;
+         Id 1 ::= AId (Id 0),
+        [])
+]]
 *)
 
 (*
@@ -438,4 +530,39 @@ Eval compute in parse "
           END;
           Id 1 ::= AId (Id 0),
          []).
+*)
+(**
+Eval compute in parse 
+[[
+  "SKIP;
+   z:=x*y*(x*x);
+   WHILE x==x DO
+     IF z <= z*z && not x == 2 THEN
+       x := z;
+       y := z
+     ELSE
+       SKIP
+     END;
+     SKIP
+   END;
+   x:=z  ".
+]]
+=====>
+[[
+      SomeE
+         (SKIP;
+          Id 0 ::= AMult (AMult (AId (Id 1)) (AId (Id 2)))
+                (AMult (AId (Id 1)) (AId (Id 1)));
+          WHILE BEq (AId (Id 1)) (AId (Id 1)) DO
+            IFB BAnd (BLe (AId (Id 0)) (AMult (AId (Id 0)) (AId (Id 0))))
+                     (BNot (BEq (AId (Id 1)) (ANum 2)))
+              THEN Id 1 ::= AId (Id 0);
+                   Id 2 ::= AId (Id 0)
+              ELSE SKIP
+            FI;
+            SKIP
+          END;
+          Id 1 ::= AId (Id 0),
+         []).
+]]
 *)
