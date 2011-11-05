@@ -76,10 +76,10 @@ Require Import LibTactics_J.
     - [cases], for performing a case analysis without losing information,
     - [cases_if], for automating case analysis on the argument of [if]. *)
 (** この節では、以下のタクティックを説明します:
-    - [introv]、仮定に名前をつける時間を省くのに使います
-    - [inverts]、[inversion]タクティックの改良です
-    - [cases]、情報を失わずに場合分けします
-    - [cases_if]、[if]の引数について自動的に場合分けします *)
+    - [introv] :仮定に名前をつける時間を省くのに使います
+    - [inverts] :[inversion]タクティックの改良です
+    - [cases] :情報を失わずに場合分けします
+    - [cases_if] :[if]の引数について自動的に場合分けします *)
 
 
 (* ####################################################### *)
@@ -177,7 +177,7 @@ Module InvertsExamples.
     3つ目は、[inversion H]は、ほとんどの場合[H]を後で使うことはないにもかかわらず、
     コンテキストから[H]を消去しないことです。
     タクティック[inverts]はこの3つの問題すべてを扱います。
-    タクティック[inversion]の代わりに使われることを意図したものです。*)
+    タクティック[inversion]にとって代わることを意図したものです。*)
 
 (* The following example illustrates how the tactic [inverts H]
     behaves mostly like [inversion H] except that it performs the
@@ -280,7 +280,7 @@ Admitted.
 
 (* A more involved example follows. In particular, it shows that
     the name of an inverted hypothesis can be reused. *)
-(** より複雑な例です。特に、逆転された仮定の名前を再利用できることを示しています。*)
+(** より複雑な例です。特に、invertされた仮定の名前を再利用できることを示しています。*)
 
 Example typing_nonexample_1 :
   ~ exists T,
@@ -324,19 +324,20 @@ End InvertsExamples.
     on an hypothesis [H] without clearing [H] from the context,
     one can use the tactic [inverts keep H], where the keyword [keep]
     indicates that the hypothesis should be kept in the context. *)
-(** 注意: 稀に、仮定[H]を逆転するときに[H]をコンテキストから除去したくない場合があります。
+(** 注意: 稀に、仮定[H]をinvertするときに[H]をコンテキストから除去したくない場合があります。
     その場合には、タクティック[inverts keep H]を使うことができます。
     キーワード[keep]は仮定をコンテキストに残せということを示しています。*)
 
 
 (* ####################################################### *)
-(** ** The tactics [cases] and [cases_if] *)
+(* ** The tactics [cases] and [cases_if] *)
+(** ** タクティック[cases]と[cases_if] *)
 
 Module CasesExample.
   Require Import Stlc_J.
   Import STLC.
 
-(** The tactic [cases E] is a shorthand for [remember E as x; destruct x],
+(* The tactic [cases E] is a shorthand for [remember E as x; destruct x],
     with the difference that it generates the symmetric of the
     equality produced by [remember]. For example, [cases] would
     produce the equality [beq_id k1 k2 = true] rather than the
@@ -351,6 +352,18 @@ Module CasesExample.
     an equality in the form [true = beq_id k1 k2] rather than
     [beq_id k1 k2 = true]. The following examples illustrate the
     behavior of the tactic [cases' E as H]. *)
+(** タクティック[cases E]は、[remember E as x; destruct x] の略記法です。
+    しかしそれだけでなく、[remember]が生成する等式の右辺と左辺を逆にしたものを生成します。
+    例えば、[cases]は、等式 [true = beq_id k1 k2] ではなく等式 [beq_id k1 k2 = true]
+    を作ります。なぜなら、[true = beq_id k1 k2] は読むのにかなり不自然な形だからです。
+    タクティック [cases E as H] の形にすると、生成された等式に名前を付けることができます。
+
+    注記: [cases] は [case_eq] にかなり近いです。
+    [remember] および [case_eq] との互換性のために、ライブラリ"LibTactics"には
+    [cases'] というタクティックが用意されています。
+    [cases'] は [remember] および [case_eq] とまったく同じ等式を生成します。
+    つまり、[beq_id k1 k2 = true] ではなく [true = beq_id k1 k2] という形の等式です。
+    次の例は、タクティック[cases' E as H]の振る舞いを表しています。*)
 
 Theorem update_same : forall x1 k1 k2 (f : state),
   f k1 = x1 ->
@@ -371,13 +384,18 @@ Proof.
     reflexivity.
 Qed.
 
-(** The tactic [cases_if] calls [cases E] on the first expression [E]
+(* The tactic [cases_if] calls [cases E] on the first expression [E]
     that appears in the goal or in the context as argument of a [if].
     So, the tactic [cases_if] saves the need to copy-past an expression
     that already occurs in the goal.
     Here again, for compatibility reasons, the library provides a tactic
     called [cases_if'], and the syntax [cases_if' as H] allows specifying
     the name of the generated equalities. *)
+(** タクティック[cases_if]はゴールまたはコンテキストの[if]の引数として現れる式[E]に対して
+    [cases E]を呼びます。このため、タクティック[cases_if]を使うと、
+    ゴールに既に現れている式をコピーする必要がなくなります。
+    先と同様、互換性のため、ライブラリには [cases_if'] というタクティックが用意されています。
+    また [cases_if' as H] という形で、生成される等式に名前をつけることができます。*)
 
 Theorem update_same' : forall x1 k1 k2 (f : state),
   f k1 = x1 ->
@@ -397,19 +415,28 @@ End CasesExample.
 
 
 (* ####################################################### *)
-(** * Tactics for n-ary connectives *)
+(* * Tactics for n-ary connectives *)
+(** * n-引数論理演算子のためのタクティック *)
 
-(** Because Coq encodes conjunctions and disjunctions using binary
+(* Because Coq encodes conjunctions and disjunctions using binary
     constructors [/\] and [\/], working with a conjunction or a
     disjunction of [N] facts can turn out to be quite cumbursome.
     For this reason, "LibTactics" provides tactics offering direct
     support for n-ary conjunctions and disjunctions. It also provides
     direct support for n-ary existententials. *)
+(** Coqは and と or を2引数コンストラクタ[/\]および[\/]でコード化するため、
+    [N]個の事実についての and や or の扱いがとても面倒なものになります。
+    このため、"LibTactics"では n個の and と or を直接サポートするタクティックを提供します。
+    さらに、n個の存在限量に対する直接的サポートも提供します。*)
 
-(** This section presents the following tactics:
+(* This section presents the following tactics:
     - [splits] for decomposing n-ary conjunctions,
     - [branch] for decomposing n-ary disjunctions,
     - [exists] for proving n-ary existentials. *)
+(** この節では以下のタクティックを説明します:
+    - [splits] :n個の and を分解します
+    - [branch] :n個の or を分解します
+    - [exists] :n個の存在限量の証明をします。 *)
 
 Module NaryExamples.
   Require Import References_J SfLib_J.
@@ -417,12 +444,15 @@ Module NaryExamples.
 
 
 (* ####################################################### *)
-(** ** The tactic [splits] *)
+(* ** The tactic [splits] *)
+(** ** タクティック [splits] *)
 
-(** The tactic [splits] applies to a goal made of a conjunction
+(* The tactic [splits] applies to a goal made of a conjunction 
     of [n] propositions and it produces [n] subgoals. For example,
     it decomposes the goal [G1 /\ G2 /\ G3] into the three subgoals
     [G1], [G2] and [G3]. *)
+(** タクティック[splits]は、[n]個の命題の and に適用され、[n]個のサブゴールを作ります。
+    例えば、ゴール[G1 /\ G2 /\ G3]を3つのサブゴール[G1]、[G2]、[G3]に分解します。 *)
 
 Lemma demo_splits : forall n m,
   n > 0 /\ n < m /\ m < n+10 /\ m <> 3.
@@ -432,12 +462,17 @@ Admitted.
 
 
 (* ####################################################### *)
-(** ** The tactic [branch] *)
+(* ** The tactic [branch] *)
+(** ** タクティック [branch] *)
 
-(** The tactic [branch k] can be used to proved a n-ary disjunction.
+(* The tactic [branch k] can be used to proved a n-ary disjunction.
     For example, if the goal takes the form [G1 \/ G2 \/ G3],
     the tactic [branch 2] leaves only [G2] as subgoal. The following
     example illustrates the behavior of the [branch] tactic. *)
+(** タクティック [branch k] は n個の or の証明に使うことができます。
+    例えば、ゴールが [G1 \/ G2 \/ G3] という形のとき、
+    タクティック [branch 2] は [G2] だけをサブゴールとします。
+    次の例は[branch]タクティックの振る舞いを表しています。*)
 
 Lemma demo_branch : forall n m,
   n < m \/ n = m \/ m < n.
@@ -451,15 +486,22 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** The tactic [exists] *)
+(* ** The tactic [exists] *)
+(** ** タクティック [exists] *)
 
-(** The library "LibTactics" introduces a notation for n-ary
+(* The library "LibTactics" introduces a notation for n-ary
     existentials. For example, one can write [exists x y z, H]
     instead of [exists x, exists y, exists z, H]. Similarly,
     the library provides a n-ary tactic [exists a b c], which is a
     shorthand for [exists a; exists b; exists c]. The following
     example illustrates both the notation and the tactic for
     dealing with n-ary existentials. *)
+(** ライブラリ "LibTactics" は n個の存在限量についての記法を用意しています。
+    例えば、[exists x, exists y, exists z, H] と書く代わりに
+    [exists x y z, H] と書くことができます。
+    同様に、ライブラリはn引数のタクティック[exists a b c]を提供します。
+    これは、[exists a; exists b; exists c]の略記法です。
+    次の例はn個の存在限量についての記法とタクティックを表しています。*)
 
 Theorem progress : forall ST t T st,
   has_type empty ST t T ->
@@ -480,10 +522,14 @@ Proof with eauto.
         (* was: [exists (tm_app (tm_abs x T t) t2'). exists st'...] *)
 Admitted.
 
-(** Remark: a similar facility for n-ary existentials is provided
+(* Remark: a similar facility for n-ary existentials is provided
     by the module [Coq.Program.Syntax] from the standard library,
     except that this facility only works up to arity 4, whereas
     [LibTactics] supports arities up to 10. *)
+(** 注記: n個の存在限量についての同様の機能が標準ライブラリのモジュール
+    [Coq.Program.Syntax]で提供されています。ただ、
+    このモジュールのものは限量対象が4つまでしか対応していませんが、
+    [LibTactics]は10個までサポートしています。*)
 
 End NaryExamples.
 
