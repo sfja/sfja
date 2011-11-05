@@ -1,19 +1,26 @@
-(** * UseTactics: Tactic Library for Coq: a gentle introduction *)
+(** * UseTactics_J:Coq用タクティックライブラリ:紹介 *)
+(* * UseTactics: Tactic Library for Coq: a gentle introduction *)
 
 (* $Date: 2011-04-20 14:26:52 -0400 (Wed, 20 Apr 2011) $ *)
 (* Chapter maintained by Arthur Chargueraud *)
 
-(** Coq comes with a set of builtin tactics, such as [reflexivity],
+(* Coq comes with a set of builtin tactics, such as [reflexivity],
     [intros], [inversion] and so on. While it is possible to conduct
     proofs using only those tactics, you can significantly increase
     your productivity by working with a set of more powerful tactics.
     This chapter describes a number of such very useful tactics, which,
     for various reasons, are not yet available by default in Coq.
     These tactics are defined in the [LibTactics.v] file. *)
+(** Coqはビルトインのタクティックの集合を持っています。[reflexivity]、[intros]、
+    [inversion]などです。これらのタクティックだけで証明を構成することは可能ですが、
+    より強力なタクティックの集合を使うことで、生産性を飛躍的に上げることができます。
+    この章では、とても便利なのに、
+    いろいろな理由でデフォルトのCoqでは用意されていないたくさんのタクティックを説明します。
+    それらのタクティックは、[LibTactics_J.v]ファイルに定義されています。 *)
 
 Require Import LibTactics_J.
 
-(** Remark: SSReflect is another package providing powerful tactics.
+(* Remark: SSReflect is another package providing powerful tactics.
     The library "LibTactics" differs from "SSReflect" in two respects:
         - "SSReflect" was primarily developed for proving mathematical
           theorems, whereas "LibTactics" was primarily developed for proving
@@ -25,45 +32,75 @@ Require Import LibTactics_J.
           presentation of Coq tactics, simply providing a number of
           additional tactics.  For this reason, "LibTactics" is
           probably easier to get started with than "SSReflect". *)
+(** 注記: SSReflect は強力なタクティックを提供する別のパッケージです。
+    ライブラリ"LibTactics"は"SSReflect"と次の2点で異なります:
+        - "SSReflect"は主として数学の定理を証明するために開発されました。
+          一方、"LibTactics"は主としてプログラミング言語の定理の証明のために開発されました。
+          特に"LibTactics"は、"SSReflect"パッケージには対応するものがない、
+          いくつもの有用なタクティックを提供します。
+        - "SSReflect"はタクティックの提示方法を根底から考え直しています。
+          一方、"LibTactics"はCoqタクティックの伝統的提示方法をほとんど崩していません。
+          このことからおそらく"LibTactics"の方が"SSReflect"よりとっつきやすいと思われます。*)
 
-(** This chapter is a tutorial focusing on the most useful features
+(* This chapter is a tutorial focusing on the most useful features
     from the "LibTactics" library. It does not aim at presenting all
     the features of "LibTactics". The complete documentation of the
     tactics can be found in the source file [LibTactics.v]. Moreover,
     demos illustrating the working of all the tactics can be found in
     the file [LibTacticsDemos.v]. *)
+(** この章は"LibTactics"ライブラリの最も便利な機能に焦点を当てたチュートリアルです。
+    "LibTactics"のすべての機能を示すことを狙ってはいません。
+    タクティックの完全なドキュメンテーションはソースファイル[LibTactics_J.v]にあります。
+    さらに、タクティックのはたらきを見せるデモは、ファイル[LibTacticsDemos_J.v]にあります。
+    (訳注:原文ファイル群にも LibTacticsDemos.v は含まれていない。) *)
 
-(** The tactics are illustrated mostly through examples taken from the
+(* The tactics are illustrated mostly through examples taken from the
     core chapters of the "Software Foundations" course. To illustrate
     the various ways in which a given tactic can be used, we'll use a
     tactic that duplicates a given goal. More precisely, [dup] produces
     two copies of the current goal, and [dup n] produces [n] copies of it. *)
+(** タクティックの説明にはほとんど、
+    "Software Foundations"のコースの主要な章から抽出した例を使います。
+    タクティックのいろいろな使い方を説明するために、ゴールを複製するタクティックを使います。
+    より詳しく言うと、[dup]は現在のゴールの2つにコピーします。
+    また[dup n]はゴールのn個のコピーを作ります。*)
 
 
 (* ####################################################### *)
-(** * Tactics for introduction and case analysis *)
+(* * Tactics for introduction and case analysis *)
+(** * 導入と場合分けについてのタクティック *)
 
-(** This section presents the following tactics:
+(* This section presents the following tactics:
     - [introv], for saving time in the naming of hypotheses,
     - [inverts], for improving the [inversion] tactic,
     - [cases], for performing a case analysis without losing information,
     - [cases_if], for automating case analysis on the argument of [if]. *)
+(** この節では、以下のタクティックを説明します:
+    - [introv]、仮定に名前をつける時間を省くのに使います
+    - [inverts]、[inversion]タクティックの改良です
+    - [cases]、情報を失わずに場合分けします
+    - [cases_if]、[if]の引数について自動的に場合分けします *)
 
 
 (* ####################################################### *)
-(** ** The tactic [introv] *)
+(* ** The tactic [introv] *)
+(** ** タクティック[introv] *)
 
 Module IntrovExamples.
   Require Import Stlc_J.
   Import Imp_J STLC.
 
-(** The tactic [introv] allows to automatically introduce the
+(* The tactic [introv] allows to automatically introduce the
     variables of a theorem and explicitly name the hypotheses
     involved. In the example shown next, the variables [c],
     [st], [st1] and [st2] involved in the statement of determinacy
     need not be named explicitly, because their name where already
     given in the statement of the lemma. On the contrary, it is
     useful to provide names for the two hypotheses, [E1] and [E2]. *)
+(** タクティック[introv]は、定理の変数を自動的に導入し、生成される仮定に明示的に名前を付けます。
+    次の例では、決定性の主張に関する変数[c]、[st]、[st1]、[st2]
+    には明示的に命名する必要はありません。これらは補題の主張の中で既に名前が付けられているからです。
+    これに対して、2つの仮定[E1]と[E2]には名前をつけると便利です。 *)
 
 Theorem ceval_deterministic: forall c st st1 st2,
   c / st || st1 ->
@@ -73,8 +110,9 @@ Proof.
   introv E1 E2. (* was [intros c st st1 st2 E1 E2] *)
 Admitted.
 
-(** When there is no hypothesis to be named, one can call
+(* When there is no hypothesis to be named, one can call
     [introv] without any argument. *)
+(** 仮定に名前をつける必要がない場合には、引数なしで[introv]を呼ぶことができます。*)
 
 Theorem ceval_and_ceval_step_coincide: forall c st st',
       c / st || st'
@@ -84,8 +122,9 @@ Proof.
 Admitted.
 
 
-(** The tactic [introv] also applies to statements in which
+(* The tactic [introv] also applies to statements in which
     [forall] and [->] are interleaved. *)
+(** タクティック[introv]は[forall]と[->]が交互に現れる主張にも適用できます。 *)
 
 Theorem ceval_deterministic': forall c st st1,
   (c / st || st1) -> forall st2, (c / st || st2) -> st1 = st2.
@@ -93,8 +132,9 @@ Proof.
   introv E1 E2. (* was [intros c st st1 E1 st2 E2] *)
 Admitted.
 
-(** Like the arguments of [intros], the arguments of [introv]
+(* Like the arguments of [intros], the arguments of [introv]
     can be structured patterns. *)
+(** [intros]と同様、[introv]も、構造化パターンを引数にとることができます。*)
 
 Theorem ceval_step__ceval: forall c st st',
       (exists i, ceval_step st c i = Some st') ->
@@ -105,20 +145,23 @@ Proof.
      for [intros c st st' H. destruct H as [i E].] *)
 Admitted.
 
-(** Remark: the tactic [introv] works even when definitions
+(* Remark: the tactic [introv] works even when definitions
     need to be unfolded in order to reveal hypotheses. *)
+(** 注記: タクティック[introv]は、
+    定義をunfoldしないと仮定が出てこない場合にも使うことができます。 *)
 
 End IntrovExamples.
 
 
 (* ####################################################### *)
-(** ** The tactic [inverts] *)
+(* ** The tactic [inverts] *)
+(** ** タクティック[inverts] *)
 
 Module InvertsExamples.
   Require Import Stlc_J Equiv_J Imp_J.
   Import STLC.
 
-(** The [inversion] tactic of Coq is not very satisfying for
+(* The [inversion] tactic of Coq is not very satisfying for
     three reasons. First, it produces a bunch of equalities
     which one typically wants to substitute away, using [subst].
     Second, it introduces meaningless names for hypotheses.
@@ -127,10 +170,20 @@ Module InvertsExamples.
     needed after being inverted. The tactic [inverts] address all
     of these three issues. It is intented to be used in place of
     the tactic [inversion]. *)
+(** Coqの[inversion]タクティックは3つの点で十分なものだと言えません。
+    1つ目は、[inversion]は、[subst]で置換して消してしまいたいような、
+    たくさんの等式を生成することです。
+    2つ目は、仮定に意味のない名前を付けることです。
+    3つ目は、[inversion H]は、ほとんどの場合[H]を後で使うことはないにもかかわらず、
+    コンテキストから[H]を消去しないことです。
+    タクティック[inverts]はこの3つの問題すべてを扱います。
+    タクティック[inversion]の代わりに使われることを意図したものです。*)
 
-(** The following example illustrates how the tactic [inverts H]
+(* The following example illustrates how the tactic [inverts H]
     behaves mostly like [inversion H] except that it performs the
     appropriate substitutions. *)
+(** 次の例は、タクティック[inverts H]が、
+    置換を適切に行う以外は[inversion H]と同様にはたらくことを示しています。*)
 
 Theorem skip_left: forall c,
   cequiv (SKIP; c) c.
@@ -143,7 +196,8 @@ Proof.
   inverts H. inverts H2. assumption.
 Admitted.
 
-(** A slightly more interesting example appears next. *)
+(* A slightly more interesting example appears next. *)
+(** 次にもう少し興味深い例を見てみましょう。*)
 
 Theorem ceval_deterministic: forall c st st1 st2,
   c / st || st1  ->
@@ -158,11 +212,16 @@ Proof.
   (* now: *) inverts E2. admit.
 Admitted.
 
-(** The tactic [inverts H as.] is like [inverts H] except that the
+(* The tactic [inverts H as.] is like [inverts H] except that the
     variables and hypotheses being produced are placed in the goal
     rather than in the context. This strategy allows naming those
     new variables and hypotheses explicitly, using either [intros]
     or [introv]. *)
+(** タクティック[inverts H as.]は[inverts H]と同様ですが、次の点が違います。
+    [inverts H as.]では、生成される変数と仮定がコンテキストではなくゴールに置かれます。
+    この戦略により、
+    これらの変数と仮定に[intros]や[introv]を使って明示的に名前を付けることができるようになります。
+ *)
 
 Theorem ceval_deterministic': forall c st st1 st2,
      c / st || st1  ->
@@ -201,11 +260,15 @@ Proof.
   (* The other cases are similiar *)
 Admitted.
 
-(** In the particular case where a call to [inversion] produces
+(* In the particular case where a call to [inversion] produces
     a single subgoal, one can use the syntax [inverts H as H1 H2 H3]
     for calling [inverts] and naming the new hypotheses [H1], [H2]
     and [H3]. In other words, the tactic [inverts H as H1 H2 H3] is
     equivalent to [invert H; introv H1 H2 H3]. An example follows. *)
+(** [inversion]を使ったとするとゴールが1つだけできる場合に、[inverts]を
+    [inverts H as H1 H2 H3]の形で呼ぶことができます。このとき新しい仮定は
+    [H1]、[H2]、[H3]と名付けられます。言い換えると、タクティック[inverts H as H1 H2 H3]
+    は、[invert H; introv H1 H2 H3]と同じです。例を示します。*)
 
 Theorem skip_left': forall c,
   cequiv (SKIP; c) c.
@@ -215,8 +278,9 @@ Proof.
   inverts U. assumption.
 Admitted.
 
-(** A more involved example follows. In particular, it shows that
+(* A more involved example follows. In particular, it shows that
     the name of an inverted hypothesis can be reused. *)
+(** より複雑な例です。特に、逆転された仮定の名前を再利用できることを示しています。*)
 
 Example typing_nonexample_1 :
   ~ exists T,
@@ -256,10 +320,13 @@ Qed.
 
 End InvertsExamples.
 
-(** Note: in the rare cases where one need to perform an inversion
+(* Note: in the rare cases where one need to perform an inversion
     on an hypothesis [H] without clearing [H] from the context,
     one can use the tactic [inverts keep H], where the keyword [keep]
     indicates that the hypothesis should be kept in the context. *)
+(** 注意: 稀に、仮定[H]を逆転するときに[H]をコンテキストから除去したくない場合があります。
+    その場合には、タクティック[inverts keep H]を使うことができます。
+    キーワード[keep]は仮定をコンテキストに残せということを示しています。*)
 
 
 (* ####################################################### *)
