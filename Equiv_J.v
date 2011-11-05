@@ -1973,7 +1973,7 @@ Definition cequiv' (c1 c2 : com) : Prop :=
 (* A sanity check shows that the original notion of command
    equivalence is at least as strong as this new one.  (The converse
    is not true, naturally.) *)
-(** もとのコマンド同値の概念が、新しいものより弱くはないことをサニティチェックします。
+(** もとのコマンド同値の概念が、新しいものと同じ強さかそれより強いことをサニティチェックします。
     (その逆は当然成立しません。) *)
 
 Lemma cequiv__cequiv' : forall (c1 c2: com),
