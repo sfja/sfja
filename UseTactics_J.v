@@ -52,7 +52,8 @@ Require Import LibTactics_J.
     "LibTactics"のすべての機能を示すことを狙ってはいません。
     タクティックの完全なドキュメンテーションはソースファイル[LibTactics_J.v]にあります。
     さらに、タクティックのはたらきを見せるデモは、ファイル[LibTacticsDemos_J.v]にあります。
-    (訳注:原文ファイル群にも LibTacticsDemos.v は含まれていない。) *)
+    (訳注:原文ファイル群にも LibTacticsDemos.v は含まれていません。
+    このファイル名でネット検索してみてください。) *)
 
 (* The tactics are illustrated mostly through examples taken from the
     core chapters of the "Software Foundations" course. To illustrate
@@ -62,7 +63,7 @@ Require Import LibTactics_J.
 (** タクティックの説明にはほとんど、
     "Software Foundations"のコースの主要な章から抽出した例を使います。
     タクティックのいろいろな使い方を説明するために、ゴールを複製するタクティックを使います。
-    より詳しく言うと、[dup]は現在のゴールの2つにコピーします。
+    より詳しく言うと、[dup]は現在のゴールを2つにコピーします。
     また[dup n]はゴールのn個のコピーを作ります。*)
 
 
@@ -177,7 +178,7 @@ Module InvertsExamples.
     3つ目は、[inversion H]は、ほとんどの場合[H]を後で使うことはないにもかかわらず、
     コンテキストから[H]を消去しないことです。
     タクティック[inverts]はこの3つの問題すべてを扱います。
-    タクティック[inversion]にとって代わることを意図したものです。*)
+    このタクティックは、タクティック[inversion]にとって代わることを意図したものです。*)
 
 (* The following example illustrates how the tactic [inverts H]
     behaves mostly like [inversion H] except that it performs the
@@ -416,7 +417,7 @@ End CasesExample.
 
 (* ####################################################### *)
 (* * Tactics for n-ary connectives *)
-(** * n-引数論理演算子のためのタクティック *)
+(** * n-引数論理演算のためのタクティック *)
 
 (* Because Coq encodes conjunctions and disjunctions using binary
     constructors [/\] and [\/], working with a conjunction or a
@@ -535,29 +536,43 @@ End NaryExamples.
 
 
 (* ####################################################### *)
-(** * Tactics for working with equality *)
+(* * Tactics for working with equality *)
+(** * 等式を扱うタクティック *)
 
-(** One of the major weakness of Coq compared with other interactive
+(* One of the major weakness of Coq compared with other interactive
     proof assistants is its relatively poor support for reasoning
     with equalities. The tactics described next aims at simplifying
     pieces of proof scripts manipulating equalities. *)
+(** 他の対話的証明支援器と比べたCoqの大きな弱点の一つは、
+    等式に関する推論のサポートが比較的貧弱なことです。
+    次に説明するタクティックは、等式を扱う証明記述を簡単にすることを狙ったものです。*)
 
-(** This section presents the following tactics:
+(* This section presents the following tactics:
     - [asserts_rewrite] for introducing an equality to rewrite with,
     - [cuts_rewrite], which is similar except subgoals are swapped,
     - [substs] for improving the [subst] tactic,
     - [fequals] for improving the [f_equal] tactic,
     - [applys_eq] for proving [P x y] using an hypothesis [P x z],
       automatically generating the equality [y = z]. *)
+(** この節で説明するタクティックは次のものです:
+    - [asserts_rewrite] : 書き換えのための等式を導入します
+    - [cuts_rewrite] : サブゴールが交換される以外は同じです
+    - [substs] : [subst] タクティックを改良します
+    - [fequals] : [f_equal] タクティックを改良します
+    - [applys_eq] : 仮定 [P x z] を使って、等式 [y = z] を自動生成し、
+      [P x y] を証明します *)
 
 Module EqualityExamples.
 
 
 (* ####################################################### *)
-(** ** The tactics [asserts_rewrite] and [cuts_rewrite] *)
+(* ** The tactics [asserts_rewrite] and [cuts_rewrite] *)
+(** ** タクティック [asserts_rewrite] と [cuts_rewrite] *)
 
-(** The tactic [asserts_rewrite (E1 = E2)] replaces [E1] with [E2] in
+(* The tactic [asserts_rewrite (E1 = E2)] replaces [E1] with [E2] in
     the goal, and produces the goal [E1 = E2]. *)
+(** タクティック [asserts_rewrite (E1 = E2)] はゴール内の [E1] を [E2] で置換し、
+    ゴール [E1 = E2] を生成します。 *)
 
 Theorem mult_0_plus : forall n m : nat,
   (0 + n) * m = n * m.
@@ -575,12 +590,17 @@ Proof.
     reflexivity. (* subgoal [n*m = m*n] *)
 Qed.
 
-(*** Remark: the syntax [asserts_rewrite (E1 = E2) in H] allows
+(* Remark: the syntax [asserts_rewrite (E1 = E2) in H] allows
      rewriting in the hypothesis [H] rather than in the goal. *)
+(*** 注記: [asserts_rewrite (E1 = E2) in H] と書いた場合、
+     ゴールの代わりに仮定 [H] を書き換えます。 *)
 
-(** The tactic [cuts_rewrite (E1 = E2)] is like
+(* The tactic [cuts_rewrite (E1 = E2)] is like
     [asserts_rewrite (E1 = E2)], except that the equality [E1 = E2]
     appears as first subgoal. *)
+(** タクティック [cuts_rewrite (E1 = E2)] は
+    [asserts_rewrite (E1 = E2)] と同様ですが、
+    等式 [E1 = E2] が最初のサブゴールになります。*)
 
 Theorem mult_0_plus' : forall n m : nat,
   (0 + n) * m = n * m.
@@ -591,11 +611,17 @@ Proof.
     reflexivity. (* subgoal [0+n = n] *)
 Qed.
 
-(** More generally, the tactics [asserts_rewrite] and [cuts_rewrite]
+(* More generally, the tactics [asserts_rewrite] and [cuts_rewrite]
     can be provided a lemma as argument. For example, one can write
     [asserts_rewrite (forall a b, a*(S b) = a*b+a)].
     This formulation is useful when [a] and [b] are big terms,
     since there is no need to repeat their statements. *)
+(** より一般には、タクティック [asserts_rewrite] と [cuts_rewrite] 
+    は補題を引数としてとることができます。
+    例えば 
+    [asserts_rewrite (forall a b, a*(S b) = a*b+a)] と書くことができます。
+    この記法は[a]や[b]が大きな項であるとき便利です。
+    その大きな項を繰り返さずに済むからです。*)
 
 Theorem mult_0_plus'' : forall u v w x y z: nat,
   (u + v) * (S (w * x + y)) = z.
@@ -607,11 +633,14 @@ Admitted.
 
 
 (* ####################################################### *)
-(** ** The tactic [substs] *)
+(* ** The tactic [substs] *)
+(** ** タクティック [substs] *)
 
-(** The tactic [substs] is similar to [subst] except that it
+(* The tactic [substs] is similar to [subst] except that it
     does not fail when the goal contains "circular equalities",
     such as [x = f x]. *)
+(** タクティック [substs] は [subst] と同様ですが、[subst] と違い、
+    ゴールが [x = f x] のような「循環する等式」を含むときも失敗しません。*)
 
 Lemma demo_substs : forall x y (f:nat->nat),
   x = f x -> y = x -> y = f x.
@@ -622,12 +651,16 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** The tactic [fequals] *)
+(* ** The tactic [fequals] *)
+(** ** タクティック [fequals] *)
 
-(** The tactic [fequals] is similar to [f_equal] except that it
+(* The tactic [fequals] is similar to [f_equal] except that it
     directly discharges all the trivial subgoals produced. Moreover,
     the tactic [fequals] features an enhanced treatment of equalities
     between tuples. *)
+(** タクティック [fequals] は [f_equal] と同様ですが、
+    生成される自明なサブゴールを直接解決してしまう点が違います。
+    さらに、タクティック [fequals] はタプル間の等式の扱いが強化されています。*)
 
 Lemma demo_fequals : forall (a b c d e : nat) (f : nat->nat->nat->nat->nat),
   a = 1 -> b = e -> e = 2 ->
@@ -639,9 +672,10 @@ Admitted.
 
 
 (* ####################################################### *)
-(** ** The tactic [applys_eq] *)
+(* ** The tactic [applys_eq] *)
+(** ** タクティック [applys_eq] *)
 
-(** The tactic [applys_eq] is a variant of [eapply] that introduces
+(* The tactic [applys_eq] is a variant of [eapply] that introduces
     equalities for subterms that do not unify. For example, assume
     the goal is the proposition [P x y] and assume we have the
     assumption [H] asserting that [P x z] holds. We know that we can
@@ -655,6 +689,19 @@ Admitted.
     the right. The three following examples illustrate the behavior
     of a call to [applys_eq H 1], a call to [applys_eq H 2], and a
     call to [applys_eq H 1 2]. *)
+(** タクティック [applys_eq] は [eapply] の変種で、
+    単一化できない部分項間の等式を導入します。
+    例えば、ゴールが命題 [P x y] で、[P x z] が成立するという仮定[H]があるとします。
+    また[y]と[z]が等しいことが証明できることはわかっているとします。
+    すると、タクティック [assert_rewrite (y = z)] を呼び、ゴールを [P x z] 
+    に変えることができます。
+    しかしこれには、[y]と[z]の値のコピー&ペーストが必要になります。
+    タクティック[applys_eq]を使うと、この場合 [applys_eq H 1] とできます。
+    すると、ゴールは証明され、サブゴール [y = z] が残ります。
+    [applys_eq]の引数の値[1]は、
+    [P x y] の右から1番目の引数についての等式を導入したいことを表します。
+    以下の3つの例は、それぞれ [applys_eq H 1]、[applys_eq H 2]、[applys_eq H 1 2]
+    を呼んだときの振る舞いを示します。 *)
 
 Axiom big_expression_using : nat->nat. (* Used in the example *)
 
@@ -674,9 +721,12 @@ Proof.
     admit. (* Assume we can prove this equality somehow. *)
 Qed.
 
-(** If the mismatch was on the first argument of [P] instead of
+(* If the mismatch was on the first argument of [P] instead of
     the second, we would have written [applys_eq H 2]. Recall
     that the occurences are counted from the right. *)
+(** もしミスマッチが[P]の第2引数ではなく第1引数だった場合には、
+    [applys_eq H 2]と書きます。
+    出現は右からカウントされることを思い出してください。*)
 
 Lemma demo_applys_eq_2 : forall (P:nat->nat->Prop) x y z,
   P (big_expression_using z) x ->
@@ -685,10 +735,13 @@ Proof.
   introv H. applys_eq H 2.
 Admitted.
 
-(** When we have a mismatch on two arguments, we want to produce
+(* When we have a mismatch on two arguments, we want to produce
     two equalities. To achieve this, we may call [applys_eq H 1 2].
     More generally, the tactic [applys_eq] expects a lemma and a
     sequence of natural numbers as arguments. *)
+(** 2つの引数にミスマッチがある場合、2つの等式が欲しくなります。
+    そのためには、[applys_eq H 1 2] とできます。
+    より一般に、タクティック[applys_eq]は1つの補題と自然数の列を引数としてとります。*)
 
 Lemma demo_applys_eq_3 : forall (P:nat->nat->Prop) x1 x2 y1 y2,
   P (big_expression_using x2) (big_expression_using y2) ->
@@ -704,26 +757,37 @@ End EqualityExamples.
 
 
 (* ####################################################### *)
-(** * Some convenient shorthands *)
+(* * Some convenient shorthands *)
+(** * 便利な略記法をいくつか *)
 
-(** This section of the tutorial introduces a few tactics
+(* This section of the tutorial introduces a few tactics
     that help make proof scripts shorter and more readable:
     - [unfolds] (without argument) for unfolding the head definition,
     - [false] for replacing the goal with [False],
     - [gen] as a shorthand for [dependent generalize],
     - [skip] for skipping a subgoal (works with existential variables),
     - [sort] for moving propositions at the bottom of the proof context. *)
+(** チュートリアルのこの節では、証明記述をより短かく、
+    より読みやすくするのに役立つタクティックをいくつか紹介します:
+    - [unfolds] (引数なし): 先頭の定義を unfold します
+    - [false] : ゴールを [False] で置換します
+    - [gen] : [dependent generalize] の略記法です
+    - [skip] : サブゴールをスキップします(存在変数と組み合わせて使います)
+    - [sort] : 証明コンテキストの下の命題を動かします *)
 
 
 (* ####################################################### *)
-(** ** The tactic [unfolds] *)
+(* ** The tactic [unfolds] *)
+(** ** タクティック [unfolds] *)
 
 Module UnfoldsExample.
   Require Import Hoare_J.
 
-(** The tactic [unfolds] (without any argument) unfolds the
+(* The tactic [unfolds] (without any argument) unfolds the
     head constant of the goal. This tactic saves the need to
     name the constant explicitly. *)
+(** タクティック [unfolds] (引数なし) はゴールの先頭の定数を unfold します。
+    このタクティックは定数を明示的に指名する手間を省きます。*)
 
 Lemma bexp_eval_true : forall b st,
   beval st b = true -> (bassn b) st.
@@ -737,23 +801,31 @@ Proof.
   unfolds. assumption.
 Qed.
 
-(** Remark: contrary to the tactic [hnf], which unfolds all the
+(* Remark: contrary to the tactic [hnf], which unfolds all the
     head constants, [unfolds] performs only a single unfolding. *)
+(** 注記: タクティック[hnf]はすべての先頭の定数をunfoldしますが、
+    これと対照的に[unfolds]は1つだけunfoldします。*)
 
-(** Remark: the tactic [unfolds in H] can be used to unfold the
+(* Remark: the tactic [unfolds in H] can be used to unfold the
     head definition of the hypothesis [H]. *)
+(** 注記: タクティック [unfolds in H] は仮定[H]の先頭の定義をunfoldします。*)
 
 End UnfoldsExample.
 
 
 (* ####################################################### *)
-(** ** The tactics [false] and [tryfalse] *)
+(* ** The tactics [false] and [tryfalse] *)
+(** ** タクティック[false]と[tryfalse] *)
 
-(** The tactic [false] can be used to replace any goal with [False].
+(* The tactic [false] can be used to replace any goal with [False].
     In short, it is a shorthand for [apply ex_falso_quodlibet].
     Moreover, [false] proves the goal if it contains an absurd
     assumption, such as [False] or [0 = S n], or if it contains
     contradictory assumptions, such as [x = true] and [x = false]. *)
+(** タクティック[false]は任意のゴールを[False]に置換します。
+    簡単に言うと、[apply ex_falso_quodlibet]の略記法です。
+    さらに[false]は、不条理な仮定([False]や[0 = S n]など)
+    や矛盾した仮定([x = true]と[x = false]など)を含むゴールを証明します。*)
 
 Lemma demo_false :
   forall n, S n = 1 -> n = 0.
@@ -761,9 +833,12 @@ Proof.
   intros. destruct n. reflexivity. false.
 Qed.
 
-(** The tactic [tryfalse] is a shorthand for [try solve [false]]:
+(* The tactic [tryfalse] is a shorthand for [try solve [false]]:
     it tries to find a contradiction in the goal. The tactic
     [tryfalse] is generally called after a case analysis. *)
+(** タクティック[tryfalse]は [try solve [false]] の略記法です。
+    このタクティックはゴールの矛盾を探します。
+    タクティック[tryfalse]は一般に場合分けの後で呼ばれます。*)
 
 Lemma demo_tryfalse :
   forall n, S n = 1 -> n = 0.
@@ -773,11 +848,14 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** The tactic [gen] *)
+(* ** The tactic [gen] *)
+(** ** タクティック [gen] *)
 
-(** The tactic [gen] is a shortand for [generalize dependent]
+(* The tactic [gen] is a shortand for [generalize dependent]
     that accepts several arguments at once. An invokation of
     this tactic takes the form [gen x y z]. *)
+(** タクティック[gen]は [generalize dependent] の略記法です。
+    たくさんの引数を一度に受けます。このタクティックは [gen x y z] という形で呼びます。*)
 
 Module GenExample.
   Require Import Stlc_J.
@@ -806,15 +884,22 @@ End GenExample.
 
 
 (* ####################################################### *)
-(** ** The tactics [skip], [skip_rewrite] and [skip_goal] *)
+(* ** The tactics [skip], [skip_rewrite] and [skip_goal] *)
+(** ** タクティック[skip]、[skip_rewrite]、[skip_goal] *)
 
-(** The ability to admit a given subgoal is very useful when
+(* The ability to admit a given subgoal is very useful when
     constructing proofs. It gives the ability to focus first
     on the most interesting cases of a proof. The tactic [skip]
     is like [admit] except that it also works when the proof
     includes existential variables. Recall that existential
     variables are those whose name starts with a question mark,
     e.g. [?24], and which are typically introduced by [eapply]. *)
+(** サブゴールをadmitできることは証明を構成するうえでとても便利です。
+    証明の一番興味深いケースに最初にフォーカスできるようになるからです。
+    タクティック[skip]は[admit]と似ていますが、
+    証明が存在変数を含む場合にも機能します。
+    存在変数とは、[?24]のように名前がクエスチョンマークから始まる変数で、
+    典型的には[eapply]によって導入されるものであったことを思い出してください。*)
 
 Module SkipExample.
   Require Import Stlc_J.
@@ -830,18 +915,24 @@ Proof.
      [Admitted] instead of [Qed] at the end of the proof. *)
 Admitted.
 
-(** The tactic [skip H: P] adds the hypothesis [H: P] to the context,
+(* The tactic [skip H: P] adds the hypothesis [H: P] to the context,
     without checking whether the proposition [P] is true.
     It is useful for exploiting a fact and postponing its proof.
     Note: [skip H: P] is simply a shorthand for [assert (H:P). skip.] *)
+(** タクティック [skip H: P] は仮定 [H: P] をコンテキストに追加します。
+    このときに命題[P]が真かどうかのチェックはしません。
+    このタクティックは、事実を、証明を後回しにして利用するのに便利です。
+    注意: [skip H: P] は単に [assert (H:P). skip.] の略記法です。*)
 
 Theorem demo_skipH : True.
 Proof.
   skip H: (forall n m : nat, (0 + n) * m = n * m).
 Admitted.
 
-(** The tactic [skip_rewrite (E1 = E2)] replaces [E1] with [E2] in
+(* The tactic [skip_rewrite (E1 = E2)] replaces [E1] with [E2] in
     the goal, without checking that [E1] is actually equal to [E2]. *)
+(** タクティック [skip_rewrite (E1 = E2)] はゴールの[E1]を[E2]で置換します。
+    このときに[E1]が実際に[E2]と等しいかはチェックしません。 *)
 
 Theorem mult_0_plus : forall n m : nat,
   (0 + n) * m = n * m.
@@ -859,10 +950,12 @@ Proof.
   reflexivity.
 Qed.
 
-(** Remark: the tactic [skip_rewrite] can in fact be given a lemma
+(* Remark: the tactic [skip_rewrite] can in fact be given a lemma
     statement as argument, in the same way as [asserts_rewrite]. *)
+(** 注記: タクティック[skip_rewrite]は実際は[asserts_rewrite]
+    と同じように補題を引数としてとることができます。*)
 
-(** The tactic [skip_goal] adds the current goal as hypothesis.
+(* The tactic [skip_goal] adds the current goal as hypothesis.
     This cheat is useful to set up the structure of a proof by
     induction without having to worry about the induction hypothesis
     being applied only to smaller arguments. Using [skip_goal], one
@@ -870,6 +963,12 @@ Qed.
     arguments go through without waisting time on fixing the details
     of the induction hypotheses, and then focus on fixing the
     invokations of the induction hypothesis. *)
+(** タクティック[skip_goal]は現在のゴールを仮定として追加します。
+    このごまかしは帰納法による証明の構造の構成の際に、
+    帰納法の仮定がより小さい引数だけに適用されるかを心配しないで済むため有用です。
+    [skip_goal]を使うことで、証明を次の2ステップで構成できます：
+    最初に、帰納法の仮定の細部の調整に時間を浪費せずに、主要な議論が通るかをチェックし、
+    その後、帰納法の仮定の呼び出しの調整にフォーカスするというステップです。*)
 
 Theorem ceval_deterministic: forall c st st1 st2,
   c / st || st1 ->
@@ -904,14 +1003,17 @@ End SkipExample.
 
 
 (* ####################################################### *)
-(** ** The tactic [sort] *)
+(* ** The tactic [sort] *)
+(** ** タクティック [sort] *)
 
 Module SortExamples.
   Require Import Imp_J.
 
-(** The tactic [sort] reorganizes the proof context by placing
+(* The tactic [sort] reorganizes the proof context by placing
     all the variables at the top and all the hypotheses at the
     bottom, thereby making the proof context more readable. *)
+(** タクティック[sort]は証明コンテキストを再構成し、変数が上に仮定が下になるようにします。
+    これにより、証明コンテキストはより読みやすくなります。*)
 
 Theorem ceval_deterministic: forall c st st1 st2,
   c / st || st1 ->
@@ -929,9 +1031,10 @@ End SortExamples.
 
 
 (* ####################################################### *)
-(** * Tactics for advanced lemma instantiation *)
+(* * Tactics for advanced lemma instantiation *)
+(** * 高度な補題具体化のためのタクティック *)
 
-(** This last section describes a mechanism for instantiating a lemma
+(* This last section describes a mechanism for instantiating a lemma
     by providing some of its arguments and leaving other implicit.
     Variables whose instantiation is not provided are turned into
     existentential variables, and facts whose instantiation is not
@@ -942,20 +1045,34 @@ End SortExamples.
     mechanism described in this section is that you will no longer need
     to spend time figuring out how many underscore symbols you need to
     write. *)
+(** この最後の節では、補題に引数のいくつかを与え、他の引数は明示化しないままで、
+    補題を具体化するメカニズムについて記述します。
+    具体値を与えられない変数は存在変数となり、具体化が与えられない事実はサブゴールになります。
 
-(** In this section, we'll use a useful feature of Coq for decomposing
+    注記: この具体化メカニズムは「暗黙の引数」メカニズムをはるかに超越する能力を提供します。
+    この節で記述する具体化メカニズムのポイントは、どれだけの '_' 
+    記号を書かなければならないかの計算に時間を使わなくてよくなることです。*)
+
+(* In this section, we'll use a useful feature of Coq for decomposing
     conjunctions and existentials. In short, a tactic like [intros] or
     [destruct] can be provided with a pattern [(H1 & H2 & H3 & H4 & H5)],
     which is a shorthand for [[H1 [H2 [H3 [H4 H5]]]]]]. For example,
     [destruct (typing_inversion_var _ _ _ Htypt) as [T [Hctx Hsub]].]
     can be rewritten in the form
     [destruct (typing_inversion_var _ _ _ Htypt) as (T & Hctx & Hsub).] *)
+(** この節では、Coq の便利な連言(and)と存在限量の分解機構を使います。
+    簡単に言うと、[intros]や[destruct]は [[H1 [H2 [H3 [H4 H5]]]]]] 
+    の略記法としてパターン [(H1 & H2 & H3 & H4 & H5)] をとることができます。
+    例えば [destruct (typing_inversion_var _ _ _ Htypt) as [T [Hctx Hsub]].]
+    は [destruct (typing_inversion_var _ _ _ Htypt) as (T & Hctx & Hsub).] 
+    と書くことができます。*)
 
 
 (* ####################################################### *)
-(** ** Working of [lets] *)
+(* ** Working of [lets] *)
+(** ** [lets]のはたらき *)
 
-(** When we have a lemma (or an assumption) that we want to exploit,
+(* When we have a lemma (or an assumption) that we want to exploit,
     we often need to explicitly provide arguments to this lemma,
     writing something like:
     [destruct (typing_inversion_var _ _ _ Htypt) as (T & Hctx & Hsub).]
@@ -973,6 +1090,21 @@ End SortExamples.
     correct order. The tactic relies on a first-match algorithm based on
     types in order to figure out how the to instantiate the lemma with
     the arguments provided. *)
+(** 利用したい補題(または仮定)がある場合、大抵、この補題に明示的に引数を与える必要があります。
+    例えば次のような形です:
+    [destruct (typing_inversion_var _ _ _ Htypt) as (T & Hctx & Hsub).]
+    何回も'_'記号を書かなければならないのは面倒です。
+    何回書くかを計算しなければならないだけでなく、このことで証明記述がかなり汚なくもなります。
+    タクティック[lets]を使うことで、次のように簡単に書くことができます:
+    [lets (T & Hctx & Hsub): typing_inversion_var Htypt.]
+
+    簡単に言うと、このタクティック[lets]は補題のたくさんの変数や仮定を特定します。
+    記法は [lets I: E0 E1 .. EN] という形です。
+    そうすると事実[E0]に引数[E1]から[EN]を与えて[I]という名前の仮定を作ります。
+    すべての引数を与えなければならないわけではありませんが、
+    与えなければならない引数は、正しい順番で与えなければなりません。
+    このタクティックは、与えられた引数を使って補題をどうしたら具体化できるかを計算するために、
+    型の上の first-match アルゴリズムを使います。*)
 
 Module ExamplesLets.
   Require Import Subtyping_J.
@@ -984,10 +1116,14 @@ Axiom typing_inversion_var : forall (G:context) (x:id) (T:ty),
   has_type G (tm_var x) T ->
   exists S, G x = Some S /\ subtype S T.
 
-(** First, assume we have an assumption [H] with the type of the form
+(* First, assume we have an assumption [H] with the type of the form
     [has_type G (tm_var x) T]. We can obtain the conclusion of the
     lemma [typing_inversion_var] by invoking the tactics
     [lets K: typing_inversion_var H], as shown next. *)
+(** 最初に、型が [has_type G (tm_var x) T] である仮定[H]を持つとします。
+    タクティック [lets K: typing_inversion_var H] 
+    を呼ぶことで補題[typing_inversion_var]を結論として得ることができます。
+    以下の通りです。*)
 
 Lemma demo_lets_1 : forall (G:context) (x:id) (T:ty),
   has_type G (tm_var x) T -> True.
@@ -1005,12 +1141,18 @@ Proof.
 
 Qed.
 
-(** Assume now that we know the values of [G], [x] and [T] and we
+(* Assume now that we know the values of [G], [x] and [T] and we
     want to obtain [S], and have [has_type G (tm_var x) T] be produced
     as a subgoal. To indicate that we want all the remaining arguments
     of [typing_inversion_var] to be produced as subgoals, we use a
     triple-underscore symbol [___]. (We'll later introduce a shorthand
     tactic called [forwards] to avoid writing triple underscores.) *)
+(** 今、[G]、[x]、[T]の値を知っていて、[S]を得たいとします。
+    また、サブゴールとして [has_type G (tm_var x) T] が生成されていたとします。
+    [typing_inversion_var]
+    の残った引数のすべてをサブゴールとして生成したいことを示すために、
+    '_'を三連した記号[___]を使います。
+    (後に、[___]を書くのを避けるために[forwards]という略記用タクティックを導入します。) *)
 
 Lemma demo_lets_2 : forall (G:context) (x:id) (T:ty), True.
 Proof.
@@ -1018,12 +1160,17 @@ Proof.
   lets (S & Eq & Sub): typing_inversion_var G x T ___.
 Admitted.
 
-(** Usually, there is only one context [G] and one type [T] that are
+(* Usually, there is only one context [G] and one type [T] that are
     going to be suitable for proving [has_type G (tm_var x) T], so
     we don't really need to bother giving [G] and [T] explicitly.
     It suffices to call [lets (S & Eq & Sub): typing_inversion_var x].
     The variables [G] and [T] are then instantiated using existential
     variables. *)
+(** 通常、[has_type G (tm_var x) T] を証明するのに適したコンテキスト
+    [G]と型[T]は1つだけしかないので、
+    実は[G]と[T]を明示的に与えることに煩わされる必要はありません。
+    [lets (S & Eq & Sub): typing_inversion_var x] とすれば十分です。
+    このとき、変数[G]と[T]は存在変数を使って具体化されます。*)
 
 Lemma demo_lets_3 : forall (x:id), True.
 Proof.
@@ -1031,29 +1178,37 @@ Proof.
   lets (S & Eq & Sub): typing_inversion_var x ___.
 Admitted.
 
-(** We could be even more extreme and not give any argument to
+(* We could be even more extreme and not give any argument to
     instantiate [typing_inversion_var]. In this case, three unification
     variables are introduced. *)
+(** より極端に、[typing_inversion_var]の具体化のために引数をまったく与えないこともできます。
+    この場合、3つの単一化変数が導入されます。*)
 
 Lemma demo_lets_4 : True.
 Proof.
   lets (S & Eq & Sub): typing_inversion_var ___.
 Admitted.
 
-(** Note: if we provide [lets] with only the name of the lemma as
+(* Note: if we provide [lets] with only the name of the lemma as
     argument, it simply adds this lemma in the proof context, without
     trying to instantiate any of its arguments. *)
+(** 注意: [lets]に補題の名前だけを引数として与えた場合、
+    その補題が証明コンテキストに追加されるだけで、
+    その引数を具体化しようとすることは行いません。*)
 
 Lemma demo_lets_5 : True.
 Proof.
   lets H: typing_inversion_var.
 Admitted.
 
-(** A last useful feature of [lets] is the double-underscore symbol,
+(* A last useful feature of [lets] is the double-underscore symbol,
     which allows skipping an argument when several arguments have
     the same type. In the following example, we want [m] to be
     instantiated as the value [3], but we want [n] to be instantiated
     using an existential variable. *)
+(** [lets]の最後の便利な機能は '_' を2つ続けた記号[__]です。
+    これを使うと、いくつかの引数が同じ型を持つとき引数を1つスキップできます。
+    以下の例は、[m]を値[3]に具体化したい一方、[n]は存在変数を使って具体化したい場面です。*)
 
 Lemma demo_lets_underscore :
   (forall n m, n <= m -> n < m+1) -> True.
@@ -1073,21 +1228,29 @@ Proof.
 Admitted.
 
 
-(** Note: one can write [lets: E0 E1 E2] in place of [lets H: E0 E1 E2]
+(* Note: one can write [lets: E0 E1 E2] in place of [lets H: E0 E1 E2]
     when the name [H] needs not be mentioned in the proof script.
 
     Note: the tactics [lets] accepts up to five arguments. Another
     syntax if available for providing more than five arguments.
     It consists in using a list introduced with the keyword [>>],
     for example [lets H: (>> E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 10)]. *)
+(** 注意: 証明記述の中で[H]の名前を言う必要がないとき、[lets H: E0 E1 E2] の代わりに
+    [lets: E0 E1 E2] と書くことができます。
+
+    注意: タクティック[lets]は5つまでの引数をとることができます。
+    5個を越える引数を与えることができる場合に、別の構文があります。
+    キーワード[>>]から始まるリストを使ったものです。
+    例えば [lets H: (>> E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 10)] と書きます。 *)    
 
 End ExamplesLets.
 
 
 (* ####################################################### *)
-(** ** Working of [applys], [forwards] and [specializes] *)
+(* ** Working of [applys], [forwards] and [specializes] *)
+(** ** [applys]、[forwards]、[specializes]のはたらき *)
 
-(** The tactics [applys], [forwards] and [specializes] are
+(* The tactics [applys], [forwards] and [specializes] are
     shorthand that may be used in place of [lets] to perform
     specific tasks.
 
@@ -1109,18 +1272,42 @@ End ExamplesLets.
     Examples of use of [applys] appear further on. Several examples
     of use of [specializes] and [forwards] can be found in the
     tutorial file [UseAuto.v]. *)
+(** タクティック[applys]、[forwards]、[specializes]は
+    [lets]を特定の用途に使う場面での略記法です。
+
+    - [forwards]は補題のすべての引数を具体化する略記法です。
+      より詳しくは、[forwards H: E0 E1 E2 E3] は [lets H: E0 E1 E2 E3 ___]
+      と同じです。ここで [___] の意味は前に説明した通りです。
+
+    - [applys]は、[lets]の高度な具体化モードにより補題を構築し、
+      それをすぐに使うことにあたります。
+      これから、[applys E0 E1 E2 E3] は、 [lets H: E0 E1 E2 E3] の後
+      [eapply H]、[clear H] と続けることと同じです。
+
+    - [specializes]は、コンテキストの仮定を特定の引数でその場で具体化することの略記法です。
+      より詳しくは、[specializes H E0 E1] は [lets H': H E0 E1] の後 
+      [clear H]、[rename H' into H] と続けることと同じです。
+
+    [applys]の使用例は以下で出てきます。
+    [specializes]と[forwards]の使用例は、
+    チュートリアルファイル[UseAuto_J.v]にいくつか含まれています。 *) 
 
 
 (* ####################################################### *)
-(** ** Example of instantiations *)
+(* ** Example of instantiations *)
+(** ** 具体化の例 *)
 
 Module ExamplesInstantiations.
   Require Import Subtyping_J.
 
-(** In the following proof, [lets] is used instead of [destruct]
+(* In the following proof, [lets] is used instead of [destruct]
     and [applys] is used instead of [apply] in several places.
     Those places indicated by a comment starting with "old:".
     The exercise consists in also using [lets] where indicated. *)
+(** 以下の証明では、いくつかの場所で[lets]が[destruct]の代わりに、
+    [applys]が[apply]の代わりに使われます。
+    その場所は "old:"で始まるコメントで示されています。
+    [lets]を使う練習問題も示されています。*)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      has_type (extend Gamma x U) t S ->
@@ -1135,6 +1322,9 @@ Proof with eauto.
 
     (* An example where [destruct] is replaced with [lets] *)
     (* old: destruct (typing_inversion_var _ _ _ Htypt) as [T [Hctx Hsub]].*)
+    (** <<
+    (* old: destruct (typing_inversion_var _ _ _ Htypt) as [T [Hctx Hsub]].*) 
+>> *)
     (* new: *) lets (T&Hctx&Hsub): typing_inversion_var Htypt.
     unfold extend in Hctx.
     remember (beq_id x y) as e. destruct e... (* [cases_if'] could be used here *)
@@ -1146,14 +1336,24 @@ Proof with eauto.
 
        (* A more involved example where [destruct] is replaced with [lets] *)
        (* old: destruct (free_in_context _ _ S empty Hcontra) as [T' HT']... *)
+    (** <<
+       (* old: destruct (free_in_context _ _ S empty Hcontra) as [T' HT']... *) 
+>> *)
        (* new: *)
         lets [T' HT']: free_in_context S empty Hcontra...
         inversion HT'.
   Case "tm_app".
 
     (* Exercise: replace the following [destruct] with a [lets] *)
+    (** <<
+    (* 練習問題: 次の[destruct]を[lets]に換えなさい *)
+>> *)
     (* old: destruct (typing_inversion_app _ _ _ _ Htypt) as [T1 [Htypt1 Htypt2]].
             eapply T_App... *)
+    (** <<
+    (* old: destruct (typing_inversion_app _ _ _ _ Htypt) as [T1 [Htypt1 Htypt2]].
+            eapply T_App... *)
+>> *)
     (* FILL IN HERE *) admit.
 
   Case "tm_abs".
@@ -1161,10 +1361,16 @@ Proof with eauto.
 
     (* Here is another example of using [lets] *)
     (* old: destruct (typing_inversion_abs _ _ _ _ _ Htypt). *)
+    (** <<
+    (* old: destruct (typing_inversion_abs _ _ _ _ _ Htypt). *)
+>> *)
     (* new: *) lets (T2&Hsub&Htypt2): typing_inversion_abs Htypt.
 
     (* An example of where [apply with] can be replaced with [applys] *)
     (* old: apply T_Sub with (ty_arrow T1 T2)... *)
+    (** <<
+    (* old: apply T_Sub with (ty_arrow T1 T2)... *)
+>> *)
     (* new: *) applys T_Sub (ty_arrow T1 T2)...
      apply T_Abs...
     remember (beq_id x y) as e. destruct e. (* [cases_if'] could be used here *)
@@ -1188,11 +1394,12 @@ Proof with eauto.
   Case "tm_unit".
     (* An example where [assert] can be replaced with [lets] *)
     (* old: assert (subtype ty_Unit S) by apply (typing_inversion_unit _ _ Htypt)... *)
+    (** <<
+    (* old: assert (subtype ty_Unit S) by apply (typing_inversion_unit _ _ Htypt)... *)
+>> *)
     (* new: *) lets: typing_inversion_unit Htypt...
 
 
 Qed.
 
 End ExamplesInstantiations.
-
-
