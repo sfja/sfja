@@ -40,7 +40,7 @@
     簡単に言うと、証明探索は、証明が終わるまで、
     単純に補題と仮定を可能なすべての方法で適用してみようとします。
     第二部は決定手続き("decision procedures")について記述します。
-    それらば、Coqの論理の特定の断片についての証明課題を解くことを得意とするタクティックです。
+    それらは、Coqの論理の特定の断片についての証明課題を解くことを得意とするタクティックです。
 
     この章の例には、自動化の特定の側面を示す小さな補題から、「ソフトウェアの基礎」(Software
     Foundations)の他の部分から抽出した大きな例までを含みます。
@@ -78,7 +78,7 @@ Require Import LibTactics_J.
     証明記述が証明の主要議論をもはや記録していないときには、
     定義の変更で証明が成立しなくなったときに、直すことは難しくなります。
     全体として、自動化の適度の利用は大きな勝利です。
-    証明の構築と、その語のメンテナンスの時間を、ともに大きく減らすことができます。*)
+    証明の構築と、その後のメンテナンスの時間を、ともに大きく減らすことができます。*)
 
 
 (* ####################################################### *)
@@ -120,7 +120,7 @@ Require Import LibTactics_J.
     タクティック[iauto]はビルトインのタクティック [try solve [intuition eauto]]
     の略記法です。
     タクティック[jauto]はライブラリ[LibTactics_J]に定義されています。
-    このタクティックは単に[eauto]を呼ぶ前にゴールにある事前処理を行います。
+    このタクティックは単に[eauto]を呼ぶ前にゴールにある前処理を行います。
     この章のゴールは証明探索の一般原理を説明し、
     与えられたゴールを解くために上述の4つのタクティックのうちどれが一番適当かを推測する経験則を示すことです。
 
@@ -252,9 +252,9 @@ Proof. auto. Qed.
     [iauto] and [jauto] are able to decompose conjunctions from the context.
     Here is an example. *)
 (** しかしながら、仮定が連言の場合、[auto]と[eauto]はこの連言を使うことができません。
-    最初は、[eauto]がとても複雑なゴールを証明できるのに、[F /\ F'] ならば [F] 
-    を証明できないことにとても驚きます。
-    タクティック[iauto]と[jauto]はコンテキストから連言を分解することができます。
+    [eauto]がとても複雑なゴールを証明できるのに、「[F /\ F'] ならば [F] 」
+    を証明できないことに、最初はとても驚きます。
+    タクティック[iauto]と[jauto]はコンテキストの連言を分解することができます。
     次はその例です。*)
 
 Lemma solving_conj_hyp : forall (F F' : Prop),
@@ -293,7 +293,7 @@ Proof. jauto. (* or [iauto] *) Qed.
     of Coq proof search mechanisms. *)
 (** [iauto]と[jauto]の戦略は、トップレベルの連言をグローバルに解析し、
     その後[eauto]を呼ぶというものです。 
-    このため、全称限量子を持つ仮定の結論の連言を扱うのが苦手です。
+    このため、全称限量子を持つ仮定の、結論部の連言を扱うのが苦手です。
     次の例は、Coqの証明探索メカニズムの一般的な弱点を示しています。*)
 
 Lemma solving_conj_hyp_forall : forall (P Q : nat->Prop),
@@ -333,7 +333,7 @@ Proof. auto. Qed.
     disjunctions that appear in the context. For example, [iauto] can
     prove that [F \/ F'] entails [F' \/ F]. *)
 (** しかし、コンテキストに現れる選言についての推論を自動化できるのは[iauto]だけです。
-    例えば、[iauto]は [F \/ F'] ならば [F' \/ F] を証明できます。 *)
+    例えば、[iauto]は 「[F \/ F'] ならば [F' \/ F]」を証明できます。 *)
 
 Lemma solving_disj_hyp : forall (F F' : Prop),
   F \/ F' -> F' \/ F.
@@ -362,7 +362,7 @@ Proof. iauto. Qed.
     [iauto]は非常に遅くなることがあるのです。
     コンテキストが数個の選言を含む仮定を持つとき、[iauto]は通常、その指数の数のサブゴールを作り、
     その1つ1つについて[eauto]を呼びます。
-    [iauto]と比べた[jauto]の長所は、このような場合分けをすることに時間を費さないことです。*)
+    [iauto]と比べた[jauto]の長所は、このような場合分けをする時間を費さないことです。*)
 
 
 (* ####################################################### *)
@@ -377,7 +377,7 @@ Proof. iauto. Qed.
     [?25] with any appropriate value. For example, if an assumption [f
     2] is available, then the variable [?25] gets instantiated with
     [2] and the goal is solved, as shown below. *)
-(** タクティック[eauto]、[iauto]、[jauto]は結論が存在限量であるゴールを証明することができます。
+(** タクティック[eauto]、[iauto]、[jauto]は結論部が存在限量であるゴールを証明することができます。
     例えばゴールが [exists x, f x] のとき、
     タクティック[eauto]は[x]の場所に存在変数を導入します。
     それを[?25]としましょう。残ったゴールは[f ?25]になります。
