@@ -1,9 +1,10 @@
-(** * UseAuto: Theory and Practice of Automation in Coq Proofs *)
+(** * UseAuto_J: Coqの証明自動化の理論と実際 *)
+(* * UseAuto: Theory and Practice of Automation in Coq Proofs *)
 
 (* $Date: 2011-04-20 14:26:52 -0400 (Wed, 20 Apr 2011) $ *)
 (* Chapter maintained by Arthur Chargueraud *)
 
-(** In a machine-checked proof, every single detail has to be
+(* In a machine-checked proof, every single detail has to be
     justified.  This can result in huge proof scripts. Fortunately,
     Coq comes with a proof-search mechanism and decision procedures
     that enable the system to automatically synthetizes simple pieces
@@ -27,14 +28,35 @@
     chapter [UseTactics.v].  (You will need to read that chapter to
     understand the later parts of this one, but the earlier parts can
     be read on their own.) *)
+(** マシンがチェックした証明においては、細部の一つ一つの正しさが確認されています。
+    これが巨大な証明記述にもなります。
+    幸い、Coqは証明探索メカニズムと決定手続きを持っていて、
+    それにより証明の小さな部分を自動合成することができます。
+    自動化は設定を適切に行えば非常に強力です。
+    この章の目的は自動化の扱い方の基本を説明することです。
+
+    この章は2つの部分から成ります。
+    第一部は証明探索("proof search")と呼ばれる一般的メカニズムに焦点を当てます。
+    簡単に言うと、証明探索は、証明が終わるまで、
+    単純に補題と仮定を可能なすべての方法で適用してみようとします。
+    第二部は決定手続き("decision procedures")について記述します。
+    それらば、Coqの論理の特定の断片についての証明課題を解くことを得意とするタクティックです。
+
+    この章の例には、自動化の特定の側面を示す小さな補題から、「ソフトウェアの基礎」(Software
+    Foundations)の他の部分から抽出した大きな例までを含みます。
+    大きな例においては、ライブラリ[LibTactics_J.v]のタクティックが使用されます。
+    それらのタクティックについては[UseTactics_J.v]章に記述されています。
+    (この章の後半を理解するには[UseTactics_J.v]章を読んでおくべきです。
+    しかし、前半は他の知識を必要としません。) *)
 
 Require Import LibTactics_J.
 
 
 (* ####################################################### *)
-(** * Basic Features of Proof Search *)
+(* * Basic Features of Proof Search *)
+(** * 証明探索の基本性質 *)
 
-(** The idea of proof search is to replace a sequence of tactics
+(* The idea of proof search is to replace a sequence of tactics
     applying lemmas and assumptions with a call to a single tactic,
     for example [auto]. This form of proof automation saves a lot of
     effort. It typically leads to much shorter proof scripts, and to
@@ -47,12 +69,23 @@ Require Import LibTactics_J.
     reasonable use of automation is generally a big win, as it saves a
     lot of time both in building proof scripts and in subsequently
     maintaining those proof scripts. *)
+(** 証明探索のアイデアは、補題や仮定を適用するタクティックの列を、
+    例えば[auto]のような1つのタクティックで置き換えることです。
+    この形の証明自動化で、たくさんの作業を省くことができます。
+    典型的には証明記述ははるかに短くなり、またその記述は典型的にはより変更に強いものになります。
+    もし定義に何か小さな変更をした場合、自動化を使った証明はおそらく何の変更も必要ありません。
+    もちろん、自動化の使い過ぎはよいことではありません。
+    証明記述が証明の主要議論をもはや記録していないときには、
+    定義の変更で証明が成立しなくなったときに、直すことは難しくなります。
+    全体として、自動化の適度の利用は大きな勝利です。
+    証明の構築と、その語のメンテナンスの時間を、ともに大きく減らすことができます。*)
 
 
 (* ####################################################### *)
-(** ** Strength of Proof Search *)
+(* ** Strength of Proof Search *)
+(** ** 証明探索の強さ *)
 
-(** We are going to study four proof-search tactics: [auto], [eauto],
+(* We are going to study four proof-search tactics: [auto], [eauto],
     [iauto] and [jauto]. The tactics [auto] and [eauto] are builtin
     in Coq. The tactic [iauto] is a shorthand for the builtin tactic
     [try solve [intuition eauto]]. The tactic [jauto] is defined in
@@ -82,25 +115,59 @@ Require Import LibTactics_J.
     proof search is really intended to automate the final steps from
     the various branches of a proof. It is not able to discover the
     overall structure of a proof. *)
+(** これから4つの証明探索のタクティックを勉強します:[auto]、[eauto]、[iauto]、[jauto]です。
+    タクティック[auto]と[eauto]はCoqのビルトインです。
+    タクティック[iauto]はビルトインのタクティック [try solve [intuition eauto]]
+    の略記法です。
+    タクティック[jauto]はライブラリ[LibTactics_J]に定義されています。
+    このタクティックは単に[eauto]を呼ぶ前にゴールにある事前処理を行います。
+    この章のゴールは証明探索の一般原理を説明し、
+    与えられたゴールを解くために上述の4つのタクティックのうちどれが一番適当かを推測する経験則を示すことです。
+
+    証明探索は効率と表現力の妥協案です。
+    つまり、どれだけ複雑なゴールを解くことができるか、と、
+    タクティックが停止するまでにどれだけの時間を必要とするかのトレードオフです。
+    タクティック[auto]は、基本タクティック[reflexivity]、[assumption]、
+    [apply]だけを使って証明を構築します。
+    タクティック[eauto]はこれに加えて[eapply]も使います。
+    タクティック[jauto]は[eauto]を拡張して、
+    コンテキストに現れる連言(and結合)と存在限量を展開することができるようにしています。
+    タクティック[iauto]は連言(and結合)、選言(or結合)、否定を非常に賢い方法で扱います。
+    しかしながら[iauto]はコンテキストから存在限量を展開することはできません。
+    さらに、[iauto]はゴールがいくつかの選言を含む場合にとても遅くなるのが普通です。
+
+    注意するべきは、証明探索は書き換えステップ(タクティック[rewrite]、[subst])、
+    任意のデータ構造や述語についての場合分け分析(タクティック[destruct]、[inversion])、
+    帰納法による証明(タクティック[induction])のいずれも実行しないことです。
+    そのため証明探索は、実際は証明のたくさんの枝の最後のステップを自動化することを意図したものです。
+    証明の全体構造を発見することはできません。*)
 
 
 (* ####################################################### *)
-(** ** Basics *)
+(* ** Basics *)
+(** ** 基本 *)
 
-(** The tactic [auto] is able to solve a goal that can be proved
+(* The tactic [auto] is able to solve a goal that can be proved
     using a sequence of [intros], [apply], [assumption], and [reflexivity].
     Two examples follow. The first one shows the ability for
     [auto] to call [reflexivity] at any time. In fact, calling
     [reflexivity] is always the first thing that [auto] tries to do. *)
+(** タクティック[auto]は、[intros]、[apply]、[assumption]、[reflexivity]
+    の列で証明できるゴールを証明することができます。
+    以下で2つの例を示します。1つ目の例は[auto]が[reflexivity]をいつでも呼べることを示します。
+    実際、[auto]は常に最初に[reflexivity]を適用しようとします。*)
 
 Lemma solving_by_reflexivity :
   2 + 3 = 5.
 Proof. auto. Qed.
 
-(** The second example illustrates a proof where a sequence of
+(* The second example illustrates a proof where a sequence of
     two calls to [apply] are needed. The goal is to prove that
     if [Q n] implies [P n] for any [n] and if [Q n] holds for any [n],
     then [P 2] holds. *)
+(** 2つ目の例は[apply]を2回続けて呼ぶ必要がある証明です。
+    ゴールは、任意の[n]について [Q n] ならば [P n] であり、
+    かつ任意の[n]について [Q n] が成立するならば、[P 2]が成立する、というものです。*)
 
 Lemma solving_by_apply : forall (P Q : nat->Prop),
   (forall n, Q n -> P n) ->
@@ -108,8 +175,10 @@ Lemma solving_by_apply : forall (P Q : nat->Prop),
   P 2.
 Proof. auto. Qed.
 
-(** We can ask [auto] to tell us what proof it came up with,
+(* We can ask [auto] to tell us what proof it came up with,
     by invoking [info auto] in place of [auto]. *)
+(** [auto]に、どのような証明を見つけたのか教えてもらうことができます。
+    そのためには、[auto]の代わりに [info auto] として呼びます。*)
 
 Lemma solving_by_apply' : forall (P Q : nat->Prop),
   (forall n, Q n -> P n) ->
@@ -120,7 +189,7 @@ Proof. info auto. Qed.
   (* [intro P; intro Q; intro H; intro H0; simple apply H; simple apply H0]. *)
   (* which can be reformulated as [intros P Q H H0; apply H; apply H0]. *)
 
-(** The tactic [auto] can invoke [apply] but not [eapply]. So, [auto]
+(* The tactic [auto] can invoke [apply] but not [eapply]. So, [auto]
     cannot exploit lemmas whose instantiation cannot be directly
     deduced from the proof goal. To exploit such lemmas, one needs to
     invoke the tactic [eauto], which is able to call [eapply].
@@ -131,55 +200,83 @@ Proof. info auto. Qed.
     the hypothesis by instantiating [m] as the value [1].  The
     following proof script shows that [eauto] successfully solves the
     goal, whereas [auto] is not able to do so. *)
+(** タクティック[auto]は[apply]を呼ぶことがありますが、[eapply]は呼びません。
+    そのため[auto]は、証明のゴールから直接具体化できない補題は使うことができません。
+    そのような補題を使うためにはタクティック[eauto]を呼ぶ必要があります。
+    [eauto]は[eapply]を呼ぶことができます。
+
+    以下の例では、最初の仮定は、ある[m]について [Q m] が真のとき、
+    [P n] が真であると主張しています。
+    そして、ゴールは [Q 1] ならば [P 2] を証明することです。
+    この含意は、仮定の中の[m]を値[1]で具体化することから得られます。
+    次の証明記述は[eauto]が証明に成功し、一方[auto]はそうではないことを示します。*)
 
 Lemma solving_by_eapply : forall (P Q : nat->Prop),
   (forall n m, Q m -> P n) ->
   Q 1 -> P 2.
 Proof. auto. eauto. Qed.
 
-(** Remark: Again, we can use [info eauto] to see what proof [eauto]
+(* Remark: Again, we can use [info eauto] to see what proof [eauto]
     comes up with. *)
+(** 注記: 同様に、[info eauto]を使うと[eauto]が何を見つけたかを知ることができます。*)
 
 
 (* ####################################################### *)
-(** ** Conjunctions *)
+(* ** Conjunctions *)
+(** ** 連言 *)
 
-(** So far, we've seen that [eauto] is stronger than [auto] in the
+(* So far, we've seen that [eauto] is stronger than [auto] in the
     sense that it can deal with [eapply]. In the same way, we are going
     to see how [jauto] and [iauto] are stronger than [auto] and [eauto]
     in the sense that they provide better support for conjunctions. *)
+(** ここまで、[eauto]が[eapply]を使えるという意味で[auto]より強いことを見てきました。
+    同様に、ここでは、[jauto]と[iauto]が連言に対してより優れたサポートをしているという点で、
+    [auto]や[eauto]より強いことを見ます。*)
 
-(** The tactics [auto] and [eauto] can prove a goal of the form
+(* The tactics [auto] and [eauto] can prove a goal of the form
     [F /\ F'], where [F] and [F'] are two propositions, as soon as
     both [F] and [F'] can be proved in the current context.
     An example follows. *)
+(** タクティック[auto]と[eauto]は [F /\ F'] という形のゴールを証明できます。
+    ここで[F]と[F']は2つの命題で、両者とも現在のコンテキストですぐに証明できるものです。
+    次はその例です。*)
 
 Lemma solving_conj_goal : forall (P : nat->Prop) (F : Prop),
   (forall n, P n) -> F -> F /\ P 2.
 Proof. auto. Qed.
 
-(** However, when an assumption is a conjunction, [auto] and [eauto]
+(* However, when an assumption is a conjunction, [auto] and [eauto]
     are not able to exploit this conjunction. It can be quite
     surprising at first that [eauto] can prove very complex goals but
     that it fails to prove that [F /\ F'] implies [F]. The tactics
     [iauto] and [jauto] are able to decompose conjunctions from the context.
     Here is an example. *)
+(** しかしながら、仮定が連言の場合、[auto]と[eauto]はこの連言を使うことができません。
+    最初は、[eauto]がとても複雑なゴールを証明できるのに、[F /\ F'] ならば [F] 
+    を証明できないことにとても驚きます。
+    タクティック[iauto]と[jauto]はコンテキストから連言を分解することができます。
+    次はその例です。*)
 
 Lemma solving_conj_hyp : forall (F F' : Prop),
   F /\ F' -> F.
 Proof. auto. eauto. jauto. (* or [iauto] *) Qed.
 
-(** The tactic [jauto] is implemented by first calling a
+(* The tactic [jauto] is implemented by first calling a
     pre-processing tactic called [jauto_set], and then calling
     [eauto]. So, to understand how [jauto] works, one can directly
     call the tactic [jauto_set]. *)
+(** タクティック[jauto]は、最初に[jauto_set]という前処理のタクティックを呼び、
+    その後[eauto]を呼ぶように作られています。
+    これから、[jauto]がどうはたらくかを理解するためには、タクティック[jauto_set]
+    を直接呼んでみるのが良いでしょう。*)
 
 Lemma solving_conj_hyp' : forall (F F' : Prop),
   F /\ F' -> F.
 Proof. intros. jauto_set. eauto. Qed.
 
-(** Next is a more involved goal that can be solved by [iauto] and
+(* Next is a more involved goal that can be solved by [iauto] and
     [jauto]. *)
+(** 次は[iauto]と[jauto]で解けるより複雑なゴールです。 *)
 
 Lemma solving_conj_more : forall (P Q R : nat->Prop) (F : Prop),
   (F /\ (forall n m, (Q m /\ R n) -> P n)) ->
@@ -188,12 +285,16 @@ Lemma solving_conj_more : forall (P Q R : nat->Prop) (F : Prop),
   P 2 /\ F.
 Proof. jauto. (* or [iauto] *) Qed.
 
-(** The strategy of [iauto] and [jauto] is to run a global analysis of
+(* The strategy of [iauto] and [jauto] is to run a global analysis of
     the top-level conjunctions, and then call [eauto].  For this
     reason, those tactics are not good at dealing with conjunctions
     that occur as the conclusion of some universally quantified
     hypothesis. The following example illustrates a general weakness
     of Coq proof search mechanisms. *)
+(** [iauto]と[jauto]の戦略は、トップレベルの連言をグローバルに解析し、
+    その後[eauto]を呼ぶというものです。 
+    このため、全称限量子を持つ仮定の結論の連言を扱うのが苦手です。
+    次の例は、Coqの証明探索メカニズムの一般的な弱点を示しています。*)
 
 Lemma solving_conj_hyp_forall : forall (P Q : nat->Prop),
   (forall n, P n /\ Q n) -> P 2.
@@ -203,10 +304,13 @@ Proof.
   intros. destruct (H 2). auto.
 Qed.
 
-(** This situation is slightly disappointing, since automation is
+(* This situation is slightly disappointing, since automation is
     able to prove the following goal, which is very similar. The
     only difference is that the universal quantification has been
     distributed over the conjunction. *)
+(** この状況にはちょっとがっかりします。
+    というのは、ほとんど同じである次のゴールは自動証明できるのです。
+    唯一の違いは、全称限量子が連言のそれぞれに別々に付けられていることです。*)
 
 Lemma solved_by_jauto : forall (P Q : nat->Prop) (F : Prop),
   (forall n, P n) /\ (forall n, Q n) -> P 2.
@@ -214,25 +318,31 @@ Proof. jauto. (* or [iauto] *) Qed.
 
 
 (* ####################################################### *)
-(** ** Disjunctions *)
+(* ** Disjunctions *)
+(** ** 選言 *)
 
-(** The tactics [auto] and [eauto] can handle disjunctions that
+(* The tactics [auto] and [eauto] can handle disjunctions that
     occur in the goal. *)
+(** タクティック[auto]と[eauto]はゴールに現れる選言を扱うことができます。*)
 
 Lemma solving_disj_goal : forall (F F' : Prop),
   F -> F \/ F'.
 Proof. auto. Qed.
 
-(** However, only [iauto] is able to automate reasoning on the
+(* However, only [iauto] is able to automate reasoning on the
     disjunctions that appear in the context. For example, [iauto] can
     prove that [F \/ F'] entails [F' \/ F]. *)
+(** しかし、コンテキストに現れる選言についての推論を自動化できるのは[iauto]だけです。
+    例えば、[iauto]は [F \/ F'] ならば [F' \/ F] を証明できます。 *)
 
 Lemma solving_disj_hyp : forall (F F' : Prop),
   F \/ F' -> F' \/ F.
 Proof. auto. eauto. jauto. iauto. Qed.
 
-(** More generally, [iauto] can deal with complex combinations of
+(* More generally, [iauto] can deal with complex combinations of
     conjunctions, disjunctions, and negations. Here is an example. *)
+(** より一般に、[iauto]は連言、選言、否定の複雑な組み合わせを扱うことができます。
+    次はその例です。*)
 
 Lemma solving_tauto : forall (F1 F2 F3 : Prop),
   ((~F1 /\ F3) \/ (F2 /\ ~F3)) ->
@@ -241,19 +351,25 @@ Lemma solving_tauto : forall (F1 F2 F3 : Prop),
   ~F2.
 Proof. iauto. Qed.
 
-(** However, the ability of [iauto] to automatically perform a case
+(* However, the ability of [iauto] to automatically perform a case
     analysis on disjunctions comes with a downside: [iauto] can get
     very slow. If the context involves several hypotheses with
     disjunctions, [iauto] typically generates an exponential number of
     subgoals on which [eauto] is called. One advantage of [jauto]
     compared with [iauto] is that it never spends time performing this
     kind of case analyses. *)
+(** しかしながら、[iauto]が選言の場合分けを自動実行する能力には、悪い面もあります。
+    [iauto]は非常に遅くなることがあるのです。
+    コンテキストが数個の選言を含む仮定を持つとき、[iauto]は通常、その指数の数のサブゴールを作り、
+    その1つ1つについて[eauto]を呼びます。
+    [iauto]と比べた[jauto]の長所は、このような場合分けをすることに時間を費さないことです。*)
 
 
 (* ####################################################### *)
-(** ** Existentials *)
+(* ** Existentials *)
+(** ** 存在限量 *)
 
-(** The tactics [eauto], [iauto], and [jauto] can prove goals whose
+(* The tactics [eauto], [iauto], and [jauto] can prove goals whose
     conclusion is an existential. For example, if the goal is [exists
     x, f x], the tactic [eauto] introduces an existential variable,
     say [?25], in place of [x]. The remaining goal is [f ?25], and
@@ -261,6 +377,13 @@ Proof. iauto. Qed.
     [?25] with any appropriate value. For example, if an assumption [f
     2] is available, then the variable [?25] gets instantiated with
     [2] and the goal is solved, as shown below. *)
+(** タクティック[eauto]、[iauto]、[jauto]は結論が存在限量であるゴールを証明することができます。
+    例えばゴールが [exists x, f x] のとき、
+    タクティック[eauto]は[x]の場所に存在変数を導入します。
+    それを[?25]としましょう。残ったゴールは[f ?25]になります。
+    そして[eauto]は、[?25]を何らかの適当な値で具体化することで、これを解こうとします。
+    例えば、仮定 [f 2] があるならば、変数 [?25] を[2]で置換してゴールが解決されます。
+    以下の通りです。*)
 
 Lemma solving_exists_goal : forall (f : nat->Prop),
   f 2 -> exists x, f x.
@@ -269,9 +392,11 @@ Proof.
   eauto. (* [eauto], [iauto] and [jauto] solve the goal *)
 Qed.
 
-(** A major strength of [jauto] over the other proof search tactics is
+(* A major strength of [jauto] over the other proof search tactics is
     that it is able to exploit the existentially quantified
     _hypotheses_, i.e., those of the form [exists x, P]. *)
+(** 証明探索の他のタクティックと比べた[jauto]の主な長所は、
+    存在限量された、つまり [exists x, P] という形の 「仮定」を使える点です。*)
 
 Lemma solving_exists_hyp : forall (f g : nat->Prop),
   (forall x, f x -> g x) ->
@@ -285,13 +410,18 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** Negation *)
+(* ** Negation *)
+(** ** 否定 *)
 
-(** The tactics [auto] and [eauto] suffer from some limitations with
+(* The tactics [auto] and [eauto] suffer from some limitations with
     respect to the manipulation of negations, mostly related to the
     fact that negation, written [~ P], is defined as [P -> False] but
     that the unfolding of this definition is not performed
     automatically. Consider the following example. *)
+(** タクティック[auto]と[eauto]は、否定の扱いに関して制限があります。
+    これは主に、否定([~ P] と記述される)が [P -> False] と定義されているのに、
+    この定義の展開が自動では行われないことに関係しています。
+    次の例を見てください。*)
 
 Lemma negation_study_1 : forall (P : nat->Prop),
   P 0 -> (forall x, ~ P x) -> False.
@@ -301,34 +431,45 @@ Proof.
   unfold not in *. eauto. (* unless the negation is unfolded *)
 Qed.
 
-(** For this reason, the tactics [iauto] and [jauto] systematically
+(* For this reason, the tactics [iauto] and [jauto] systematically
     invoke [unfold not in *] as part of their pre-processing. So,
     they are able to solve the previous goal right away. *)
+(** このため、タクティック[iauto]と[jauto]は前処理の中で [unfold not in *]
+    を組織的に呼びます。これにより、[iauto]、[jauto]は上記のゴールをすぐに解決できます。*)
 
 Lemma negation_study_2 : forall (P : nat->Prop),
   P 0 -> (forall x, ~ P x) -> False.
 Proof. jauto. (* or [iauto] *) Qed.
 
-(** (We will come back later to the behavior of proof search with
+(* (We will come back later to the behavior of proof search with
     respect to the unfolding of definitions.) *)
+(** (定義の展開に関する証明探索の振る舞いについては後でまた議論します。) *)
 
 
 (* ####################################################### *)
-(** ** Equalities *)
+(* ** Equalities *)
+(** ** 等式 *)
 
-(** Coq's proof-search feature is not good at exploiting equalities.
+(* Coq's proof-search feature is not good at exploiting equalities.
     It can do very basic operations, like exploiting reflexivity
     and symmetry, but that's about it. Here is a simple example
     that [auto] can solve, by first calling [symmetry] and then
     applying the hypothesis. *)
+(** Coq の証明探索機能は等式を扱うのが不得意です。
+    反射律、対称律といった基本的操作は行うことができますが、それぐらいです。
+    以下は[auto]が解くことができる簡単な例です。
+    最初に[symmetry]を呼び、その後仮定を適用します。*)
 
 Lemma equality_by_auto : forall (f g : nat->Prop),
   (forall x, f x = g x) -> g 2 = f 2.
 Proof. auto. Qed.
 
-(** To automate more advanced reasoning on equalities, one should
+(* To automate more advanced reasoning on equalities, one should
     rather try to use the tactic [congruence], which is presented at
     the end of this chapter in the "Decision Procedures" section. *)
+(** 等式についてのより高度な推論を自動化するためには、
+    むしろタクティック[congruence]を使うべきです。
+    これについてはこの章の終わりの「決定手続き」節で説明します。*)
 
 
 (* ####################################################### *)
