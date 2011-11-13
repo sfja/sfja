@@ -473,12 +473,14 @@ Proof. auto. Qed.
 
 
 (* ####################################################### *)
-(** * How Proof Search Works *)
+(* * How Proof Search Works *)
+(** * 証明探索はどのようにはたらくか *)
 
 (* ####################################################### *)
-(** ** Search Depth *)
+(* ** Search Depth *)
+(** ** 探索の深さ *)
 
-(** The tactic [auto] works as follows.  It first tries to call
+(* The tactic [auto] works as follows.  It first tries to call
     [reflexivity] and [assumption]. If one of these calls solves the
     goal, the job is done. Otherwise [auto] tries to apply the most
     recently introduced assumption that can be applied to the goal
@@ -495,6 +497,22 @@ Proof. auto. Qed.
     process involved in the execution of the [auto] tactic; otherwise
     its behavior can be quite puzzling. For example, [auto] is not
     able to solve the following triviality. *)
+(** タクティック[auto]は次のようにはたらきます。
+    最初に[reflexivity]と[assumption]を試してみます。
+    もしどちらかがゴールを解いたならば仕事は完了です。
+    そうでないとき[auto]は、エラーにならずにゴールに適用できる仮定のうち、
+    一番最後に導入されたものを適用することを試みます。
+    この適用によりサブゴールが生成されます。
+    このあと2つの場合があります。
+    もし生成されたサブゴールがすべて[auto]の再帰的呼び出しにより解かれた場合、
+    それで終了です。
+    そうではなく、生成されたサブゴール中に[auto]が解けないものが1つでもある場合、
+    やり直して、最後から2番目に導入された仮定を適用しようとします。
+    同様のやり方を、証明を発見するか、適用する仮定がなくなるかするまで続けます。
+
+    [auto]タクティックの実行の際のバックトラックプロセスを明確に理解しておくことはとても重要です。
+    そうしないと、[auto]の振る舞いにはかなり当惑します。
+    例えば、[auto]は次の自明なものを解くことができません。*)
 
 Lemma search_depth_0 :
   True /\ True /\ True /\ True /\ True /\ True.
@@ -502,7 +520,7 @@ Proof.
   auto.
 Admitted.
 
-(** The reason [auto] fails to solve the goal is because there are
+(* The reason [auto] fails to solve the goal is because there are
     too many conjunctions. If there had been only five of them, [auto]
     would have successfully solved the proof, but six is too many.
     The tactic [auto] limits the number of lemmas and hypotheses
@@ -530,10 +548,39 @@ Admitted.
     any lemma. Overall, this means that when the maximal number of
     steps allowed has been exceeded, the [auto] tactic stops searching
     and backtracks to try and investigate other paths. *)
+(** このゴールに[auto]が失敗する理由は、連言の数が多すぎることです。 
+    もしこれが5個だったら、[auto]は証明に成功したでしょう。しかし6個は多過ぎなのです。
+    タクティック[auto]は補題と仮定の数を制限することで、
+    証明探索がいつかは停止することを保証しています。
+    デフォルトではステップの最大数は5です。制限を別の値にするには、例えば [auto 6]
+    と書くと、証明探索は最大6ステップまでになります。
+    例えば [auto 6] は上記の補題を解くことができるでしょう。
+    (同様に、[eauto 6] や [intuition eauto 6] として呼ぶことができます。)
+    [auto n] の引数[n]は探索の深さ("search depth")と呼ばれます。
+    タクティック[auto]は単に[auto 5]の略記法として定義されています。
 
-(** The following lemma admits a unique proof that involves exactly
+    [auto n] の振る舞いは次のように要約されます。
+    最初にゴールを[reflexivity]と[assumption]を使って解こうとします。
+    もし失敗したときは、仮定(またはヒントデータベースに登録された補題)を適用しようとします。
+    これによりいくつものサブゴールが生成されます。
+    このそれぞれのサブゴールに対してタクティック [auto (n-1)] が呼ばれます。
+    もしすべてのサブゴールが解かれたならば処理は完了です。そうでなければ、
+    [auto n] は別の仮定を適用しようとします。
+
+    この過程は、[auto n] は [auto (n-1)] を呼び、次に [auto (n-1)] は
+    [auto (n-2)] を呼び... と続きます。
+    タクティック [auto 0] が適用を試みるのは[reflexivity]と[assumption]だけで、
+    補題を適用しようとすることはありません。
+    これは全体として、指定されたステップ数の上限値に逹したときには、
+    [auto]タクティックは探索を中止し、バックトラックして別のパスを調べることを意味します。*)
+
+(* The following lemma admits a unique proof that involves exactly
     three steps. So, [auto n] proves this goal iff [n] is greater than
     three. *)
+(** 次の補題には1つだけ証明があり、それは3ステップです。
+    このため、[auto n] は、[n]が3以上の時これを証明し、3未満のときは証明できません。
+    (訳注: 原文では "iff [n] is greater than three" と記述されていますが、
+    文脈から「以上」に修正しました。) *)
 
 Lemma search_depth_1 : forall (P : nat->Prop),
   P 0 ->
@@ -548,11 +595,17 @@ Proof.
           (* more generally, [auto n] solves the goal if [n >= 3] *)
 Qed.
 
-(** We can generalize the example by introducing an assumption
+(* We can generalize the example by introducing an assumption
     asserting that [P k] is derivable from [P (k-1)] for all [k],
     and keep the assumption [P 0]. The tactic [auto], which is the
     same as [auto 5], is able to derive [P k] for all values of [k]
     less than 5. For example, it can prove [P 4]. *)
+(** この例を次のように一般化することができます。
+    すべての[k]について、[P k] が [P (k-1)] から導出されると仮定します。
+    また、[P 0] が成立するとします。
+    タクティック[auto]、つまり [auto 5] と同じですが、これは
+    5未満のすべての[k]の値について[P k]を導出することができます。
+    例えば[auto]は[P 4]を証明できます。 *)
 
 Lemma search_depth_3 : forall (P : nat->Prop),
   (* Hypothesis H1: *) (P 0) ->
@@ -560,7 +613,8 @@ Lemma search_depth_3 : forall (P : nat->Prop),
   (* Goal:          *) (P 4).
 Proof. auto. Qed.
 
-(** However, to prove [P 5], one needs to call at least [auto 6]. *)
+(* However, to prove [P 5], one needs to call at least [auto 6]. *)
+(** しかし、[P 5] を証明するためには、少なくとも [auto 6] を呼ぶ必要があります。 *)
 
 Lemma search_depth_4 : forall (P : nat->Prop),
   (* Hypothesis H1: *) (P 0) ->
@@ -568,13 +622,20 @@ Lemma search_depth_4 : forall (P : nat->Prop),
   (* Goal:          *) (P 5).
 Proof. auto. auto 6. Qed.
 
-(** Because [auto] looks for proofs at a limited depth, there are
+(* Because [auto] looks for proofs at a limited depth, there are
     cases where [auto] can prove a goal [F] and can prove a goal
     [F'] but cannot prove [F /\ F']. In the following example,
     [auto] can prove [P 4] but it is not able to prove [P 4 /\ P 4],
     because the splitting of the conjunction consumes one proof step.
     To prove the conjunction, one needs to increase the search depth,
     using at least [auto 6]. *)
+(** [auto]が限られた深さで証明を探すことから、
+    [auto]がゴール[F]も[F']も証明できるのに[F /\ F']を証明できない、
+    という場合があります。
+    次の例では、[auto]は [P 4] を証明できますが、
+     [P 4 /\ P 4] を証明できません。
+    なぜなら連言を分解するには1ステップ必要だからです。
+    この連言を証明するためには、探索の深さを増やして少なくとも [auto 6] を使う必要があります。*)
 
 Lemma search_depth_5 : forall (P : nat->Prop),
   (* Hypothesis H1: *) (P 0) ->
