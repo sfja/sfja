@@ -1116,9 +1116,14 @@ Proof.
 (** [] *)
 
 (* ####################################################### *)
-(** ** Reasoning by Induction Over Evidence *)
+(* ** Reasoning by Induction Over Evidence *)
+(** ** 根拠に対する帰納法の推論 *)
 
-(** The highly "orthogonal" organization of Coq's design might
+(** Coqの設計は非常に直交しているので、 素朴な命題を根拠と共に定義するために [Inductive] キーワードを使った場合、その定義と関連した帰納法の原理が使えるはずです。
+    実際に関連した帰納法の原理は存在しており、この節ではそれをどう使うかについて見ていきます。
+    ウォーミングアップとして、単純な [destruct] が帰納的に定義された根拠に対してどのように働くかを見てみましょう。
+*)
+(* The highly "orthogonal" organization of Coq's design might
     suggest that, since we use the keyword [Induction] to define
     primitive propositions together with their evidence, there must be
     some sort of induction principles associated with these
@@ -1127,7 +1132,17 @@ Proof.
     the simpler [destruct] tactic works with inductively defined
     evidence. *)
 
-(** Besides _constructing_ evidence of evenness, we can also _reason
+(** 偶数であるという根拠を作るだけでなく、偶数であるという根拠に対して推論を行います。
+    帰納的な宣言によって [ev] を導入したことにより、 [ev_0] と [ev_SS] が偶数であるという根拠を作る唯一の方法ということが分かるだけでなく、この2つのコンストラクタによってのみ偶数であるという根拠が構築されるということが分かります。
+
+   言い換えると、 [ev n] という根拠 [E] があった場合、 [E] は2つの形式のどちらか片方であることが分かります : [E] が [ev_0] (かつ [n] が [0] )であるか、 [E] が [ev_SS n' E'](かつ [n] が [S (S n')]) かつ  [E'] が [n'] が偶数であるということの根拠であるかのどちらかです。
+
+   なので、これまで見てきたように帰納的に定義されたデータに対してだけでなく、帰納的に定義された根拠に対しても、 [destruct] タクティックを使うことは有用です。
+
+   例えば、[ev n] ならば [ev (n-2)] を示すために、 [n] が偶数であるという根拠に対して [destruct] タクティックを使ってみます。
+ *)
+
+(* Besides _constructing_ evidence of evenness, we can also _reason
     about_ evidence of evenness.  The fact that we introduced [ev]
     with an [Inductive] declaration tells us not only that the
     constructors [ev_0] and [ev_SS] are ways to build evidence of
@@ -1156,10 +1171,19 @@ Proof.
   Case "E = ev_SS n' E'". simpl. apply E'.  Qed.
 
 (** **** Exercise: 1 star (ev_minus2_n) *)
-(** What happens if we try to [destruct] on [n] instead of [E]? *)
-(** [] *)
+(** **** 練習問題: ★ (ev_minus2_n) *)
 
-(** We can also perform _induction_ on evidence that [n] is
+(** [E] の代わりに [n] に対して [destruct] するとどうなるでしょうか? *)
+(* What happens if we try to [destruct] on [n] instead of [E]? *)
+
+(** [] *)
+(* [] *)
+
+(** [n] が偶数であるという根拠に対して [induction] を実行することもできます。
+    [ev] を満たす [n] に対して、先に定義した [evenb] 関数が [true] を返すことを示すために使ってみましょう。
+ *)
+
+(* We can also perform _induction_ on evidence that [n] is
     even. Here we use it to show that the old [evenb] function
     returns [true] on [n] when [n] is even according to [ev]. *)
 
@@ -1172,14 +1196,23 @@ Proof.
   Case "E = ev_SS n' E'".
     unfold even. apply IHE'.  Qed.
 
-(** (Of course, we'd expect that [even n -> ev n] also holds.  We'll
+(** (もちろん、 [even n -> ev n] も成り立つはずです。 どのように証明するかは次の章で説明します。) *)
+(* (Of course, we'd expect that [even n -> ev n] also holds.  We'll
     see how to prove it in the next chapter.) *)
 
-(** **** Exercise: 1 star (ev_even_n) *)
-(** Could this proof be carried out by induction on [n] instead
+(** **** 練習問題: ★ (ev_even_n) *)
+(* **** Exercise: 1 star (ev_even_n) *)
+(** *)
+
+(** この証明を [E] でなく [n] に対する帰納法として実施できますか? *)
+(* Could this proof be carried out by induction on [n] instead
     of [E]? *)
 (** [] *)
+(* [] *)
 
+(** 帰納的に定義された命題に対する帰納法の原理は、帰納的に定義された集合のものとまったく同じ形をしているわけではありません。 
+    今の段階では、根拠 [ev n] に対する帰納法は [n] に対する帰納法に似ているが、 [ev n] が成立する数についてのみ着目することができると直感的に理解しておいて問題ありません。
+    [ev] の帰納法の原理をもっと深く見て行き、実際に何を起こっているかを説明します。*)
 (** The induction principle for inductively defined propositions does
     not follow quite the same form as that of inductively defined
     sets.  For now, you can take the intuitive view that induction on
@@ -1188,6 +1221,7 @@ Proof.
     generated.  We'll look at the induction principle of [ev] in more
     depth below, to explain what's really going on. *)
 
+(** **** 練習問題: ★ (l_fails) *))
 (** **** Exercise: 1 star (l_fails) *)
 (** The following proof attempt will not succeed.
 [[
