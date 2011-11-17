@@ -1223,8 +1223,26 @@ Proof.
 
 (** **** 練習問題: ★ (l_fails) *))
 (** **** Exercise: 1 star (l_fails) *)
-(** The following proof attempt will not succeed.
-[[
+
+(** **** 練習問題: ★ (l_fails) *)
+(* **** Exercise: 1 star (l_fails) *)
+(** 次の証明はうまくいきません。
+
+     Theorem l : forall n,
+       ev n.
+     Proof.
+       intros n. induction n.
+         Case "O". simpl. apply ev_0.
+         Case "S".
+           ...
+]]
+  理由を簡潔に説明しない。
+
+(* FILL IN HERE *)
+*)
+
+(* The following proof attempt will not succeed.[[
+
      Theorem l : forall n,
        ev n.
      Proof.
@@ -1238,8 +1256,12 @@ Proof.
 (* FILL IN HERE *)
 *)
 (** [] *)
+(* [] *)
 
-(** **** Exercise: 2 stars (ev_sum) *)
+(** **** 練習問題: ★★ (ev_sum) *)
+(* **** Exercise: 2 stars (ev_sum) *)
+
+(** 帰納法が必要な別の練習問題をやってみましょう。 *)
 (** Here's another exercise requiring induction. *)
 
 Theorem ev_sum : forall n m,
@@ -1248,7 +1270,10 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Here's another situation where we want to analyze evidence for
+
+(** [n+2] が偶数ならば [n] も偶数であるという偶数に関する根拠を分析したいとします。
+    この種の場合分けに [destruct] を使おうとするかもしれません。 *)
+(* Here's another situation where we want to analyze evidence for
     evenness: proving that if [n+2] is even, then [n] is.  Our first
     idea might be to use [destruct] for this kind of case analysis: *)
 
@@ -1260,7 +1285,10 @@ Proof.
   (* Stuck: [destruct] gives us un-provable subgoals! *)
 Admitted.
 
-(** But this doesn't work.  For example, in the first sub-goal, we've
+
+(** しかし、これはうまくいきません。 例えば、最初のサブゴールにおいて、 [n] が [0] であるという情報が失われてしまいます。 
+    ここで使うべきは、 [inversion] です。 *)
+(* But this doesn't work.  For example, in the first sub-goal, we've
     lost the information that [n] is [0].  The right thing to use
     here, it turns out, is [inversion]: *)
 
@@ -1270,6 +1298,16 @@ Proof.
   intros n E. inversion E as [| n' E']. apply E'.  Qed.
 
 (* Print SSev_even. *)
+
+(** [inversion] の使い方は最初はちょっと謎めいて思えるかもしれません。
+    これまでのところ、 [inversino] は等号に関する命題に対して使い、コンストラクタから元のデータを取り出すためか、別のコンストラクタを区別するためににしか使っていません。
+    しかし、ここでは [inversion] が 帰納的に定義された命題に対する根拠を分析するために使えることを紹介しました。
+
+    ここで、[inversion]が一般にはどのように動作するかを説明します。 
+    [I] が 現在のコンテキストの家庭 [P] を参照しているとします。 なお、ここで[P]は帰納的に定義されているものとします。
+    そして、[P]の書くコンストラクタ
+
+*)
 
 (** This use of [inversion] may seem a bit mysterious at first.
     Until now, we've only used [inversion] on equality
