@@ -1304,12 +1304,15 @@ Proof.
     しかし、ここでは [inversion] が 帰納的に定義された命題に対する根拠を分析するために使えることを紹介しました。
 
     ここで、[inversion]が一般にはどのように動作するかを説明します。 
-    [I] が 現在のコンテキストの家庭 [P] を参照しているとします。 なお、ここで[P]は帰納的に定義されているものとします。
-    そして、[P]の書くコンストラクタ
+    [I] が現在のコンテキストにおいて帰納的に宣言された仮定[P]を参照しているとします。
+    ここで、[inversion I]は、[P]のコンストラクタごとにサブゴールを生成します。 各サブゴールにおいて、 コンストラクタが [P] を証明するのに必要な条件によって [I] が置き換えられます。
+    サブゴールのうちいくつかは矛盾が存在するので、 [inversion] はそれらを除外します。 
+    残ったサブゴールは、元のゴールが成り立つことを示すのに必要な場合分けです。
 
+    先ほどの例で、 [inversion] は [ev (S (S n))] の分析に用いられ、 これはコンストラクタ [ev_SS] を使って構築されていることを判定し、そのコンストラクタの引数を仮定に追加した新しいサブゴールを生成しました。(今回hは使いませんでしたが、補助的な等式も生成しています。)
+    このあとの例では、inversionのより一般的な振る舞いについて調べていきましょう。
 *)
-
-(** This use of [inversion] may seem a bit mysterious at first.
+(* This use of [inversion] may seem a bit mysterious at first.
     Until now, we've only used [inversion] on equality
     propositions, to utilize injectivity of constructors or to
     discriminate between different constructors.  But we see here
@@ -1335,13 +1338,16 @@ Proof.
     We'll begin exploring this more general behavior of inversion in
     what follows. *)
 
-(** **** Exercise: 1 star (inversion_practice) *)
+(** **** 練習問題: ★ (inversion_practice) *)
+(* **** Exercise: 1 star (inversion_practice) *)
 Theorem SSSSev_even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** The [inversion] tactic can also be used to derive goals by showing
+(** [inversion] タクティックは、仮定が矛盾していることを示し、ゴールを達成するためにも使えます。
+ *)
+(* The [inversion] tactic can also be used to derive goals by showing
     the absurdity of a hypothesis. *)
 
 Theorem even5_nonsense :
@@ -1350,7 +1356,12 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** We can generally use [inversion] instead of [destruct] on
+(** 一般に、帰納的な命題には [destruct] の代わりに [inversion] を使えます。
+    つまり、一般的にありうるコンストラクタごとに場合分けができます。
+    さらに、いくつかの補助的な等式も得ることができます。
+    なお、ゴールはその等式によって書き換えられていますが、その他の仮定は書き換えられていません。
+*)
+(* We can generally use [inversion] instead of [destruct] on
     inductive propositions.  This illustrates that in general, we
     get one case for each possible constructor.  Again, we also
     get some auxiliary equalities that are rewritten in the goal
@@ -1363,8 +1374,10 @@ Proof.
   Case "E = ev_0". simpl. apply ev_0.
   Case "E = ev_SS n' E'". simpl. apply E'.  Qed.
 
-(** **** Exercise: 3 stars (ev_ev_even) *)
-(** Finding the appropriate thing to do induction on is a
+(** **** 練習問題: ★★★ (ev_ev_even) *)
+(* **** Exercise: 3 stars (ev_ev_even) *)
+(** 何に対して帰納法を行えばいいかを探しなさい。(ちょっとトリッキーですが) *)
+(* Finding the appropriate thing to do induction on is a
     bit tricky here: *)
 
 Theorem ev_ev_even : forall n m,
@@ -1373,8 +1386,12 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (ev_plus_plus) *)
-(** Here's an exercise that just requires applying existing lemmas.  No
+(** **** 練習問題: ★★★, optional (ev_plus_plus) *)
+(* **** Exercise: 3 stars, optional (ev_plus_plus) *)
+(** 既存の補題を適用する必要のある練習問題です。
+    帰納法も場合分けも不要ですが、書き換えのうちいくつかはちょっと大変です。
+    Basics_J.v の [plus_swap'] で使った [replace] タクティックを使うとよいかもしれません。 *)
+(* Here's an exercise that just requires applying existing lemmas.  No
     induction or even case analysis is needed, but some of the rewriting
     may be tedious.  You'll want the [replace] tactic used for [plus_swap']
     in Basics.v *)
@@ -1386,8 +1403,32 @@ Proof.
 (** [] *)
 
 (* ##################################################### *)
-(** ** Why Define Propositions Inductively? *)
+(** ** なぜ命題を帰納的に定義するのか? *)
+(* ** Why Define Propositions Inductively? *)
 
+(** ここまで見てきたように "ある数が偶数である" というのは2通りの方法で解釈されます。
+    間接的にはテスト用の [evenb] 関数によって解釈され、直接的には偶数であることの根拠の構築方法を帰納的に記述されます。
+    これら2つの偶数の定義は、ほぼ同程度に宣言も使うことも楽です。
+    どちらを選ぶかは基本的に好みの問題です。
+
+    しかし、興味深いほかの性質については、テスト用の関数を書くのが難しかったり不可能だったりするので、
+    直接的な帰納的な定義のほうが好ましいです。
+    例えば以下のように定義される [MyProp] という性質について考えてみましょう。
+
+       - [4] は性質 [MyProp] を満たす
+       - [n] が性質 [MyProp] を満たすならば、 [4+n] も満たす
+       - もし[2+n]が性質 [MyProp] を満たすならば、 [n] も満たす
+       - その他の数は、性質 [MyProp] を満たさない
+
+    これは数の集合の定義としてはなんの問題もありませんが、この定義をそのままCoqのFixPointに変換することはできません。
+    (それだけでなく他の言語の再帰関数に変換することもできません。)
+    [Fixpoint]を用いてこの性質をテストする賢い方法を見つけれるかもしれません。(実際のところ、この場合はそれほど難しいことではありません)
+    しかし、一般にこれは難しいです。
+    実際、Coqの [Fixpoint] は停止する計算しか定義できないので、
+    定義しようとする性質が計算不能なものだった場合、どれだけがんばっても [Fixpoint] では定義できません。
+
+    一方、性質 [MyProp] がどのようなものかの根拠を与える帰納的な定義を書くことは、非常に簡単です。
+*)
 (** We have seen that the proposition "some number is even" can
     be phrased in two different ways -- indirectly, via a testing
     function [evenb], or directly, by inductively describing what
@@ -1425,10 +1466,15 @@ Inductive MyProp : nat -> Prop :=
   | MyProp2 : forall n:nat, MyProp n -> MyProp (4 + n)
   | MyProp3 : forall n:nat, MyProp (2 + n) -> MyProp n.
 
-(** The first three clauses in the informal definition of [MyProp]
+(** [MyProp]の非形式な定義の最初の3つの節は、帰納的な定義の最初の3つの節に反映されています。
+    4つ目の節は、[Inductive]キーワドによって強制されます。
+*)
+(* The first three clauses in the informal definition of [MyProp]
     above are reflected in the first three clauses of the inductive
     definition.  The fourth clause is the precise force of the keyword
     [Inductive]. *)
+
+(** これで、偶数のときにやったように、ある数が [MyProp] を満たすことの根拠を作ることができます。  *)
 
 (** As we did with evenness, we can now construct evidence that
     certain numbers satisfy [MyProp]. *)
@@ -1446,6 +1492,7 @@ Proof.
   apply MyProp2.
   apply MyProp1.   Qed.
 
+(** **** 練習問題: ★★ (MyProp) *)
 (** **** Exercise: 2 stars (MyProp) *)
 (** Here are two useful facts about MyProp.  The proofs are left
     to you. *)
