@@ -1221,7 +1221,7 @@ Proof.
     generated.  We'll look at the induction principle of [ev] in more
     depth below, to explain what's really going on. *)
 
-(** **** 練習問題: ★ (l_fails) *))
+(** **** 練習問題: ★ (l_fails) *)
 (** **** Exercise: 1 star (l_fails) *)
 
 (** **** 練習問題: ★ (l_fails) *)
