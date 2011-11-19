@@ -578,8 +578,8 @@ Admitted.
     three steps. So, [auto n] proves this goal iff [n] is greater than
     three. *)
 (** 次の補題には1つだけ証明があり、それは3ステップです。
-    このため、[auto n] は、[n]が3以上の時これを証明し、3未満のときは証明できません。
-    (訳注: 原文では "iff [n] is greater than three" と記述されていますが、
+    このため、[auto n] は、[n]が3以上の時これを証明し、3未満のときは証明できません。*)
+(*  (訳注: 原文では "iff [n] is greater than three" と記述されていますが、
     文脈から「以上」に修正しました。) *)
 
 Lemma search_depth_1 : forall (P : nat->Prop),
@@ -645,9 +645,10 @@ Proof. auto. auto 6. Qed.
 
 
 (* ####################################################### *)
-(** ** Backtracking *)
+(* ** Backtracking *)
+(** ** バックトラック *)
 
-(** In the previous section, we have considered proofs where
+(* In the previous section, we have considered proofs where
     at each step there was a unique assumption that [auto]
     could apply. In general, [auto] can have several choices
     at every step. The strategy of [auto] consists of trying all
@@ -663,6 +664,18 @@ Proof. auto. auto 6. Qed.
     trace, one should write [debug eauto]. (For some reason, the
     command [debug auto] does not exist, so we have to use the
     command [debug eauto] instead.) *)
+(** 前の節で、各ステップで[auto]が適用できる仮定が唯一である証明を考えてきました。
+    一般には、[auto]の各ステップでいくつかの選択肢がある場合があります。
+    [auto]の戦略は、すべての可能性を(深さ優先探索によって)試してみる、というものです。
+
+    どのように自動証明がはたらくかを示すために、前の例を拡張して、
+    [P k] が [P (k+1)] からも導出できるとします。
+    この仮定を追加したことで、[auto]が各ステップで考慮する新たな選択肢が提供されます。
+
+    証明探索で考慮するすべてのステップをトレースすることができる特別なコマンドがあります。
+    そのトレースを見るためには、[debug eauto]と書きます。
+    (ある理由から、コマンド [debug auto] は存在しないため、
+    代わりにコマンド [debug eauto] を使う必要があります。) *)
 
 Lemma working_of_auto_1 : forall (P : nat->Prop),
   (* Hypothesis H1: *) (P 0) ->
@@ -672,7 +685,7 @@ Lemma working_of_auto_1 : forall (P : nat->Prop),
 (* Uncomment "debug" in the following line to see the debug trace: *)
 Proof. intros P H1 H2 H3. (* debug *) eauto. Qed.
 
-(** The output message produced by [debug eauto] is as follows.
+(* The output message produced by [debug eauto] is as follows.
 <<
     depth=5
     depth=4 apply H3
@@ -692,6 +705,25 @@ Proof. intros P H1 H2 H3. (* debug *) eauto. Qed.
     first, and [H3] is a more recent hypothesis than [H2] in the goal.
     So, let's permute the hypotheses [H2] and [H3] and see what
     happens. *)
+(** [debug eauto] の出力メッセージは次の通りです。
+<<
+    depth=5
+    depth=4 apply H3
+    depth=3 apply H3
+    depth=3 exact H1
+>>
+    depth は [eauto n] が呼ばれる[n]の値を示します。
+    メッセージに見られるタクティックは、
+    [eauto]が最初にすることは[H3]を適用してみることであることを示します。
+    [H3]の適用の結果、ゴール [P 1] はゴール [P 2] に代わります。
+    すると、再度[H3]が適用され、ゴール [P 1] が [P 2] に代わります。
+    この時点でゴールは仮定 [H1] と一致します。
+
+    この場合、[eauto]は非常にラッキーだったようです。
+    仮定[H2]を一度も使ってみようとすることもありませんでした。
+    理由は、[auto]は常に最後に導入された仮定を最初に試してみることと、
+    ゴールにおいて[H3]は[H2]より後で導入された仮定であることです。
+    それでは、仮定[H2]と[H3]を入れ替えるとどうなるか見てみましょう。*)
 
 Lemma working_of_auto_2 : forall (P : nat->Prop),
   (* Hypothesis H1: *) (P 0) ->
@@ -700,7 +732,7 @@ Lemma working_of_auto_2 : forall (P : nat->Prop),
   (* Goal:          *) (P 2).
 Proof. intros P H1 H3 H2. (* debug *) eauto. Qed.
 
-(** This time, the output message suggests that the proof search
+(* This time, the output message suggests that the proof search
     investigates many possibilities. Replacing [debug eauto] with
     [info eauto], we observe that the proof that [eauto] comes up
     with is actually not the simplest one.
@@ -757,12 +789,66 @@ Proof. intros P H1 H3 H2. (* debug *) eauto. Qed.
     to apply [H2] three times in a row, going through [P 2] and [P 1]
     and [P 0]. This search tree explains why [eauto] came up with a
     proof starting with [apply H2]. *)
+(** このとき、出力メッセージは証明探索がたくさんの可能性を調べることを示唆しています。
+    [debug eauto] を [info eauto] に替えると、
+    [eauto]が見つける証明は実際に単純なものではないことを見ることができます。
+           [[apply H2; apply H3; apply H3; apply H3; exact H1]]
+    この証明は、証明課題 [P 3] を調べます。たとえそれが何の役にも立たなくてもです。
+    以下に描かれた木は自動証明が通ったすべてのゴールを記述しています。
+<<
+    |5||4||3||2||1||0| -- 以下で、タブは深さを示しています
+
+    [P 2]
+    -> [P 3]
+       -> [P 4]
+          -> [P 5]
+             -> [P 6]
+                -> [P 7]
+                -> [P 5]
+             -> [P 4]
+                -> [P 5]
+                -> [P 3]
+          --> [P 3]
+             -> [P 4]
+                -> [P 5]
+                -> [P 3]
+             -> [P 2]
+                -> [P 3]
+                -> [P 1]
+       -> [P 2]
+          -> [P 3]
+             -> [P 4]
+                -> [P 5]
+                -> [P 3]
+             -> [P 2]
+                -> [P 3]
+                -> [P 1]
+          -> [P 1]
+             -> [P 2]
+                -> [P 3]
+                -> [P 1]
+             -> [P 0]
+                -> !! 完了です !!
+>>
+    最初の数行は次のように読みます。[P 2] を証明するために [eauto 5] 
+    は最初に[H2]を適用しサブゴール [P 3] を作ります。
+    これを解くために、[eauto 4] は再度[H2]を適用し、ゴール [P 4] を作ります。
+    同様に探索は [P 5]、[P 6]、 [P 7] と進みます。
+    [P 7] に逹したときタクティック [eauto 0] が呼ばれますが、
+    [eauto 0] は補題を適用することができないため、失敗します。
+    このためゴール [P 6] に戻り、ここでは仮定[H3]を適用し、サブゴール [P 5] を生成します。
+    ここでまた [eauto 0] はこのゴールを解くことに失敗します。
+
+    このプロセスは延々と続きます。[P 3]までバックトラックし、
+    [H2]を3回連続して適用して [P 2]、[P 1]、[P 0] と進むまでは。
+    この探索木は、[eauto]がなぜ [apply H2] から始まる証明を発見できるかを説明しています。*)
 
 
 (* ####################################################### *)
-(** ** Adding Hints *)
+(* ** Adding Hints *)
+(** ** ヒントを追加する *)
 
-(** By default, [auto] (and [eauto]) only tries to apply the
+(* By default, [auto] (and [eauto]) only tries to apply the
     hypotheses that appear in the proof context. There are two
     possibilities for telling [auto] to exploit a lemma that have
     been proved previously: either adding the lemma as an assumption
@@ -780,10 +866,26 @@ Proof. intros P H1 H3 H2. (* debug *) eauto. Qed.
     any number is less than or equal to itself, [forall x, x <= x],
     called [Le.le_refl] in the Coq standard library, can be added as a
     hint as follows. *)
+(** デフォルトでは、[auto] (および[eauto])は証明コンテキストに現れる仮定だけを適用しようとします。
+    それより前に証明した補題を使うことを[auto]に教えてやる方法は2つあります。
+    1つは[auto]を呼ぶ直前に補題を仮定として加えてやることです。
+    もう1つは、補題をヒントとして追加することです。
+    そうすると、[auto]を呼ぶときいつでもそれを使うことができるようになります。
+
+    1つ目の方法は、この特定の場所のためだけに補題を[auto]に使わせるのに便利です。
+    補題を仮定として追加するためには、[generalize mylemma; intros]、
+    あるいは単に [lets: mylemma] と打ちます(後者には[LibTactics_J.v]
+    が必要です)。
+
+    2つ目の方法は何回も補題を使う必要がある場合に便利です。
+    補題をヒントに追加する構文は [Hint Resolve mylemma] です。
+    例えば、任意の数値は自分以下であるという補題 [forall x, x <= x] 
+    はCoq標準ライブラリでは[Le.le_refl]と呼ばれていますが、
+    これをヒントとして追加するには次のようにします。*)
 
 Hint Resolve Le.le_refl.
 
-(** A convenient shorthand for adding all the constructors of an
+(* A convenient shorthand for adding all the constructors of an
     inductive datatype as hints is the command [Hint Constructors
     mydatatype].
 
@@ -792,12 +894,19 @@ Hint Resolve Le.le_refl.
     performance of proof search. The description of this problem
     and the presentation of a general work-around for transitivity
     lemmas appear further on. *)
+(** 帰納的データ型のすべてのコンストラクタをヒントとして追加する便利な略記法がコマンド
+    [Hint Constructors mydatatype] です。
+
+    ワーニング: いくつかの補題、推移律のようなものは、ヒントとして追加するべきではありません。
+    証明探索のパフォーマンスに非常に悪い影響を与えるからです。
+    この問題の記述と推移律の一般的な回避策の提示は後で出てきます。*)
 
 
 (* ####################################################### *)
-(** ** Integration of Automation in Tactics *)
+(* ** Integration of Automation in Tactics *)
+(** ** タクティックへの自動証明の統合 *)
 
-(** The library "LibTactics" introduces a convenient feature for
+(* The library "LibTactics" introduces a convenient feature for
     invoking automation after calling a tactic. In short, it suffices
     to add the symbol star ([*]) to the name of a tactic. For example,
     [apply* H] is equivalent to [apply H; auto_star], where [auto_star]
@@ -816,10 +925,28 @@ Hint Resolve Le.le_refl.
     Observe the use of [::=] instead of [:=], which indicates that the
     tactic is being rebound to a new definition. So, the default
     definition is as follows. *)
+(** ライブラリ "LibTactics" はタクティックを呼んだ後で自動証明を呼ぶ便利な機能を提供します。
+    要するに、タクティック名に星印([*])をつければ良いのです。
+    例えば、[apply* H] は [apply H; auto_star] と等価です。
+    ここで[auto_star]は必要なように定義できます。
+    デフォルトでは、[auto_star]は最初に[auto]を使ってゴールを解こうとします。
+    そしてそれに成功しなかった場合[jauto]を呼ぼうとします。
+    [jauto]の強さが[auto]を越えているのに、[auto]を先に呼ぶのは意味があります。
+    [auto]で成功した場合、かなりの時間を節約できるかもしれません。
+    そして[auto]が証明に失敗するときには、非常に速く失敗するのです。
+
+    星印の意味を定める[auto_star]の定義は、いつでも必要なときに変更できます。
+    単に次のように書きます:
+[[
+       Ltac auto_star ::= a_new_definition.
+]]
+    ここで、[:=]ではなく[::=]が使われていることを見てください。
+    これは、このタクティックが新しい定義に再束縛されていることを示しています。
+    そのデフォルトの定義は次の通りです。*)
 
 Ltac auto_star ::= try solve [ auto | jauto ].
 
-(** Nearly all standard Coq tactics and all the tactics from
+(* Nearly all standard Coq tactics and all the tactics from
     "LibTactics" can be called with a star symbol. For example, one
     can invoke [subst*], [destruct* H], [inverts* H], [lets* I: H x],
     [specializes* H x], and so on... There are two notable exceptions.
@@ -828,8 +955,18 @@ Ltac auto_star ::= try solve [ auto | jauto ].
     more powerful [applys H] if needed), and then calls [auto_star].
     Note that there is no [eapply* H] tactic, use [apply* H]
     instead. *)
+(** 標準のCoqタクティックのほとんどすべてと、"LibTactics"のタクティックのすべては、
+    星印を付けて呼ぶことができます。
+    例えば、[subst*]、[destruct* H]、[inverts* H]、[lets* I: H x]、
+    [specializes* H x]、等々が可能です。
+    注記すべき例外が2つあります。
+    タクティック[auto*]は[auto_star]の別名です。
+    また、タクティック [apply* H] は [eapply H] (または、
+    もし必要ならばより強力な [applys H])を呼び、その後[auto_star]を呼びます。
+    [eapply* H] タクティックは存在しないので、代わりに [apply* H] 
+    を呼ぶように注意してください。*)
 
-(** In large developments, it can be convenient to use two degrees of
+(* In large developments, it can be convenient to use two degrees of
     automation. Typically, one would use a fast tactic, like [auto],
     and a slower but more powerful tactic, like [jauto]. To allow for
     a smooth coexistence of the two form of automation, [LibTactics.v[
@@ -837,28 +974,43 @@ Ltac auto_star ::= try solve [ auto | jauto ].
     [destruct~ H], [subst~], [auto~] and so on. The meaning of the
     tilde symbol is described by the [auto_tilde] tactic, whose
     default implementation is [auto]. *)
+(** 大きな開発では、2つの段階の自動化を使うのが便利でしょう。
+    典型的には、1つは[auto]のような速いタクティック、
+    もう一つは[jauto]のように遅いけれどもより強力なタクティックです。
+    2種類の自動化をスムーズに共存させるために、
+    [LibTactics_J.v]はタクティックにチルダ([~])を付けるバージョンも定義しています。
+    [apply~ H]、[destruct~ H]、[subst~]、[auto~] などです。
+    チルダ記号の意味は[auto_tilde]タクティックによって記述されています。
+    このデフォルトの実装は[auto]です。*)
 
 Ltac auto_tilde ::= auto.
 
-(** In the examples that follow, only [auto_star] is needed. *)
+(* In the examples that follow, only [auto_star] is needed. *)
+(** 以降の例では、[auto_star]だけが必要です。*)
 
 
 (* ####################################################### *)
-(** * Examples of Use of Automation *)
+(* * Examples of Use of Automation *)
+(** * 自動化の使用例 *)
 
-(** Let's see how to use proof search in practice on the main theorems
+(* Let's see how to use proof search in practice on the main theorems
     of the "Software Foundations" course, proving in particular
     results such as determinacy, preservation and progress... *)
+(** 「ソフトウェアの基礎」("Software Foundations")
+    コースの主要定理に証明探索を実際にどのように使うかを見てみましょう。
+    決定性、保存、進行などの特定の結果を証明します... *)
 
 
 (* ####################################################### *)
-(** ** Determinacy *)
+(* ** Determinacy *)
+(** ** 決定性 *)
 
 Module DeterministicImp.
   Require Import Imp_J.
 
-(** Recall the original proof of the determinacy lemma for the IMP
+(* Recall the original proof of the determinacy lemma for the IMP
     language, shown below. *)
+(** Imp言語の決定性補題のオリジナルの証明を振り返ってみましょう。以下の通りです。*)
 
 Theorem ceval_deterministic: forall c st st1 st2,
   c / st || st1 ->
@@ -900,7 +1052,8 @@ Proof.
       apply IHE1_2. assumption.
 Qed.
 
-(** Exercise: rewrite this proof using [auto] whenever possible. *)
+(* Exercise: rewrite this proof using [auto] whenever possible. *)
+(** 練習問題: この証明を可能な限り [auto] を使って書き直しなさい。 *)
 
 Theorem ceval_deterministic': forall c st st1 st2,
   c / st || st1 ->
@@ -910,7 +1063,7 @@ Proof.
   (* FILL IN HERE *) admit.
 Qed.
 
-(** In fact, using automation is not just a matter of calling [auto]
+(* In fact, using automation is not just a matter of calling [auto]
     in place of one or two other tactics. Using automation is about
     rethinking the organization of sequences of tactics so as to
     minimize the effort involved in writing and maintaining the proof.
@@ -924,6 +1077,21 @@ Qed.
         the cases where [beval st b1 = true] and [beval st b1 = false]
         both appear in the context,
       - stop using [ceval_cases] to label subcases. *)
+(** 実際、自動化の利用は、
+    ただ1つや2つの別のタクティックの代わりに[auto]を使うというようなことではないのです。 
+    自動化の利用は、
+    証明を記述しメンテナンスする作業を最小化するために、
+    タクティック列の構成を再考することなのです。
+    このプロセスは[LibTactics_J.v]のタクティックを使うことで楽になります。
+    そこで、自動化の使用法の最適化に取り組む前に、まず決定性の証明を書き直してみましょう:
+      - [intros x H] の代わりに [introv H] を使います
+      - [generalize dependent x] の代わりに [gen x] を使います
+      - [generalize dependent x] の代わりに [gen x] を使います
+      - [inversion H; subst] の代わりに [inverts H] を使います
+      - 矛盾を扱うために[tryfalse]を使い、
+        コンテキストに [beval st b1 = true] と [beval st b1 = false] 
+        の両者が現れているのを除去します
+      - 場合にラベルを付けるための [ceval_cases] の使用を止めます。 *)
 
 Theorem ceval_deterministic'': forall c st st1 st2,
   c / st || st1 ->
@@ -941,7 +1109,7 @@ Proof.
   assert (st' = st'0). auto. subst. auto.
 Qed.
 
-(** To obtain a nice clean proof script, we have to remove the calls
+(* To obtain a nice clean proof script, we have to remove the calls
     [assert (st' = st'0)]. Such a tactic invokation is not nice
     because it refers to some variables whose name has been
     automatically generated. This kind of tactics tend to be very
@@ -953,6 +1121,18 @@ Qed.
     [forwards], described in [LibTactics.v] precisely helps with
     instantiating a fact. So, let's see how it works out on our
     example. *)
+(** きれいな証明記述を得るためには、[assert (st' = st'0)] 
+    の呼び出しを消去しなければなりません。
+    このようなタクティックの呼び出しは、きれいではありません。
+    なぜなら、自動命名された変数を参照しているからです。
+    こういうタクティックはとても脆弱なものになりやすいのです。
+    タクティック [assert (st' = st'0)] 
+    は帰納法の仮定から導出したい結論を主張するのに使われています。
+    そこで、この結論を明示的に述べる代わりに、
+    帰納法の仮定を具体化する際に自動処理によって計算される具体化法を使うようにCoqに伝えてみましょう。
+    [LibTactics_J.v]に記述されたタクティック[forwards]は、
+    事実の具体化について的確に助けてくれます。
+    それでは、この例についてどのようにはたらくか見てみましょう。*)
 
 Theorem ceval_deterministic''': forall c st st1 st2,
   c / st || st1 ->
@@ -984,9 +1164,11 @@ Proof.
 
 Admitted.
 
-(** To polish the proof script, it remains to factorize the calls
+(* To polish the proof script, it remains to factorize the calls
     to [auto], using the star symbol. The proof of determinacy can then
     be rewritten in only four lines, including no more than 10 tactics. *)
+(** 証明記述を洗練するために、星印を使って呼び出しを[auto]に分解することが残っています。
+    そうすると、決定性の証明はたった4行の10個を越えないタクティックに書き直されます。*)
 
 Theorem ceval_deterministic'''': forall c st st1 st2,
   c / st || st1  ->
