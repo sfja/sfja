@@ -28,7 +28,7 @@
     chapter [UseTactics.v].  (You will need to read that chapter to
     understand the later parts of this one, but the earlier parts can
     be read on their own.) *)
-(** マシンがチェックした証明においては、細部の一つ一つの正しさが確認されています。
+(** 機械がチェックした証明においては、細部の一つ一つの正しさが確認されています。
     これが巨大な証明記述にもなります。
     幸い、Coqは証明探索メカニズムと決定手続きを持っていて、
     それにより証明の小さな部分を自動合成することができます。
@@ -976,7 +976,7 @@ Ltac auto_star ::= try solve [ auto | jauto ].
     default implementation is [auto]. *)
 (** 大きな開発では、2つの段階の自動化を使うのが便利でしょう。
     典型的には、1つは[auto]のような速いタクティック、
-    もう一つは[jauto]のように遅いけれどもより強力なタクティックです。
+    もう1つは[jauto]のように遅いけれどもより強力なタクティックです。
     2種類の自動化をスムーズに共存させるために、
     [LibTactics_J.v]はタクティックにチルダ([~])を付けるバージョンも定義しています。
     [apply~ H]、[destruct~ H]、[subst~]、[auto~] などです。
@@ -1185,15 +1185,18 @@ End DeterministicImp.
 
 
 (* ####################################################### *)
-(** ** Preservation for STLC *)
+(* ** Preservation for STLC *)
+(** ** STLC の保存 *)
 
 Module PreservationProgressStlc.
   Require Import Stlc_J.
   Import STLC.
 
-(** Recall the proof of perservation of STLC, shown next.
+(* Recall the proof of perservation of STLC, shown next.
     This proof already uses [eauto] through the triple-dot
     mechanism. *)
+(** STLC の保存の証明を振り返ってみましょう。次の通りです。
+    この証明では既にドット3つ([...])のメカニズムを通じて[eauto]を使っています。*)
 
 Theorem preservation : forall t t' T,
   has_type empty t T  ->
@@ -1223,11 +1226,16 @@ Proof with eauto.
     inversion HE; subst...
 Qed.
 
-(** Exercise: rewrite this proof using tactics from [LibTactics]
+(* Exercise: rewrite this proof using tactics from [LibTactics]
     and calling automation using the star symbol rather than the
     triple-dot notation. More precisely, make use of the tactics
     [inverts*] and [applys*] to call [auto*] after a call to
     [inverts] or to [applys]. The solution is three lines long.*)
+(** 練習問題: この証明を [LibTactics] のタクティックを使って書き直しなさい。
+    そして、[...]の代わりに星印を使って自動証明を呼びなさい。
+    より詳しくは、
+    [inverts]あるいは[applys]の後で[auto*]を呼ぶために[inverts*]と[applys*]を使いなさい。
+    解は3行の長さです。*)
 
 Theorem preservation' : forall t t' T,
   has_type empty t T  ->
@@ -1239,9 +1247,11 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** Progress for STLC *)
+(* ** Progress for STLC *)
+(** ** STLC の前進 *)
 
-(** Recall the proof of the progress theorem. *)
+(* Recall the proof of the progress theorem. *)
+(** 前進定理の証明を振り返りましょう。*)
 
 Theorem progress : forall t T,
   has_type empty t T ->
@@ -1271,9 +1281,12 @@ Qed.
 
 
 
-(** Exercise: optimize the proof of the progress theorem.
+(* Exercise: optimize the proof of the progress theorem.
     Hint: make use of [destruct*] and [inverts*].
     The solution is 10 lines long (short lines). *)
+(** 練習問題: 前進定理の証明を最適化しなさい。
+    ヒント: [destruct*] と [inverts*] を使いなさい。
+    解は10行の長さです(行は短いです)。*)
 
 Theorem progress' : forall t T,
   has_type empty t T ->
@@ -1286,13 +1299,15 @@ End PreservationProgressStlc.
 
 
 (* ####################################################### *)
-(** ** BigStep and SmallStep *)
+(* ** BigStep and SmallStep *)
+(** ** ビッグステップとスモールステップ *)
 
 Module Semantics.
 Require Import Smallstep_J.
 
-(** Recall the proof relating a small-step reduction judgment
+(* Recall the proof relating a small-step reduction judgment
     to a big-step reduction judgment. *)
+(** スモールステップ簡約ジャッジメントとビッグステップ簡約ジャッジメントを関係づける証明を振り返りましょう。*)
 
 Theorem stepmany__eval : forall t v,
   normal_form_of t v -> t || v.
@@ -1308,8 +1323,10 @@ Proof.
     eapply step__eval. eassumption. apply IHHs. reflexivity.
 Qed.
 
-(** Exercise: optimize the above proof, using [introv],
+(* Exercise: optimize the above proof, using [introv],
     [invert], and [applys*]. The solution is 4 lines long. *)
+(** 練習問題: 上の証明を、[introv]、[invert]、[applys*]を使って最適化しなさい。
+    解は4行の長さです。 *)
 
 Theorem stepmany__eval' : forall t v,
   normal_form_of t v -> t || v.
@@ -1321,20 +1338,26 @@ End Semantics.
 
 
 (* ####################################################### *)
-(** ** Preservation for STLCRef *)
+(* ** Preservation for STLCRef *)
+(** ** STLCRef の保存 *)
 
 Module PreservationProgressReferences.
   Require Import References_J.
   Import STLCRef.
   Hint Resolve store_weakening extends_refl.
 
-(** The proof of preservation for [STLCRef] can be found
+(* The proof of preservation for [STLCRef] can be found
     in the file [References.v]. It contains 58 lines (not
     counting the labelling of cases). The optimized proof
     script is more than twice shorter. The following material
     explains how to build the optimized proof script.
     The resulting optimized proof script for the preservation
     theorem appears afterwards. *)
+(** [STLCRef]の保存の証明は[References_J.v]にあります。
+    (場合にラベル付けをする行を除いて)58行です。
+    最適化された証明は2分の1以下の短かさになります。
+    以下の資料は最適化された証明記述をどのように構築するかを説明します。
+    最適化された結果の保存定理の証明記述は、後で出てきます。*)
 
 Theorem preservation : forall ST t t' T st st',
   has_type empty ST t T ->
@@ -1474,7 +1497,7 @@ Proof.
   forwards*: IHHt2.
 Qed.
 
-(** Let's come back to the proof case that was hard to optimize.
+(* Let's come back to the proof case that was hard to optimize.
     The difficulty comes from the statement of [nth_eq_snoc], which
     takes the form [nth (length l) (snoc l x) d = x]. This lemma is
     hard to exploit because its first argument, [length l], mentions
@@ -1485,14 +1508,26 @@ Qed.
     making [nth_eq_snoc] easy to apply: introduce the intermediate
     variable [n] explicitly, so that the goal becomes
     [nth n (snoc l x) d = x], with a premise asserting [n = length l]. *)
+(** 証明の最適化が難しい場合に戻りましょう。
+    困難さの原因は [nth_eq_snoc] です。
+    これは、[nth (length l) (snoc l x) d = x] をとります。
+    この補題は使うのが難しいのです。それは最初の引数 [length l] が[l]に言及していて、
+    それが [snoc l x] に現れる[l]と完全に同じだからです。
+    実際、通常は引数は自然数[n]で、これは [length l] と等しいかもしれませんが、
+    構文的には [length l] と違っています。
+    [nth_eq_snoc] を適用しやすくする簡単な修正方法があります。
+    中間的な変数[n]を明示的に導入し、ゴールを [nth n (snoc l x) d = x] にします。
+    そして、その際に仮定 [n = length l] を加えます。*)
 
 Lemma nth_eq_snoc' : forall (A : Type) (l : list A) (x d : A) (n : nat),
   n = length l -> nth n (snoc l x) d = x.
 Proof. intros. subst. apply nth_eq_snoc. Qed.
 
-(** The proof case for [ref] from the preservation theorem then
+(* The proof case for [ref] from the preservation theorem then
     becomes much easier to prove, because [rewrite nth_eq_snoc']
     now succeeds. *)
+(** 保存定理の証明の[ref]の場合は、はるかに簡単に証明できるようになります。
+    [rewrite nth_eq_snoc'] が成功するからです。*)
 
 Lemma preservation_ref : forall (st:store) (ST : store_ty) T1,
   length ST = length st ->
@@ -1508,7 +1543,8 @@ Proof.
 Qed.
 
 
-(** The optimized proof of preservation is summarized next. *)
+(* The optimized proof of preservation is summarized next. *)
+(** 保存の最適化された証明は次のようにまとめられます。 *)
 
 Theorem preservation' : forall ST t t' T st st',
   has_type empty ST t T ->
@@ -1546,11 +1582,14 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** Progress for STLCRef *)
+(* ** Progress for STLCRef *)
+(** ** STLCRef の前進 *)
 
-(** The proof of progress for [STLCRef] can be found in
+(* The proof of progress for [STLCRef] can be found in
     the file [References.v]. It contains 53 lines and the
     optimized proof script is, here again, twice shorter. *)
+(** [STLCRef]の前進の証明はファイル[References_J.v]にあります。
+    その証明は53行で、最適化された証明記述は、また、2分の1になります。*)
 
 Theorem progress : forall ST t T st,
   has_type empty ST t T ->
@@ -1586,13 +1625,15 @@ End PreservationProgressReferences.
 
 
 (* ####################################################### *)
-(** ** Subtyping *)
+(* ** Subtyping *)
+(** ** サブタイプ *)
 
 Module SubtypingInversion.
   Require Import Subtyping_J.
 
-(** Recall the inversion lemma for typing judgment
+(* Recall the inversion lemma for typing judgment
     of abstractions in a type system with subtyping. *)
+(** サブタイプを持つ型システムの抽象化の型ジャッジメントに関する反転補題を振り返ってみましょう。*)
 
 Lemma abs_arrow : forall x S1 s2 T1 T2,
   has_type empty (tm_abs x S1 s2) (ty_arrow T1 T2) ->
@@ -1607,11 +1648,14 @@ Proof with eauto.
   inversion Heq; subst...
 Qed.
 
-(** Exercise: optimize the proof script, using
+(* Exercise: optimize the proof script, using
     [introv], [lets] and [inverts*]. In particular,
     you will find it useful to replace the pattern
     [apply K in H. destruct H as I] with [lets I: K H].
     The solution is 4 lines. *)
+(** 練習問題: [introv]、[lets]、[inverts*]を使って証明記述を最適化しなさい。
+    特に [apply K in H. destruct H as I] を [lets I: K H] に置き換えることは有効です。
+    解は4行です。*)
 
 Lemma abs_arrow' : forall x S1 s2 T1 T2,
   has_type empty (tm_abs x S1 s2) (ty_arrow T1 T2) ->
@@ -1621,12 +1665,16 @@ Proof.
   (* FILL IN HERE *) admit.
 Qed.
 
-(** The lemma [substitution_preserves_typing] has already been
+(* The lemma [substitution_preserves_typing] has already been
     used to illustrate the working of [lets] and [applys] in
     the file [UseTactics.v]. Optimize further this proof using
     automation (with the star symbol), and using the tactic
     [cases_if']. The solution is 33 lines, including the
     [Case] instructions. *)
+(** 補題[substitution_preserves_typing]はファイル[UseTactics_J.v]
+    で[lets]と[applys]のはたらきを示すために既に使われています。
+    この証明のさらなる最適化を、(星印付きの)自動処理とタクティック[cases_if']
+    を使って行いなさい。解は33行で、[Case]命令を含みます。*)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
   has_type (extend Gamma x U) t S ->
@@ -1640,12 +1688,14 @@ End SubtypingInversion.
 
 
 (* ####################################################### *)
-(** * Advanced Topics in Proof Search *)
+(* * Advanced Topics in Proof Search *)
+(** * 証明探索の進んだ話題 *)
 
 (* ####################################################### *)
-(** ** Stating Lemmas in the Right Way *)
+(* ** Stating Lemmas in the Right Way *)
+(** ** 補題を正しい方法で記述する *)
 
-(** Due to its depth-first strategy, [eauto] can get exponentially
+(* Due to its depth-first strategy, [eauto] can get exponentially
     slower as the depth search increases, even when a short proof
     exists. In general, to make proof search run reasonably fast, one
     should avoid using a depth search greater than 5 or 6. Moreover,
@@ -1662,6 +1712,21 @@ End SubtypingInversion.
     When the hypothesis about [P] is stated in the form
     [forall n m, P m -> m <> 0 -> P n], then [eauto] works. However, with
     [forall n m, m <> 0 -> P m -> P n], the tactic [eauto] fails. *)
+(** 深さ優先探索のため、[eauto]は探索の深さが増えるにつれ指数的に遅くなります。
+    短かい証明が存在する場合でもそうです。
+    一般に、証明探索を合理的な速さにするため、証明の深さを5から6を越える深さの探索は避けるべきです。
+    さらに、適用可能な補題の数を最小化し、通常は証明の中で存在変数を具体化する仮定を最初に置くべきです。
+
+    実際、[eauto]が特定のゴールを解く能力は、仮定がどの順番で記述されるかに依存します。
+    このことが以下の例で示されます。
+    この例では、[P]は自然数についての述語です。
+    この述語は、[P m] が0以外のいずれかの[m]について成立するとき、任意の[n]について [P n]
+    が成立するというものです。
+    ゴールは、[P 2] ならば [P 1] を証明することです。
+    [P]についての仮定が [forall n m, P m -> m <> 0 -> P n] の形で主張されるとき、
+    [eauto]ははたらきます。
+    しかしながら、[forall n m, m <> 0 -> P m -> P n] 
+    のときはタクティック[eauto]は失敗します。 *)
 
 Lemma order_matters_1 : forall (P : nat->Prop),
   (forall n m, P m -> m <> 0 -> P n) -> P 2 -> P 1.
@@ -1688,7 +1753,7 @@ Proof.
      started from. So, [eauto] gets stuck at this point. *)
 Admitted.
 
-(** What is important to understand is that the hypothesis [forall n
+(* What is important to understand is that the hypothesis [forall n
     m, P m -> m <> 0 -> P n] is eauto-friendly, whereas [forall n m, m
     <> 0 -> P m -> P n] really isn't.  Guessing a value of [m] for
     which [P m] holds and then checking that [m <> 0] holds works well
@@ -1697,12 +1762,21 @@ Admitted.
     hand, guessing a value of [m] for which [m <> 0] and then checking
     that [P m] holds does not work well, because there are many values
     of [m] that satisfy [m <> 0] but not [P m]. *)
+(** 理解の上で重要な点は、仮定 [forall n m, P m -> m <> 0 -> P n] はeautoに優しく、
+    一方 [forall n m, m <> 0 -> P m -> P n] は実際はそうではない、ということです。
+    [P m] が成立する[m]の値を推測し、それから [m <> 0] 
+    が成立することをチェックするのがうまくいくのは、[P m] が成立する[m]がほとんどないからです。
+    これから、[eauto]が正しい[m]を見つける可能性は高いのです。
+    一方、[m <> 0] となる[m]の値を推測し、
+    それから [P m] が成立するかをチェックすることはうまくいきません。
+    なぜなら、[m <> 0] でありながら [P m] ではない[m]はたくさんあるからです。*)
 
 
 (* ####################################################### *)
-(** ** Unfolding of Definitions During Proof-Search *)
+(* ** Unfolding of Definitions During Proof-Search *)
+(** ** 証明検索中で定義を展開する *)
 
-(** The use of intermediate definitions is generally encouraged in a
+(* The use of intermediate definitions is generally encouraged in a
     formal development as it usually leads to more concise and more
     readable statements. Yet, definitions can make it a little harder
     to automate proofs. The problem is that it is not obvious for a
@@ -1712,19 +1786,30 @@ Admitted.
     large proofs, so we avoid it. This section introduces a few
     techniques for avoiding to manually unfold definitions before
     calling proof search. *)
+(** 中間的定義を使うことは、通常、主張をより簡潔により読みやすくすることから、
+    形式的開発では一般に奨励されます。しかし定義は、証明を自動化することを少し難しくします。
+    問題は、証明探索メカニズムにとって、定義を展開しなければならないのがいつかが明らかではないからです。
+    ここで、証明探索を呼ぶ前にすべての定義を展開しておくという素朴な戦略は、
+    大きな証明ではスケールしない(拡大適用できない)ため、それは避ける、ということに注意します。
+    この節では、証明探索前に手動で定義を展開することを避けるためのいくつかのテクニックを紹介します。*)
 
-(** To illustrate the treatment of definitions, let [P] be an abstract
+(* To illustrate the treatment of definitions, let [P] be an abstract
     predicate on natural numbers, and let [myFact] be a definition
     denoting the proposition [P x] holds for any [x] less than or
     equal to 3. *)
+(** 定義の扱い方を示すために、[P]を自然数についての抽象述語で、[myFact]を、命題
+    3以下の任意の[x]について命題 [P x] が成立することの定義であるとします。*)
 
 Axiom P : nat -> Prop.
 
 Definition myFact := forall x, x <= 3 -> P x.
 
-(** Proving that [myFact] under the assumption that [P x] holds for
+(* Proving that [myFact] under the assumption that [P x] holds for
     any [x] should be trivial. Yet, [auto] fails to prove it unless we
     unfold the definition of [myFact] explicitly. *)
+(** 任意の[x]について [P x] が成立するという仮定のもとで [myFact] を証明することは、
+    雑作もないことのはずです。
+    しかし、[myFact]の定義を明示的に展開しない限り、[auto]は証明に失敗します。*)
 
 Lemma demo_hint_unfold_goal_1 :
   (forall x, P x) -> myFact.
@@ -1733,25 +1818,33 @@ Proof.
   unfold myFact. auto. (* unless we unfold the definition. *)
 Qed.
 
-(** To automate the unfolding of definitions that appear as proof
+(* To automate the unfolding of definitions that appear as proof
     obligation, one can use the command [Hint Unfold myFact] to tell
     Coq that it should always try to unfold [myFact] when [myFact]
     appears in the goal. *)
+(** 証明課題に現れる定義の展開を自動化するために、
+    コマンド [Hint Unfold myFact] を使うことができます。
+    こうすると、[myFact]がゴールに現れたときに常に[myFact]を展開してみるべきであるということを、
+    Coqに伝えることができます。*)
 
 Hint Unfold myFact.
 
-(** This time, automation is able to see through the definition
+(* This time, automation is able to see through the definition
     of [myFact]. *)
+(** これでやっと、自動証明は、[myFact]の定義の中を見ることができるようになります。*)
 
 Lemma demo_hint_unfold_goal_2 :
   (forall x, P x) -> myFact.
 Proof. auto. Qed.
 
-(** However, the [Hint Unfold] mechanism only works for unfolding
+(* However, the [Hint Unfold] mechanism only works for unfolding
     definitions that appear in the goal. In general, proof search does
     not unfold definitions from the context. For example, assume we
     want to prove that [P 3] holds under the assumption that [True ->
     myFact]. *)
+(** しかしながら、[Hint Unfold] メカニズムがはたらくのは、ゴールに現れる定義の展開だけです。
+    一般に証明探索は、コンテキストの定義を展開しません。
+    例えば、[True -> myFact] の仮定のもとで、[P 3]が成立することを証明したいとします。*)
 
 Lemma demo_hint_unfold_context_1 :
   (True -> myFact) -> P 3.
@@ -1761,52 +1854,71 @@ Proof.
   unfold myFact in *. auto.  (* succeeds *)
 Qed.
 
-(** Note: there is one exception to the previous rule: a constant from
+(* Note: there is one exception to the previous rule: a constant from
     the context is automatically unfolded when it directly applies to
     the goal. For example, if the assumption is [myFact] instead of
     [True -> myFact], then [auto] solves the proof. *)
+(** 注意: 前の規則に1つ例外があります: 
+    コンテキストの定数はゴールに直接適用されるときに自動的に展開されます。
+    例えば仮定が [True -> myFact] ではなく[myFact]であるとき、
+    [auto]は証明に成功します。*)
 
 
 (* ####################################################### *)
-(** ** Automation for Proving Absurd Goals *)
+(* ** Automation for Proving Absurd Goals *)
+(** ** 不合理なゴールの証明の自動化 *)
 
-(** In this section, we'll see that lemmas concluding on a negation
+(* In this section, we'll see that lemmas concluding on a negation
     are generally not useful as hints, and that lemmas whose
     conclusion is [False] can be useful hints but having too many of
     them makes proof search inefficient. We'll also see a practical
     work-around to the efficiency issue. *)
+(** この節では、否定を結論部とする補題は一般にはヒントには適さないこと、そして[False]
+    を結論部とする補題は有用なヒントになりますが、
+    それが多過ぎると証明探索が非効率になるということを示します。
+    また、効率問題の現実的な回避策も見ます。*)
 
-(** Consider the following lemma, which asserts that a number
+(* Consider the following lemma, which asserts that a number
     less than or equal to 3 is not greater than 3. *)
+(** 次の補題を考えましょう。この補題は、3以下の数は3を越えていないと主張しています。*)
 
 Parameter le_not_gt : forall x,
   (x <= 3) -> ~ (x > 3).
 
-(** Equivalently, one could state that a number greater than three is
+(* Equivalently, one could state that a number greater than three is
     not less than or equal to 3. *)
+(** 等価的に、3を越える数は3以下ではないと主張することもできるでしょう。*)
 
 Parameter gt_not_le : forall x,
   (x > 3) -> ~ (x <= 3).
 
-(** In fact, both statements are equivalent to a third one stating
+(* In fact, both statements are equivalent to a third one stating
     that [x <= 3] and [x > 3] are contradictory, in the sense that
     they imply [False]. *)
+(** 実際、両主張は3つ目の主張：[x <= 3] かつ [x > 3] は矛盾する、と、
+   [False]を含意するという意味で同値です。*)
 
 Parameter le_gt_false : forall x,
   (x <= 3) -> (x > 3) -> False.
 
-(** The following investigation aim at figuring out which of the three
+(* The following investigation aim at figuring out which of the three
     statments is the most convenient with respect to proof
     automation. The following material is enclosed inside a [Section],
     so as to restrict the scope of the hints that we are adding. In
     other words, after the end of the section, the hints added within
     the section will no longer be active.*)
+(** 以下でやることの狙いは、証明自動化に関しては3つの主張のうちどれが便利かを調べることです。
+    以下の素材は[Section]内に入れられています。これは、追加するヒントのスコープを限定するためです。
+    言い換えると、セクションが終わった後では、
+    セクション内で追加されたヒントはアクティブではなくなります。*)
 
 Section DemoAbsurd1.
 
-(** Let's try to add the first lemma, [le_not_gt], as hint,
+(* Let's try to add the first lemma, [le_not_gt], as hint,
     and see whether we can prove that the proposition
     [exists x, x <= 3 /\ x > 3] is absurd. *)
+(** 最初の補題 [le_not_gt] をヒントとして追加して、
+    命題 [exists x, x <= 3 /\ x > 3] が不合理であることを証明できるか試してみましょう。*)
 
 Hint Resolve le_not_gt.
 
@@ -1818,10 +1930,14 @@ Proof.
   eapply le_not_gt. eauto. eauto.
 Qed.
 
-(** The lemma [gt_not_le] is symmetric to [le_not_gt], so it will not
+(* The lemma [gt_not_le] is symmetric to [le_not_gt], so it will not
     be any better. The third lemma, [le_gt_false], is a more useful
     hint, because it concludes on [False], so proof search will try to
     apply it when the current goal is [False]. *)
+(** 補題[gt_not_le]は[le_not_gt]と対称性があるため、同じことです。
+    3つ目の補題[le_gt_false]はより有効なヒントです。
+    なぜなら、[False]が結論部になっているため、現在のゴールが[False]であるときに、
+    証明探索が適用してみようとするからです。*)    
 
 Hint Resolve le_gt_false.
 
@@ -1837,19 +1953,26 @@ Proof.
   jauto.
 Qed.
 
-(** In summary, a lemma of the form [H1 -> H2 -> False] is a much more
+(* In summary, a lemma of the form [H1 -> H2 -> False] is a much more
     effective hint than [H1 -> ~ H2], even though the two statments
     are equivalent up to the definition of the negation symbol [~]. *)
+(** まとめると、[H1 -> H2 -> False] という形の補題は 
+    [H1 -> ~ H2] よりはるかに有効なヒントです。
+    両者は否定記号[~]の定義のもとで同値であるにもかかわらずそうなのです。*)    
 
-(** That said, one should be careful with adding lemmas whose
+(* That said, one should be careful with adding lemmas whose
     conclusion is [False] as hint. The reason is that whenever
     reaching the goal [False], the proof search mechanism will
     potentially try to apply all the hints whose conclusion is [False]
     before applying the appropriate one.  *)
+(** しかし、[False]を結論部とする補題をヒントに追加するのは慎重に行うべきです。
+    理由は、ゴール[False]に到達するときはいつでも、
+    証明探索メカニズムは、適切なヒントを適用する前に、
+    結論部が[False]であるヒントをすべて適用してみる可能性があるからです。*)
 
 End DemoAbsurd1.
 
-(** Adding lemmas whose conclusion is [False] as hint can be, locally,
+(* Adding lemmas whose conclusion is [False] as hint can be, locally,
     a very effective solution. However, this approach does not scale
     up for global hints.  For most practical applications, it is
     reasonable to give the name of the lemmas to be exploited for
@@ -1858,6 +1981,13 @@ End DemoAbsurd1.
     H]. Its behavior is described next. Observe that any of the three
     statements [le_not_gt], [gt_not_le] or [le_gt_false] can be
     used. *)
+(** 結論部が[False]である補題をヒントに追加することは、ローカルにはとても効率的な解です。
+    しかし、このアプローチはグローバルなヒントにはスケールアップ(拡大適用)できません。
+    一番現実的な適用のためには、矛盾を導くのに使う補題に名前を付けるのが合理的です。
+    タクティック [false H] はこの目的に有用です。
+    このタクティックは、ゴールを[False]に置換し、[eapply H] を呼びます。
+    その振る舞いは以下で記述します。
+    3つの主張[le_not_gt]、[gt_not_le]、[le_gt_false]のいずれでも使えることを見てください。*)
 
 Lemma demo_false : forall x,
   (x <= 3) -> (x > 3) -> 4 = 5.
@@ -1883,13 +2013,21 @@ Proof.
   false le_not_gt. eauto. eauto.
 Qed.
 
-(** In the above example, [false le_gt_false; eauto] proves the goal,
+(* In the above example, [false le_gt_false; eauto] proves the goal,
     but [false le_gt_false; auto] does not, because [auto] does not
     correctly instantiate the existential variable. Note that [false*
     le_gt_false] would not work either, because the [*] symbol tries
     to call [auto] first. So, there are two possibilities for
     completing the proof: either call [false le_gt_false; eauto], or
     call [false* (le_gt_false 3)]. *)
+(** 上の例で、[false le_gt_false; eauto] はゴールを証明します。
+    しかし [false le_gt_false; auto] はゴールを証明できません。
+    なぜなら[auto]は存在変数を正しく具体化しないからです。
+    [false* le_gt_false] も動作しないことに注意します。なぜなら[*]記号は
+    [auto]を最初に呼ぶからです。
+    ここでは、証明を完結するのに2つの可能性があります。
+    [false le_gt_false; eauto] を呼ぶか [false* (le_gt_false 3)]
+    を呼ぶかです。*)
 
 
 (* ####################################################### *)
