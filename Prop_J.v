@@ -1493,8 +1493,10 @@ Proof.
   apply MyProp1.   Qed.
 
 (** **** 練習問題: ★★ (MyProp) *)
-(** **** Exercise: 2 stars (MyProp) *)
-(** Here are two useful facts about MyProp.  The proofs are left
+(* **** Exercise: 2 stars (MyProp) *)
+(** MyPropに関する便利な2つの事実があります。 
+    証明はあなたのために残してあります。  *)
+(* Here are two useful facts about MyProp.  The proofs are left
     to you. *)
 
 Theorem MyProp_0 : MyProp 0.
@@ -1506,6 +1508,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
+(** これらをつかって、 [MyProp]は全ての奇数について成り立つことと、その逆も成り立つをことを示せます。 *)
 (** With these, we can show that [MyProp] holds of all even numbers,
     and vice versa. *)
 
@@ -1519,7 +1522,23 @@ Proof.
   Case "E = ev_SS n' E'".
     apply MyProp_plustwo. apply IHE'.  Qed.
 
-(** Here's an informal proof of this theorem:
+(** この定理の非形式的な証明は次のようになります。
+
+    _Proof_: [n] を [nat] とし、[ev n] の導出を [E] とします。
+    [MyProp n] の導出を示さなければなりません。 
+    [E] の帰納法について証明を行うので、以下の2つノ場合について考えなければなりません。
+
+    - [E]の最後のステップが[ev_0]だった場合、 [n] は [0] となる。
+      その場合、[MyProp 0]が成り立つをことを示さなければならない; 
+      補題 [MyProp_0] よりこれは真である。
+
+    -  [E]の最後のステップが[ev_SS]だった場合、 [n = S (S n')] となる [n']  が存在し、 [ev n'] の導出が存在する。 
+       [MyProp n'] が成り立つという帰納法の仮定を用いて、[MyProp (S (S n'))]を示さなければなりません。
+       しかし、補題 [MyProp_plustwo] により、[MyProp n']を示せば十分であることがわかり、さらにそれは帰納法の仮定そのものです。
+
+*)
+
+(* Here's an informal proof of this theorem:
 
     _Theorem_: For any nat [n], if [ev n] then [MyProp n].
 
@@ -1538,15 +1557,24 @@ Proof.
       to show [MyProp n'], which is exactly the induction
       hypothesis. [] *)
 
-(** **** Exercise: 3 stars (ev_MyProp) *)
+(** **** 練習問題: ★★★ (ev_MyProp) *)
+(* **** Exercise: 3 stars (ev_MyProp) *)
 Theorem ev_MyProp : forall n:nat,
   MyProp n -> ev n.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (ev_MyProp_informal) *)
-(** Write an informal proof corresponding to your
+(** **** 練習問題: ★★★, optional (ev_MyProp_informal) *)
+(* **** Exercise: 3 stars, optional (ev_MyProp_informal) *)
+(** [ev_MyProp] の 形式的な証明に対応する非形式的な証明を書きなさい。
+
+    定理: すべての自然数 [n] に対して、 [MyProp n] ならば [ev n]。
+
+    証明: (ここを埋める)
+ *)
+
+(* Write an informal proof corresponding to your
     formal proof of [ev_MyProp]:
 
     Theorem: For any nat [n], if [MyProp n] then [ev n].
@@ -1557,13 +1585,26 @@ Proof.
 
 
 (* ##################################################### *)
-(** * The Big Picture: Coq's Two Universes *)
+(** * 全体像: Coqの2つの宇宙 *)
+(* * The Big Picture: Coq's Two Universes *)
 
-(** Now that we've touched on several of Coq's basic structures,
+(** これまでCoqの基本的な構造についていくつか触れてきたので、
+    ここでは一歩引いてそれらがどのように組み合わさっているか少しだけ見てみましょう。
+*)
+
+(* Now that we've touched on several of Coq's basic structures,
     it may be useful to take a step back and talk a little about how
     it all fits together. *)
 
-(** Expressions in Coq live in two distinct universes:
+(** Coqの式は2つの異なる宇宙のどちらかに住んでいます。
+      - [Type] は計算とデータの宇宙です。
+      - [Prop] は論理的表明と根拠の宇宙です。
+
+    2つの宇宙は深い類似性があり、それぞれについて値、帰納的な定義、限量子などについて説明していきます。
+    しかし、数学的構造の定義や推論において、これらはまったく異なる役割を果たします。
+*)
+
+(* Expressions in Coq live in two distinct universes:
       - [Type] is the universe of _computations_ and _data_.
       - [Prop] is the universe of _logical assertions_ and _evidence_.
 
@@ -1572,9 +1613,40 @@ Proof.
    but they play quite different roles in defining and reasoning about
    mathematical structures. *)
 
-(** ** Values *)
+(** ** 値 *)
+(* ** Values *)
+(** 両方の宇宙はコンストラクタの無限集合とととに始まります。
+    コンストラクタは内部構造を全く持っておらず、ただのアトミックなシンボルです。 
+    例えば、[true], [false], [O], [S], [nil], [cons],
+    [ev_0], [ev_SS], ... などです。
 
-(** Both universes start with an infinite set of _constructors_.
+    最も単純な値は、コンストラクタの適用だけによって構成されます。
+    例えば:
+     - [true]
+     - [O]
+     - [S (S (S O))]
+     - [ev_0]
+     - [ev_SS (S (S O)) ev_0]
+     - [ev_SS (S (S (S (S O)))) (ev_SS (S (S O)) ev_0)]
+
+    そのような式は木として考えることもできます。
+    葉は0引数のコンストラクタ(引数なしで適用された)であり、内部ノードは1個以上の値に対して適用されたコンストラクタです。
+    [Type]の宇宙において、値はデータとして捉えます。
+    [Prop]において、値を根拠として捉えます。
+    [Prop]における値は、導出木と呼ばれることもあります。
+
+    関数もまた値です。例えば、
+     - [fun x => true]
+     - [fun b => negb b]
+     - [fun n => S (S (S n))]
+     - [fun n => fun (P : ev n) => ev_SS (S (S n)) P]
+
+   [Type]宇宙の値を返す関数は、計算を表します: 入力値を受け取り、入力から計算した出力値を返します。
+   [Prop]の値を返す関数は、全量子化された根拠と呼ばれます。 すなわち、ある命題に対する根拠を作るのに入力も用います。
+   (作られる命題も入力を使うかもしれません。)
+ *)
+
+(* Both universes start with an infinite set of _constructors_.
     Constructors have no internal structure: they are just atomic
     symbols.  For example, [true], [false], [O], [S], [nil], [cons],
     [ev_0], [ev_SS], ...
@@ -1608,6 +1680,7 @@ Proof.
     their inputs to build evidence for some proposition (whose
     statement may also involve these inputs). *)
 
+(** ** 帰納的定義 *)
 (** ** Inductive Definitions *)
 
 (** [Inductive] declarations give names to subsets of the set of all
