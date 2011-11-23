@@ -1786,9 +1786,9 @@ Admitted.
     large proofs, so we avoid it. This section introduces a few
     techniques for avoiding to manually unfold definitions before
     calling proof search. *)
-(** 中間的定義を使うことは、通常、主張をより簡潔により読みやすくすることから、
+(** 中間的定義を使うことは通常、主張をより簡潔に、より読みやすくすることから、
     形式的開発では一般に奨励されます。しかし定義は、証明を自動化することを少し難しくします。
-    問題は、証明探索メカニズムにとって、定義を展開しなければならないのがいつかが明らかではないからです。
+    問題は、証明探索メカニズムにとって、定義を展開しなければならないのがいつかが明らかではないことです。
     ここで、証明探索を呼ぶ前にすべての定義を展開しておくという素朴な戦略は、
     大きな証明ではスケールしない(拡大適用できない)ため、それは避ける、ということに注意します。
     この節では、証明探索前に手動で定義を展開することを避けるためのいくつかのテクニックを紹介します。*)
@@ -2031,9 +2031,10 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** Automation for Transitivity Lemmas *)
+(* ** Automation for Transitivity Lemmas *)
+(** ** 推移性補題についての自動化 *)
 
-(** Some lemmas should never be added as hints, because they would
+(* Some lemmas should never be added as hints, because they would
     very badly slow down proof search. The typical example is that of
     transitivity results. This section describes the problem and
     presents a general workaround.
@@ -2042,6 +2043,13 @@ Qed.
     two object [S] and [T] of type [typ]. Assume that this relation
     has been proved reflexive and transitive. The corresponding lemmas
     are named [subtype_refl] and [subtype_trans]. *)
+(** いくつかの補題はヒントに追加するべきではありません。それは、証明探索を非常に遅くするからです。
+    典型的な例は推移的な結果についてのものです。
+    この節では、その問題を説明し、一般的な回避策を示します。
+    
+    型 [typ] の2つのオブジェクト[S]と[T]の間のサブタイプ関係 [subtype S T] を考えましょう。
+    この関係は反射的かつ推移的であることが証明されていると仮定します。
+    対応する補題を[subtype_refl]と[subtype_trans]とします。 *)
 
 Parameter typ : Type.
 
@@ -2053,23 +2061,32 @@ Parameter subtype_refl : forall T,
 Parameter subtype_trans : forall S T U,
   subtype S T -> subtype T U -> subtype S U.
 
-(** Adding reflexivity as hint is generally a good idea,
+(* Adding reflexivity as hint is generally a good idea,
     so let's add reflexivity of subtyping as hint. *)
+(** 反射性をヒントに加えるのは一般に良い考えです。
+    サブタイプ関係の反射性をヒントに加えましょう。*)
 
 Hint Resolve subtype_refl.
 
-(** Adding transitivity as hint is generally a bad idea.  To
+(* Adding transitivity as hint is generally a bad idea.  To
     understand why, let's add it as hint and see what happens.
     Because we cannot remove hints once we've added them, we are going
     to open a "Section," so as to restrict the scope of the
     transitivity hint to that section. *)
+(** 推移性をヒントに加えることは一般には良い考えではありません。
+    それが何故かを理解するために、ヒントに加えてみて何が起こるか見てみましょう。
+    一度ヒントに追加するとそれを除去することはできないので、
+    セクション("Section")を設けて、
+    推移性ヒントのスコープをそのセクションに限定するようにします。*)
 
 Section HintsTransitivity.
 
 Hint Resolve subtype_trans.
 
-(** Now, consider the goal [forall S T, subtype S T], which clearly has
+(* Now, consider the goal [forall S T, subtype S T], which clearly has
     no hope of being solved. Let's call [eauto] on this goal. *)
+(** このとき、ゴール [forall S T, subtype S T] を考えます。
+    これは明らかに解ける見込みがありません。このゴールに[eauto]を呼んでみましょう。*)
 
 Lemma transitivity_bad_hint_1 : forall S T,
   subtype S T.
@@ -2077,12 +2094,13 @@ Proof.
   intros. (* debug *) eauto. (* Investigates 106 applications... *)
 Admitted.
 
-(** Note that after closing the section, the hint [subtype_trans]
+(* Note that after closing the section, the hint [subtype_trans]
     is no longer active. *)
+(** セクションを閉じた後では、ヒント[subtype_trans]はもうアクティブではなくなることに注意します。*)
 
 End HintsTransitivity.
 
-(** In the previous example, the proof search has spent a lot of time
+(* In the previous example, the proof search has spent a lot of time
     trying to apply transitivity and reflexivity in every possible
     way.  Its process can be summarized as follows. The first goal is
     [subtype S T]. Since reflexivity does not apply, [eauto] invokes
@@ -2097,8 +2115,24 @@ End HintsTransitivity.
     [eauto] keeps trying to apply it even though it most often doesn't
     help to solve the goal. So, one should never add a transitivity
     lemma as a hint for proof search. *)
+(** 上の例では、証明探索は多くの時間を費して、
+    推移性と反射性を可能なすべての方法で適用しようと試みています。
+    この過程は以下のようにまとめられます。
+    最初のゴールは [subtype S T] です。これに反射性は適用できないことから、
+    [eauto]は推移性を呼びます。この結果2つのサブゴール [subtype S ?X] と
+    [subtype ?X T] ができます。
+    最初のサブゴール [subtype S ?X] はすぐに解くことができます。
+    反射性を適用すれば十分です。この結果[?X]は[S]と単一化されます。
+    これから、第二のサブゴール [subtype ?X T] は [subtype S T] となります。
+    これは最初のゴールとまったく同一です...
 
-(** There is a general workaround for having automation to exploit
+    推移性補題の問題は、
+    この補題がサブタイプ関係を結論部とするどのようなゴールにも適用可能だということです。
+    このことから、[eauto]は、ほとんどの場合ゴールを解決する助けにならないにもかかわらず、
+    この補題を適用しようとし続けます。
+    これから、証明探索のヒントに推移性を加えることはやめるべきです。*)
+
+(* There is a general workaround for having automation to exploit
     transitivity lemmas without giving up on efficiency. This workaround
     relies on a powerful mechanism called "external hint." This
     mechanism allows to manually describe the condition under which
@@ -2112,6 +2146,16 @@ End HintsTransitivity.
     lemma when there is some evidence that this application might
     help.  To set up this "external hint," one has to write the
     following. *)
+(** 効率を無視せずに推移性補題を自動証明で使うための一般的回避策があります。
+    この回避策は "external hint" という強力なメカニズムを使います。
+    このメカニズムを使うと、
+    特定の補題を証明探索中でどういう条件の場合に試してみるべきかを手で書くことができます。
+
+    サブタイプの推移性の場合、推移性補題を [subtype S U] という形のゴールに適用してみるのは、
+    既に証明コンテキスト内に仮定として [subtype S T] または [subtype T U] があるときに限る、
+    とCoqに伝えます。言い換えると、推移性補題を適用するのは、
+    その適用が証明の助けになるという何らかの根拠があるときだけ、ということです。
+    この "external hint" を設定するために、次のように記述します。*)
 
 Hint Extern 1 (subtype ?S ?U) =>
   match goal with
@@ -2119,7 +2163,7 @@ Hint Extern 1 (subtype ?S ?U) =>
   | H: subtype ?T U |- _ => apply (@subtype_trans S T U)
   end.
 
-(** This hint declaration can be understood as follows.
+(* This hint declaration can be understood as follows.
     - "Hint Extern" introduces the hint.
     - The number "1" corresponds to a priority for proof search.
       It doesn't matter so much what priority is used in practice.
@@ -2148,8 +2192,37 @@ Hint Extern 1 (subtype ?S ?U) =>
 
     Note: the same external hint can be reused for any other transitive
     relation, simply by renaming [subtype] into the name of that relation. *)
+(** このヒント宣言は次のように理解できます。
+    - "Hint Extern" はヒントを導入します。
+    - 数 "1" は証明探索の優先度に対応します。
+      実際にどの優先度が使われるかはそれほど問題ではありません。
+    - パターン [subtype ?S ?U] はパターンが適用されるべきゴールの種類を記述します。
+      クエスチョンマークは、
+      ヒント記述の残りの部分で変数[?S]と[?U]が何らかの値に束縛されることを示します。
+    - 構文 [match goal with ... end] によって、
+      ゴールまたは証明コンテキストまたはその両方におけるパターンを認識しようとします。
+    - 最初のパターンは [H: subtype S ?T |- _] です。
+      これは、コンテキストが型 [subtype S ?T] である仮定[H]を持たなければならないことを示します。
+      ただし[S]はゴールのものと同一でなければならず、[?T]は任意の値で構いません。
+    - [H: subtype S ?T |- _] の最後の記号 [|- _] は、
+      証明課題がどのような形でなければならないかについて、これ以上の条件をつけないことを示します。
+    - それに続く枝 [=> apply (@subtype_trans S T U)] は、
+      ゴールが [subtype S U] という形で、[subtype S T] という形の仮定があるとき、
+      推移性補題を引数[S]、[T]、[U]を具体化して適用してみるべきであることを示します。
+      (なお、[subtype_trans]の前の記号[@]が実際に必要なのは、
+      暗黙の引数("Implicit Arguments")機能がアクティブであるときだけです。)
+    - 別の枝は、[H: subtype ?T U] という形の仮定に対応しますが、上記と対称です。
 
-(** Let us see an example illustrating how the hint works. *)
+    注意: 任意の別の推移的関係について同じ external hint を再利用することができます。
+    その場合、[subtype]をその関係の名前に置き換えるだけです。*)
+(* (訳注: 原文でヒントの第一枝を引用している部分は
+         [=> apply subtype_trans with (T:=T)]
+         と書いてあるが、実際のヒント記述と違っているので修正した。
+         文は修正の必要なしと判断し、そのまま訳している。) *)
+         
+
+(* Let us see an example illustrating how the hint works. *)
+(** このヒントがどのようにはたらくか例を見てみましょう。*)
 
 Lemma transitivity_workaround_1 : forall T1 T2 T3 T4,
   subtype T1 T2 -> subtype T2 T3 -> subtype T3 T4 -> subtype T1 T4.
@@ -2157,8 +2230,9 @@ Proof.
   intros. (* debug *) eauto. (* The trace shows the external hint being used *)
 Qed.
 
-(** We may also check that the new external hint does not suffer from the
+(* We may also check that the new external hint does not suffer from the
     complexity blow up. *)
+(** 新しい external hint が複雑さの爆発を起こさないことをチェックすることもできるでしょう。*)
 
 Lemma transitivity_workaround_2 : forall S T,
   subtype S T.
@@ -2168,9 +2242,10 @@ Admitted.
 
 
 (* ####################################################### *)
-(** * Decision Procedures *)
+(* * Decision Procedures *)
+(** * 決定手続き *)
 
-(** A decision procedure is able to solve proof obligations whose
+(* A decision procedure is able to solve proof obligations whose
     statement admits a particular form. This section describes three
     useful decision procedures. The tactic [omega] handles goals
     involving arithmetic and inequalities, but not general
@@ -2179,49 +2254,75 @@ Admitted.
     inequalities. The tactic [congruence] is able to prove equalities
     and inequalities by exploiting equalities available in the proof
     context. *)
+(** 決定手続きは主張が特定の形である証明課題を解くことができます。
+    この節では、3つの有用な決定手続きについて説明します。
+    タクティック[omega]は算術と不等式を含むゴールを扱うことができますが、
+    一般の積算は扱えません。
+    タクティック[ring]は積算を含む算術が扱えますが、不等式は対象としません。
+    タクティック[congruence]は証明コンテキストから得られる等式を使って、
+    等式および不等式を証明することができます。*)
 
 
 (* ####################################################### *)
 (** ** Omega *)
 
-(** The tactic [omega] supports natural numbers (type [nat]) as well as
+(* The tactic [omega] supports natural numbers (type [nat]) as well as
     integers (type [Z], available by including the module [ZArith]).
     It supports addition, substraction, equalities and inequalities.
     Before using [omega], one needs to import the module [Omega],
     as follows. *)
+(** タクティック[omega]は自然数(型[nat])と整数(型[Z]、これは
+    [ZArith]モジュールをincludeすることで利用可)を対象とします。
+    加算、減算、等式、不等式を対象とします。
+    [omega]を使う前にモジュール[Omega]を import する必要があります。
+    次の通りです。*)
 
 Require Import Omega.
 
-(** Here is an example. Let [x] and [y] be two natural numbers
+(* Here is an example. Let [x] and [y] be two natural numbers
     (they cannot be negative). Assume [y] is less than 4, assume
     [x+x+1] is less than [y], and assume [x] is not zero. Then,
     it must be the case that [x] is equal to one. *)
+(** 例を示します: [x]と[y]を2つの自然数(負にはならない)とする。
+    [y]は4以下と仮定し、[x+x+1]は[y]以下と仮定し、
+    そして[x]はゼロではないと仮定する。
+    すると、[x]は1でなければならない。*)
+(* (訳注: 原文 less than は下の式では実際には less than or equal to なので
+    「以下」としている) *)
 
 Lemma omega_demo_1 : forall (x y : nat),
   (y <= 4) -> (x + x + 1 <= y) -> (x <> 0) -> (x = 1).
 Proof. intros. omega. Qed.
 
-(** Another example: if [z] is the mean of [x] and [y], and if the
+(* Another example: if [z] is the mean of [x] and [y], and if the
     difference between [x] and [y] is at most [4], then the difference
     between [x] and [z] is at most 2. *)
+(** 別の例: もし[z]が[x]と[y]の間で、[x]と[y]の差が高々[4]である場合、
+    [x]と[z]の間は高々2である。*)
 
 Lemma omega_demo_2 : forall (x y z : nat),
   (x + y = z + z) -> (x - y <= 4) -> (x - z <= 2).
 Proof. intros. omega. Qed.
 
-(** One can proof [False] using [omega] if the mathematical facts
+(* One can proof [False] using [omega] if the mathematical facts
     from the context are contradictory. In the following example,
     the constraints on the values [x] and [y] cannot be all
     satisfied in the same time. *)
+(** コンテキストの数学的事実が矛盾している場合、[omega]を使って[False]を証明することができます。
+    次の例では、[x]と[y]の制約をすべて同時に満たすことはできません。*)
 
 Lemma omega_demo_3 : forall (x y : nat),
   (x + 5 <= y) -> (y - x < 3) -> False.
 Proof. intros. omega. Qed.
 
-(** Note: [omega] can prove a goal by contradiction only if its
+(* Note: [omega] can prove a goal by contradiction only if its
     conclusion is reduced [False]. The tactic [omega] always fails
     when the conclusion is an arbitrary proposition [P], even though
     [False] implies any proposition [P] (by [ex_falso_quodlibet]). *)
+(** 注意: [omega]が矛盾によってゴールを証明できるのは、
+    ゴールの結論部が[False]に簡約されるときだけです。
+    [False]から([ex_falso_quodlibet]によって)任意の命題[P]が導出されますが、
+    タクティック[omega]は、ゴールの結論部が任意の命題[P]であるときは常に失敗します。*)
 
 Lemma omega_demo_4 : forall (x y : nat) (P : Prop),
   (x + 5 <= y) -> (y - x < 3) -> P.
@@ -2235,13 +2336,19 @@ Qed.
 
 
 (* ####################################################### *)
-(** ** Ring *)
+(* ** Ring *)
+(** ** Ring(環) *)
 
-(** Compared with [omega], the tactic [ring] adds support for
+(* Compared with [omega], the tactic [ring] adds support for
     multiplications, however it gives up the ability to reason on
     inequations. Moreover, it supports only integers (type [Z]) and
     not natural numbers (type [Z]). Here is an example showing how to
     use [ring]. *)
+(** [omega]と比較して、タクティック[ring]は積算を対象としていますが、
+    不等式についての推論は放棄しています。
+    さらに、対象とするのは整数(型[Z])だけで、自然数(型[nat])は対象外です。
+    以下は[ring]の使い方の例です。*)
+(* (訳注: natural numbers の type を [Z] としているのは間違いと判断し、[nat]に修正。) *)
 
 Module RingDemo.
   Require Import ZArith.
@@ -2256,14 +2363,20 @@ End RingDemo.
 
 
 (* ####################################################### *)
- (** ** Congruence *)
+(* ** Congruence *)
+(** ** Congruence(合同) *)
 
-(** The tactic [congruence] is able to exploit equalities from the
+(* The tactic [congruence] is able to exploit equalities from the
     proof context in order to automatically perform the rewriting
     operations necessary to establish a goal. It is slightly more
     powerful than the tactic [subst], which can only handle equalities
     of the form [x = e] where [x] is a variable and [e] an
     expression. *)
+(** タクティック [congruence] は、証明コンテキストの等式を使って、
+    ゴールに至るための書き換えを自動実行することができます。
+    タクティック [subst] が扱える等式は変数 [x] と式 [e] について [x = e] 
+    という形のものだけですが、
+    [congruence] は [subst] より若干強力です。 *)
 
 Lemma congruence_demo_1 :
    forall (f : nat->nat->nat) (g h : nat->nat) (x y z : nat),
@@ -2273,8 +2386,10 @@ Lemma congruence_demo_1 :
    f 2 (h z) = z.
 Proof. intros. congruence. Qed.
 
-(** Moreover, [congruence] is able to exploit universally quantified
+(* Moreover, [congruence] is able to exploit universally quantified
     equalities, for example [forall a, g a = h a]. *)
+(** さらに[congruence]は、例えば [forall a, g a = h a] 
+    のように全称限量された等式を扱えます。*)
 
 Lemma congruence_demo_2 :
    forall (f : nat->nat->nat) (g h : nat->nat) (x y z : nat),
@@ -2284,16 +2399,20 @@ Lemma congruence_demo_2 :
    f 2 (h y) = z.
 Proof. congruence. Qed.
 
-(** Next is an example where [congruence] is very useful. *)
+(* Next is an example where [congruence] is very useful. *)
+(** 次は[congruence]がとても有効な例です。*)
 
 Lemma congruence_demo_4 : forall (f g : nat->nat),
   (forall a, f a = g a) ->
   f (g (g 2)) = g (f (f 2)).
 Proof. congruence. Qed.
 
-(** The tactic [congruence] is able to prove a contradiction if the
+(* The tactic [congruence] is able to prove a contradiction if the
     goal entails an equality that contradicts an inequality available
     in the proof context. *)
+(** タクティック[congruence]は、
+    証明コンテキストで等しくない関係にある両辺についての等式をゴールが前提とするとき、
+    矛盾を証明できます。*)
 
 Lemma congruence_demo_3 :
    forall (f g h : nat->nat) (x : nat),
@@ -2303,6 +2422,8 @@ Lemma congruence_demo_3 :
    False.
 Proof. congruence. Qed.
 
-(** One of the strengths of [congruence] is that it is a very fast
+(* One of the strengths of [congruence] is that it is a very fast
     tactic. So, one should not hesitate to invoke it wherever it might
     help. *)
+(** [congruence]の強みの1つはとても速いタクティックだということです。
+    このため、役立つかもしれないときはいつでも、試すことをためらう必要はありません。*)
