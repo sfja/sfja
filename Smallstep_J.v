@@ -330,10 +330,12 @@ Proof.
     left-hand side is finished: if [t2] can take a step to [t2'],
     then [tm_plus (tm_const n) t2] steps to [tm_plus (tm_const n)
     t2']: *)
-(** 和の右側がステップを進むことができるのは、左側が終了したときだけです。
+(** 和の右側がステップを進むことができるのは、左側が終了したときだけです:
     もし[t2]が1ステップで[t2']になるならば、
     [tm_plus (tm_const n) t2] は1ステップで [tm_plus (tm_const n) t2']
-    になります: *)
+    になります。(次の証明を完成させなさい): *)
+(* (訳注: 他のところと比べて、明示的な練習問題としての指示がなかったので、
+   意を汲んで追記しました。) *)
     
 
 Example test_step_2 :
