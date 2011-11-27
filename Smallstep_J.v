@@ -61,7 +61,7 @@ Require Import Relations.
 (** ここまで見てきた評価器(例えば[aexp]のもの、[bexp]のもの、コマンドのもの)
     はビッグステップスタイルで記述されてきました。
     つまり、与えられた式がどのように最終的な値になるか
-    (またはコマンドとストア(store)の組がどのように最終ストアになるか)を特定していました。
+    (またはコマンドと記憶状態(store)の組がどのように最終記憶状態になるか)を特定していました。
     「すべてが1つの大きなステップ」で行われました。
 
     このスタイルは単純で多くの目的のために自然な方法です(実際、Gilles Kahn は、
@@ -108,12 +108,15 @@ Require Import Relations.
     「ビッグステップ」の[eval]関係を置き換えます。*)
 
 (* ########################################################### *)
-(** * A Toy Language *)
+(* * A Toy Language *)
+(** * おもちゃの言語 *)
 
-(** To save space in the discussion, let's go back to an
+(* To save space in the discussion, let's go back to an
     incredibly simple language containing just constants and addition.
     At the end of the chapter, we'll see how to apply the same
     techniques to the full Imp language. *)
+(** 無駄な議論を省くため、定数と足し算だけの極端に単純な言語に戻りましょう。
+    この章の終わりには、同じテクニックをImp言語全体に適用する方法がわかるでしょう。*)
 
 Inductive tm : Type :=
   | tm_const : nat -> tm
@@ -125,8 +128,10 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
 
 Module SimpleArith0.
 
-(** Here is a standard evaluator for this language, written in the
+(* Here is a standard evaluator for this language, written in the
     same (big-step) style as we've been using up to this point. *)
+(** 次がこの言語の標準的な評価器です。
+    ここまでやってきたのと同じ(ビッグステップの)スタイルで記述されています。*)
 
 Fixpoint eval (t : tm) : nat :=
   match t with
@@ -138,10 +143,12 @@ End SimpleArith0.
 
 Module SimpleArith1.
 
-(** Now, here is the same evaluator, written in exactly the same
+(* Now, here is the same evaluator, written in exactly the same
     style, but formulated as an inductively defined relation.  Again,
     we use the notation [t || n] for "[t] evaluates to [n]." *)
-(**
+(** 次は同じ評価器を、まったく同じスタイルながら、帰納的に定義された関係によって定式化したものです。
+    再び、「[t]が[n]に評価される」を記法 [t || n] で表しています。*)
+(*
 [[[
                                 ------                                (E_Const)
                                 n || n
@@ -157,6 +164,20 @@ Module SimpleArith1.
     [||] is the mathematical sum of the numbers [n1] and [n2].  The
     formal Coq version of the definition is more pedantic about this
     distinction: *)
+(**
+[[
+                                ------                                (E_Const)
+                                n || n
+
+                               t1 || n1
+                               t2 || n2
+                        ---------------------                          (E_Plus)
+                        t1 + t2 || plus n1 n2
+]]
+    2つ目の規則で [n1 + n2] ではなく [plus n1 n2] と書いています。
+    これは、[||] の左側にある[+]が抽象構文木のノードであるのに対し、
+    [||] の右側の加算は数値 [n1] と [n2] の数学的な和であることを強調するためです。
+    形式的なCoqのバージョンではこの区別についてより堅苦しくなっています。*)
 
 Reserved Notation " t '||' n " (at level 50, left associativity).
 
@@ -172,9 +193,11 @@ Inductive eval : tm -> nat -> Prop :=
 
 End SimpleArith1.
 
-(** Here is a slight variation, still in big-step style, where
+(* Here is a slight variation, still in big-step style, where
     the final result of evaluating a term is also a term, rather than
     a bare number. *)
+(** 次はわずかに変わっています。まだビッグステップスタイルですが、
+    項の最終結果が数値そのものではなく、また項になっています。*)
 
 Reserved Notation " t '||' t' " (at level 50, left associativity).
 
@@ -188,9 +211,11 @@ Inductive eval : tm -> tm -> Prop :=
 
   where " t '||' t' " := (eval t t').
 
-(** (Note that this doesn't change anything in the informal rules,
+(* (Note that this doesn't change anything in the informal rules,
     where we are eliding the distinction between the constant _term_
     [n] and the bare _number_ [n].) *)
+(** (非形式的な規則では、定数「項」[n]とそのままの「数値」[n]の区別を省いているので、
+    何も変わらないことに注意します。) *)
 
 Tactic Notation "eval_cases" tactic(first) ident(c) :=
   first;
@@ -198,8 +223,9 @@ Tactic Notation "eval_cases" tactic(first) ident(c) :=
 
 Module SimpleArith2.
 
-(** Now, here is a small-step version. *)
-(**
+(* Now, here is a small-step version. *)
+(** そして、次がスモールステップ版です。*)
+(*
 [[[
                         ----------------------              (ST_PlusConstConst)
                         n1 + n2 ==> plus n1 n2
@@ -213,11 +239,28 @@ Module SimpleArith2.
                          n1 + t2 || n1 + t2'
 ]]]
 *)
-(** Note that we're using variable names here to lighten the notation:
+(**
+[[
+                        ----------------------              (ST_PlusConstConst)
+                        n1 + n2 ==> plus n1 n2
+
+                              t1 || t1'
+                         -------------------                         (ST_Plus1)
+                         t1 + t2 || t1' + t2
+
+                              t2 || t2'
+                         -------------------                         (ST_Plus2)
+                         n1 + t2 || n1 + t2'
+]]
+*)
+(* Note that we're using variable names here to lighten the notation:
     by convention, [n1] and [n2] refer only to constants (constructed
     with [tm_const]), while [t1] and [t2] refer to arbitrary terms.
     In the formal rules, we use explicit constructors to make the same
     distinction. *)
+(** なお、記法に光をあてるのに変数名を使っています。慣習として、[n1]と[n2]は定数
+    ([tm_const]で構成されるもの)のみを指します。一方[t1]と[t2]は任意の項を指します。
+    形式的規則では明示的なコンストラクタを使ってこの区別をします。*)
 
 Reserved Notation " t '==>' t' " (at level 40).
 
@@ -233,7 +276,7 @@ Inductive step : tm -> tm -> Prop :=
 
   where " t '==>' t' " := (step t t').
 
-(** Things to notice:
+(* Things to notice:
 
     - We are defining just a single reduction step, in which
       one [tm_plus] node is replaced by its value.
@@ -244,17 +287,31 @@ Inductive step : tm -> tm -> Prop :=
       itself; the other two rules tell how to find it.
 
     - A term that is just a constant cannot take a step. *)
+(** 注目すること:
+
+    - 定義しているのは簡約のちょうど1ステップです。
+      そこでは1つの[tm_plus]ノードがその値に置き換えられます。
+
+    - 各ステップでは「最左」の準備ができている(つまり、引数が両方とも定数である)
+      [tm_plus]ノードを探して、それをその場で書き換えます。
+      最初の規則は[tm_plus]ノードをどのように書き換えるかを定めます。
+      残りの2つの規則は、それをどう探すかを定めます。
+
+    - 定数の項は、ステップを進めません。*)
 
 Tactic Notation "step_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "ST_PlusConstConst"
   | Case_aux c "ST_Plus1" | Case_aux c "ST_Plus2" ].
 
-(** A couple of examples of reasoning with the [step]
+(* A couple of examples of reasoning with the [step]
     relation... *)
+(** [step]関係を使った推論の例を2つ... *)
 
-(** If [t1] can take a step to [t1'], then [tm_plus t1 t2] steps
+(* If [t1] can take a step to [t1'], then [tm_plus t1 t2] steps
     to [plus t1' t2]: *)
+(** もし[t1]が1ステップで[t1']になるならば、
+    [tm_plus t1 t2] は1ステップで [plus t1' t2] になります: *)
 
 Example test_step_1 :
       tm_plus
@@ -267,11 +324,17 @@ Example test_step_1 :
 Proof.
   apply ST_Plus1. apply ST_PlusConstConst.  Qed.
 
-(** **** Exercise: 2 stars (test_step_2) *)
-(** Right-hand sides of sums can take a step only when the
+(* **** Exercise: 2 stars (test_step_2) *)
+(** **** 練習問題: ★★ (test_step_2) *)
+(* Right-hand sides of sums can take a step only when the
     left-hand side is finished: if [t2] can take a step to [t2'],
     then [tm_plus (tm_const n) t2] steps to [tm_plus (tm_const n)
     t2']: *)
+(** 和の右側がステップを進むことができるのは、左側が終了したときだけです。
+    もし[t2]が1ステップで[t2']になるならば、
+    [tm_plus (tm_const n) t2] は1ステップで [tm_plus (tm_const n) t2']
+    になります: *)
+    
 
 Example test_step_2 :
       tm_plus
@@ -289,7 +352,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** One interesting property of the [==>] relation is that, like the
+(* One interesting property of the [==>] relation is that, like the
     evaluation relation for our language of Imp programs, it is
     _deterministic_.
 
@@ -318,6 +381,33 @@ Proof.
         is [ST_Plus2], since this would imply that [x] has the form
         [tm_plus t1 t2] where [t1] has both the form [tm_plus t1 t2] and
         the form [tm_const n]. [] *)
+(** 関係 [==>] のおもしろい性質の1つは、
+    Imp プログラムの言語の評価関係と同様、決定性を持つ(_deterministic_)ということです。
+
+    「定理」: 各[t]に対して、[t]が1ステップで[t']になる([t ==> t'] が証明可能な)
+    [t']は高々1つである。
+    形式的には、これは、[==>]が部分関数であるというのと同じです。
+
+    「証明スケッチ」:[x]が1ステップで[y1]と[y2]のどちらにもなるとき、[y1]と[y2]
+    が等しいことを、[step x y1] の導出についての帰納法で示す。
+    この導出と [step x y2] の導出のそれぞれで使われた最後の規則によって、
+    いくつかの場合がある。
+
+      - もし両者とも [ST_PlusConstConst] ならば、一致は明らかである。
+
+      - 導出が両者とも [ST_Plus1] または [ST_Plus2] で終わるならば、
+        帰納法の仮定から成立する。
+
+      - 一方が [ST_PlusConstConst] で、他方が [ST_Plus1] または [ST_Plus2]
+        であることはあり得ない。なぜなら、そうなるためには、
+        [x] が [tm_plus t1 t2] の形で([ST_PlusConstConst]より)
+        [t1]と[t2]が両者とも定数であり、かつ[t1]または[t2]が [tm_plus ...] 
+        の形である...
+
+      - 同様に、一方が [ST_Plus1] で他方が [ST_Plus2] であることもあり得ない。
+        なぜなら、そのためには、[x] は [tm_plus t1 t2] の形で、
+        [t1] が [tm_plus t1 t2] の形でも [tm_const n] 
+        の形でもなければならないからである。[] *)
 
 Theorem step_deterministic:
   partial_function step.
