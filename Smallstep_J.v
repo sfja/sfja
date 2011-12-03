@@ -258,7 +258,7 @@ Module SimpleArith2.
     with [tm_const]), while [t1] and [t2] refer to arbitrary terms.
     In the formal rules, we use explicit constructors to make the same
     distinction. *)
-(** なお、記法に光をあてるのに変数名を使っています。慣習として、[n1]と[n2]は定数
+(** なお、ここでは記法を簡単にするため変数名を使っています。慣習として、[n1]と[n2]は定数
     ([tm_const]で構成されるもの)のみを指します。一方[t1]と[t2]は任意の項を指します。
     形式的規則では明示的なコンストラクタを使ってこの区別をします。*)
 
@@ -404,7 +404,7 @@ Proof.
         であることはあり得ない。なぜなら、そうなるためには、
         [x] が [tm_plus t1 t2] の形で([ST_PlusConstConst]より)
         [t1]と[t2]が両者とも定数であり、かつ[t1]または[t2]が [tm_plus ...] 
-        の形である...
+        の形でなければならない。
 
       - 同様に、一方が [ST_Plus1] で他方が [ST_Plus2] であることもあり得ない。
         なぜなら、そのためには、[x] は [tm_plus t1 t2] の形で、
@@ -437,12 +437,14 @@ Proof.
 End SimpleArith2.
 
 (* ########################################################### *)
-(** ** Values *)
+(* ** Values *)
+(** ** 値 *)
 
-(** Let's take a moment to slightly generalize the way we state the
+(* Let's take a moment to slightly generalize the way we state the
     definition of single-step reduction.  *)
+(** 定義した1ステップ簡約の定義をちょっとだけ一般化するために少し時間をとりましょう。*)
 
-(** It is useful to think of the [==>] relation as defining an
+(* It is useful to think of the [==>] relation as defining an
     _abstract machine_:
 
       - At any moment, the _state_ of the machine is a term.
@@ -463,18 +465,39 @@ End SimpleArith2.
 
       - When no more reduction is possible, "read out" the final state
         of the machine as the result of execution. *)
+(** 関係 [==>] を抽象機械(_abstract machine_)の定義と考えるのは便利です:
 
-(** Intuitively, it is clear that the final states of the
+      - どの時点でも、機械の状態(_state_)は項です。
+
+      - 機械のステップ(_step_)は、計算のアトミックな単位です。ここでは、1つの加算処理です。
+
+      - 機械の停止状態(_halting states_)は、さらなる計算が存在しない状態です。
+
+    このとき、項[t]は以下のように評価できます:
+
+      - [t]を機械の開始状態としてとります。
+
+      - 次のような機械の状態の列を見つけるために、[==>] 関係を繰り返し使います。
+        見つけるのは、[t]から始まり、それぞれの状態から1ステップでその次の状態になる列です。
+
+      - もう簡約ができなくなったとき、機械の最終状態を、実行結果として「読み出し」ます。*)
+
+(* Intuitively, it is clear that the final states of the
     machine are always terms of the form [tm_const n] for some [n].
     We call such terms _values_. *)
+(** 直観的には、機械の最終状態が常に、
+    ある[n]についての [tm_const n] という形の項になることは明らかです。
+    そのような項を「値」(_values_)と呼びます。*)
 
 Inductive value : tm -> Prop :=
   v_const : forall n, value (tm_const n).
 
-(** Having introduced the idea of values, we can use it in the
+(* Having introduced the idea of values, we can use it in the
     definition of the [==>] relation to write [ST_Plus2] rule in a
     slightly more intuitive way: *)
-(**
+(** 値の概念を導入したので、これを [==>] 関係の定義に使うことで、
+    [ST_Plus2] 規則をもう少しだけ直観的なものにできます: *)
+(*
 [[[
                         ----------------------              (ST_PlusConstConst)
                         n1 + n2 ==> plus n1 n2
@@ -488,10 +511,27 @@ Inductive value : tm -> Prop :=
                          v1 + t2 || v1 + t2'
 ]]]
 *)
-(** Again, the variable names here carry important information:
+(**
+[[
+                        ----------------------              (ST_PlusConstConst)
+                        n1 + n2 ==> plus n1 n2
+
+                              t1 || t1'
+                         -------------------                         (ST_Plus1)
+                         t1 + t2 || t1' + t2
+
+                              t2 || t2'
+                         -------------------                         (ST_Plus2)
+                         v1 + t2 || v1 + t2'
+]]
+*)
+(* Again, the variable names here carry important information:
     by convention, [v1] ranges only over values, while [t1] and [t2]
     range over arbitrary terms.  In the Coq version of the rules, we
     use an explicit [value] hypothesis for the same purpose. *)
+(** 再び、変数名が重要な情報を担っています:
+    慣習として、[v1]は値のみを変域とし、一方[t1]と[t2]は任意の項を変域とします。
+    規則のCoqバージョンでは、同じ目的のために明示的な[value]仮定を使います。*)
 
 Reserved Notation " t '==>' t' " (at level 40).
 
@@ -514,8 +554,9 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
   [ Case_aux c "ST_PlusConstConst"
   | Case_aux c "ST_Plus1" | Case_aux c "ST_Plus2" ].
 
-(** **** Exercise: 3 stars, recommended (redo_determinacy) *)
-(** As a sanity check on this change, let's re-verify determinacy
+(* **** Exercise: 3 stars, recommended (redo_determinacy) *)
+(** **** 練習問題: ★★★, recommended (redo_determinacy) *)
+(* As a sanity check on this change, let's re-verify determinacy
 
     Proof sketch: We must show that if [x] steps to both [y1] and [y2]
     then [y1] and [y2] are equal.  Consider the final rules used in
@@ -536,10 +577,33 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
 
     - The cases when both derivations end with [ST_Plus1] or
       [ST_Plus2] follow by the induction hypothesis. [] *)
+(** この変更のサニティチェックのため、決定性を再検証しましょう。
 
-(** Most of this proof is the same as the one above.  But to get
+    証明スケッチ: もし[x]が1ステップで[y1]にも[y2]にも進むならば、
+    [y1]と[y2]が等しいことを示さなければならない。
+    [step x y1] と [step x y2] の導出の最後の規則を考える。
+
+    - もし両者とも[ST_PlusConstConst]ならば、一致は明らかである。
+
+    - 一方が [ST_PlusConstConst] で、他方が [ST_Plus1] または [ST_Plus2]
+      であることはあり得ない。なぜなら、そうなるためには、
+      [x] が [tm_plus t1 t2] の形で([ST_PlusConstConst]より)
+      [t1]と[t2]が両者とも定数であり、かつ[t1]または[t2]が [tm_plus ...] 
+      の形でなければならない。
+
+    - 同様に、一方が [ST_Plus1] で他方が [ST_Plus2] であることもあり得ない。
+      なぜなら、そのためには、[x] が [tm_plus t1 t2] の形で、
+      [t1] は [tm_plus t1 t2] の形であり、かつ( [tm_const n] の形であるから)
+      値でもなければならないからである。
+
+    - 導出が両者とも [ST_Plus1] または [ST_Plus2] で終わるならば、
+      帰納法の仮定から成立する。[] *)
+
+(* Most of this proof is the same as the one above.  But to get
     maximum benefit from the exercise you should try to write it from
     scratch and just use the earlier one if you get stuck. *)
+(** 証明のほとんどは前のものと同じです。しかし、練習問題の効果を最大にするために、
+    ゼロから証明を書き、前のものを見るのは行き詰まった時だけにしなさい。 *)
 
 Theorem step_deterministic :
   partial_function step.
