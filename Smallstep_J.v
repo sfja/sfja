@@ -612,16 +612,21 @@ Proof.
 (** [] *)
 
 (* ########################################################### *)
-(** ** Strong Progress and Normal Forms *)
+(* ** Strong Progress and Normal Forms *)
+(** ** 強進行と正規形 *)
 
-(** The definition of single-step reduction for our toy language is
+(* The definition of single-step reduction for our toy language is
     fairly simple, but for a larger language it would be pretty easy
     to forget one of the rules and create a situation where some term
     cannot take a step even though it has not been completely reduced
     to a value.  The following theorem shows that we did not, in fact,
     make such a mistake here. *)
+(** おもちゃの言語に対する1ステップの簡約の定義はかなり単純です。
+    しかし、より大きな言語に対しては、何か規則を忘れてしまうことは簡単に起き、
+    項が完全に値に簡約されていないのにステップを進めなくなってしまうことが発生します。
+    次の定理は、このような間違いをしていないことを示します。*)
 
-(** _Theorem_ (_Strong Progress_): For all [t:tm], either [t] is a
+(* _Theorem_ (_Strong Progress_): For all [t:tm], either [t] is a
     value, or there exists a term [t'] such that [t ==> t'].
 
     _Proof_: By induction on [t].
@@ -640,12 +645,38 @@ Proof.
         by [ST_Plus2].
 
       - If [t1] can take a step, then so can [t], by [ST_Plus1].  [] *)
+(** 「定理(強進行)」(_Strong Progress_):すべての [t:tm] について
+    [t]は値であるか、ある項[t']があって [t ==> t'] となる。
 
-(** This important property is called _strong progress_, because
+    「証明」: [t]についての帰納法で証明する。
+
+    - [t = tm_const n] とする。すると、[t] は [value](値)である。
+
+    - [t = tm_plus t1 t2] と仮定する。ここで(帰納仮定から)
+      [t1]は値であるか、1ステップである[t1']になり、また、[t2]は値であるか、
+      1ステップである[t2']になる。
+      ここで必要なのは、[tm_plus t1 t2]が値であるか、
+      ある[t']に1ステップで進むということを示すことである。
+
+      - もし[t1]と[t2]がともに値なら、[ST_PlusConstConst]により
+        [t]はステップを進むことができる。
+
+      - もし[t1]が値で[t2]がステップを進むことができるならば、[ST_Plus2]により
+        [t]もステップを進むことができる。
+
+      - もし[t1]がステップを進むことができるならば、[ST_Plus1]により
+        [t]もステップを進むことができる。  [] *)
+
+(* This important property is called _strong progress_, because
     every term either is a value or can "make progress" by stepping to
     some other term.  (The qualifier "strong" distinguishes it from a
     more refined version that we'll see in later chapters, called
     simply "progress.") *)
+(** この重要な性質は「強進行」(_strong progress_)と呼ばれます。
+    これは、すべての項が値であるか、別の項に「進行できる」("make progress")
+    ことからきた名称です。「強」("strong")という修飾句は、
+    後の章のより細分されたバージョン(単に「進行」("progress")と呼ばれる)
+    と区別するためのものです。*)
 
 Theorem strong_progress : forall t,
   value t \/ (exists t', t ==> t').
@@ -664,25 +695,35 @@ Proof.
           exists (tm_plus t' t2).
           apply ST_Plus1. apply H0.  Qed.
 
-(** The idea of "making progress" can be extended to tell us something
+(* The idea of "making progress" can be extended to tell us something
     interesting about [value]s: they are exactly the terms that
     _cannot_ make progress in this sense.  To state this fact, let's
     begin by giving a name to terms that cannot make progress: We'll
     call them _normal forms_. *)
+(** 「進行する」という概念の拡張から、[value](値)についての興味深い性質がわかります:
+    値とはこの意味で進行「できない」項のことに他なりません。
+    この事実を述べるために、進行できない項に名前をつけましょう。そういう項を「正規形」
+    (_normal form_)と呼びます。*)
 
 Definition normal_form {X:Type} (R:relation X) (t:X) : Prop :=
   ~ exists t', R t t'.
 
-(** This definition actually specifies what it is to be a normal form
+(* This definition actually specifies what it is to be a normal form
     for an _arbitrary_ relation [R] over an arbitrary set [X], not
     just for the particular single-step reduction relation over terms
     that we are interested in at the moment.  We'll re-use the same
     terminology for talking about other relations later in the
     course. *)
+(** この定義は実際には、任意の集合[X]の上の「任意の」関係[R]について、
+    何が正規形であるかを定めています。
+    今興味対象としている、項の上の特定の1ステップ簡約関係に限るものではありません。
+    このコースで後に、別の関係の議論において同じ用語法を用います。*)
 
-(** We can use this terminology to generalize the observation we made
+(* We can use this terminology to generalize the observation we made
     in the strong progress theorem: in this language, normal forms and
     values are actually the same thing. *)
+(** 強進行定理の洞察を一般化するためにこの用語を使います。
+    この言語では、正規形と値とは実質的に同じものです。*)
 
 Lemma value_is_nf : forall t,
   value t -> normal_form step t.
@@ -707,7 +748,7 @@ Proof.
   split. apply nf_is_value. apply value_is_nf.
 Qed.
 
-(** Why is this interesting?  For two reasons:
+(* Why is this interesting?  For two reasons:
 
     - Because [value] is a syntactic concept -- it is a defined by
       looking at the form of a term -- while [normal_form] is a
@@ -716,13 +757,24 @@ Qed.
 
     - Indeed, there are lots of languages in which the concepts of
       normal form and value do _not_ coincide. *)
+(** なぜこれが興味深いのでしょう？ 2つの理由があります:
 
-(** Let's examine how this can happen... *)
+    - なぜなら[value](値)は構文的概念です。つまり項の形を見ることで定義されます。
+      一方[normal_form](正規形)は意味論的なものです。
+      つまり項がどのようにステップを進むかによって定義されます。
+      この2つの概念が一致することは自明ではないのです!
+
+    - 実際、正規形と値の概念が一致「しない」言語はたくさん存在します。*)
+
+(* Let's examine how this can happen... *)
+(** これがどうして起こるのか調べてみましょう... *)
 
 (* ##################################################### *)
 
-(** We might, for example, mistakenly define [value] so that it
+(* We might, for example, mistakenly define [value] so that it
     includes some terms that are not finished reducing. *)
+(** 例えば、[value](値)の定義を間違えていて、
+    簡約が完了していない項を含んでいるかもしれません。*)
 
 Module Temp1.
 (* Open an inner module so we can redefine value and step. *)
@@ -747,7 +799,8 @@ Inductive step : tm -> tm -> Prop :=
 
   where " t '==>' t' " := (step t t').
 
-(** **** Exercise: 3 stars, recommended (value_not_same_as_normal_form) *)
+(* **** Exercise: 3 stars, recommended (value_not_same_as_normal_form) *)
+(** **** 練習問題: ★★★, recommended (value_not_same_as_normal_form) *)
 Lemma value_not_same_as_normal_form :
   exists t, value t /\ ~ normal_form step t.
 Proof.
@@ -758,8 +811,10 @@ End Temp1.
 
 (* ########################################################### *)
 
-(** Alternatively, we might mistakenly define [step] so that it
+(* Alternatively, we might mistakenly define [step] so that it
     permits something designated as a value to reduce further. *)
+(** あるいは、[step]の定義を間違えていて、
+    値とされたものをさらに簡約するようになっているかもしれません。*)
 
 Module Temp2.
 
@@ -783,7 +838,8 @@ Inductive step : tm -> tm -> Prop :=
 
   where " t '==>' t' " := (step t t').
 
-(** **** Exercise: 3 stars, recommended (value_not_same_as_normal_form) *)
+(* **** Exercise: 3 stars, recommended (value_not_same_as_normal_form) *)
+(** **** 練習問題: ★★★, recommended (value_not_same_as_normal_form) *)
 Lemma value_not_same_as_normal_form :
   exists t, value t /\ ~ normal_form step t.
 Proof.
@@ -794,9 +850,12 @@ End Temp2.
 
 (* ########################################################### *)
 
-(** Finally, we might mistakenly define [value] and [step] so that
+(* Finally, we might mistakenly define [value] and [step] so that
     there is some term that is not a value but that cannot take a step
     in the [step] relation.  Such terms are said to be _stuck_. *)
+(** 最後に、[value]と[step]の定義を間違えていて、ある項について、値でもなく、
+    [step]関係で1ステップ進むこともできなくなっているかもしれません。
+    そのような項は「行き詰まり」(_stuck_)と呼ぶべきでしょう。*)
 
 Module Temp3.
 
@@ -814,9 +873,11 @@ Inductive step : tm -> tm -> Prop :=
 
   where " t '==>' t' " := (step t t').
 
-(** (Note that [ST_Plus2] is missing.) *)
+(* (Note that [ST_Plus2] is missing.) *)
+(** ([ST_Plus2] がないことに注意します。) *)
 
-(** **** Exercise: 3 stars (value_not_same_as_normal_form') *)
+(* **** Exercise: 3 stars (value_not_same_as_normal_form') *)
+(** **** 練習問題: ★★★ (value_not_same_as_normal_form') *)
 Lemma value_not_same_as_normal_form :
   exists t, ~ value t /\ normal_form step t.
 Proof.
@@ -826,13 +887,16 @@ Proof.
 End Temp3.
 
 (* ########################################################### *)
-(** ** Exercises *)
+(* ** Exercises *)
+(** ** 練習問題 *)
 
 Module Temp4.
 
-(** Here is another very simple language whose terms, instead of being
+(* Here is another very simple language whose terms, instead of being
     just plus and numbers, are just the booleans true and false and a
     conditional expression... *)
+(** 以下は、別の非常に簡単な言語です。項は、加算と数値の代わりに、
+    真理値 true と false、および条件式です... *)
 
 Inductive tm : Type :=
   | tm_true : tm
@@ -856,10 +920,14 @@ Inductive step : tm -> tm -> Prop :=
 
   where " t '==>' t' " := (step t t').
 
-(** **** Exercise: 1 star (smallstep_bools) *)
-(** Which of the following propositions are provable?  (This is just a
+(* **** Exercise: 1 star (smallstep_bools) *)
+(** **** 練習問題: ★ (smallstep_bools) *)
+(* Which of the following propositions are provable?  (This is just a
     thought exercise, but for an extra challenge feel free to prove
     your answers in Coq.) *)
+(** 以下の命題のうち証明できるものはどれでしょう？
+    (これは単に頭の体操です。
+    しかしさらなるチャレンジとしてCoqで自分の答えを自由に証明してみなさい。) *)
 
 Definition bool_step_prop1 :=
   tm_false ==> tm_false.
@@ -890,9 +958,12 @@ Definition bool_step_prop3 :=
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (progress_bool) *)
-(** Just as we proved a progress theorem for plus expressions, we can
+(* **** Exercise: 3 stars, recommended (progress_bool) *)
+(** **** 練習問題: ★★★, recommended (progress_bool) *)
+(* Just as we proved a progress theorem for plus expressions, we can
     do so for boolean expressions, as well. *)
+(** 加算式についてと同様に、ブール式についても進行定理が証明できます。
+    (やってみなさい。) *)
 
 Theorem strong_progress : forall t,
   value t \/ (exists t', t ==> t').
@@ -900,7 +971,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (step_deterministic) *)
+(* **** Exercise: 2 stars, optional (step_deterministic) *)
+(** **** 練習問題: ★★, optional (step_deterministic) *)
 Theorem step_deterministic :
   partial_function step.
 Proof.
@@ -909,8 +981,9 @@ Proof.
 
 Module Temp5.
 
-(** **** Exercise: 2 stars (smallstep_bool_shortcut) *)
-(** Suppose we want to add a "short circuit" to the step relation for
+(* **** Exercise: 2 stars (smallstep_bool_shortcut) *)
+(** **** 練習問題: ★★ (smallstep_bool_shortcut) *)
+(* Suppose we want to add a "short circuit" to the step relation for
     boolean expressions, so that it can recognize when the [then] and
     [else] branches of a conditional are the same value (either
     [tm_true] or [tm_false]) and reduce the whole conditional to this
@@ -926,9 +999,23 @@ Module Temp5.
          tm_false.
 ]]
 *)
+(** 条件式の[then]と[else]の枝が同じ値のとき(ともに[tm_true]であるか、
+    ともに[tm_false]であるかのとき)、ガードが値に簡約されていなくても、
+    条件式全体を枝の値に簡約するように、ステップ関係にバイパスを追加したいとします。
+    例えば次の命題を証明できるようにしたいとします:
+[[
+         tm_if
+            (tm_if tm_true tm_true tm_true)
+            tm_false
+            tm_false
+     ==>
+         tm_false.
+]]
+*)
 
-(** Write an extra clause for the step relation that achieves this
+(* Write an extra clause for the step relation that achieves this
     effect and prove [bool_step_prop4]. *)
+(** ステップ関係にこのための追加の節を記述し、[bool_step_prop4]を証明しなさい。*)
 
 Reserved Notation " t '==>' t' " (at level 40).
 
@@ -959,8 +1046,9 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (properties_of_altered_step) *)
-(** It can be shown that the determinism and strong progress theorems
+(* **** Exercise: 3 stars (properties_of_altered_step) *)
+(** **** 練習問題: ★★★ (properties_of_altered_step) *)
+(* It can be shown that the determinism and strong progress theorems
     for the step relation in the lecture notes also hold for the
     definition of step given above.  After we add the clause
     [ST_ShortCircuit]...
@@ -970,23 +1058,45 @@ Proof.
 
       Optional: prove your answer correct in Coq.
 *)
+(** 講義ノートのステップ関係についての決定性定理と強進行定理が、
+    上記のステップの定義についても証明できます。
+    [ST_ShortCircuit]節を追加した後で...
+
+    - [step]関係はそれでも決定性を持つでしょうか？
+      yes または no と書き、簡潔に(1文で)その答えを説明しなさい。
+
+      Optional: Coq でその答えが正しいことを証明しなさい。
+*)
 
 (* FILL IN HERE *)
 
-(**
+(*
    - Does a strong progress theorem hold? Write yes or no and
      briefly (1 sentence) explain your answer.
 
      Optional: prove your answer correct in Coq.
 *)
+(**
+   - 強進行定理は成立するでしょうか？
+     yes または no と書き、簡潔に(1文で)その答えを説明しなさい。
+
+      Optional: Coq でその答えが正しいことを証明しなさい。
+*)
 
 (* FILL IN HERE *)
 
-(**
+(*
    - In general, is there any way we could cause strong progress to
      fail if we took away one or more constructors from the original
      step relation? Write yes or no and briefly (1 sentence) explain
      your answer.
+
+  (* FILL IN HERE *)
+*)
+(**
+   - 一般に、オリジナルのステップ関係から1つ以上のコンストラクタを取り除いて、
+     強進行性を持たなくする方法はあるでしょうか？
+     yes または no と書き、簡潔に(1文で)その答えを説明しなさい。
 
   (* FILL IN HERE *)
 *)
