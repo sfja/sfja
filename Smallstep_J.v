@@ -1106,9 +1106,10 @@ End Temp5.
 End Temp4.
 
 (* ########################################################### *)
-(** * Multi-Step Reduction *)
+(* * Multi-Step Reduction *)
+(** * マルチステップ簡約 *)
 
-(** Until now, we've been working with the _single-step reduction_
+(* Until now, we've been working with the _single-step reduction_
     relation [==>], which formalizes the individual steps of an
     _abstract machine_ for executing programs.
 
@@ -1122,18 +1123,36 @@ End Temp4.
 
     - Then we define a "result" of a term [t] as a normal form that
       [t] can reach by multi-step reduction. *)
+(** ここまでは、1ステップ簡約関係 [==>] に取り組んできました。
+    これは、プログラムを実行する抽象機械の1つのステップを形式化したものです。
+
+    この機械を使って、プログラムを完全に簡約してみるのもおもしろいでしょう。
+    つまり、その最後の結果がどうなるかを調べることです。
+    これは以下のように形式化できます:
+  
+    - 最初に、「マルチステップ簡約関係」(_multi-step reduction relation_)
+      [==>*] を定義します。
+      この関係は、[t]から1ステップ簡約を何らかの回数回行うことで[t']に到達できるとき、
+      [t]と[t']を関係づけるものです。
+
+    - 次に項[t]の結果("result")を、
+      [t]がマルチステップ簡約で到達できる正規形[t]として定義します。*)
 
 (* ########################################################### *)
-(** ** Multi-Step Reduction *)
+(* ** Multi-Step Reduction *)
+(** ** マルチステップ簡約 *)
 
-(** The _multi-step reduction_ relation [==>*] is the reflexive,
+(* The _multi-step reduction_ relation [==>*] is the reflexive,
     transitive closure of the single-step relation [==>]. *)
+(** マルチステップ簡約(_multi-step reduction_)関係 [==>*] は1ステップ関係
+    [==>]の反射推移閉包です。*)
 
 Definition stepmany := refl_step_closure step.
 
 Notation " t '==>*' t' " := (stepmany t t') (at level 40).
 
-(** For example... *)
+(* For example... *)
+(** 例えば... *)
 
 Lemma test_stepmany_1:
       tm_plus
@@ -1156,8 +1175,10 @@ Proof.
   apply rsc_R.
   apply ST_PlusConstConst.  Qed.
 
-(** Here's an alternate proof that uses [eapply] to avoid explicitly
+(* Here's an alternate proof that uses [eapply] to avoid explicitly
     constructing all the intermediate terms. *)
+(** 以下は別証です。
+    [eapply]を使うことで、すべての中間的な項を明示的に構成する必要をなくしたものです。*)
 
 Lemma test_stepmany_1':
       tm_plus
@@ -1172,14 +1193,16 @@ Proof.
   eapply rsc_step. apply ST_PlusConstConst.
   apply rsc_refl.  Qed.
 
-(** **** Exercise: 1 star (test_stepmany_2) *)
+(* **** Exercise: 1 star (test_stepmany_2) *)
+(** **** 練習問題: ★ (test_stepmany_2) *)
 Lemma test_stepmany_2:
   tm_const 3 ==>* tm_const 3.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star (test_stepmany_3) *)
+(* **** Exercise: 1 star (test_stepmany_3) *)
+(** **** 練習問題: ★ (test_stepmany_3) *)
 Lemma test_stepmany_3:
       tm_plus (tm_const 0) (tm_const 3)
    ==>*
@@ -1188,7 +1211,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars (test_stepmany_4) *)
+(* **** Exercise: 2 stars (test_stepmany_4) *)
+(** **** 練習問題: ★★ (test_stepmany_4) *)
 Lemma test_stepmany_4:
       tm_plus
         (tm_const 0)
@@ -1204,25 +1228,38 @@ Proof.
 (** [] *)
 
 (* ########################################################### *)
-(** ** Normal Forms Again *)
+(* ** Normal Forms Again *)
+(** ** 正規形再び *)
 
-(** If [t] reduces to [t'] in zero or more steps and [t'] is a
+(* If [t] reduces to [t'] in zero or more steps and [t'] is a
     normal form, we say that "[t'] is a normal form of [t]." *)
+(** [t]が0以上のステップで[t']に簡約され、[t']が正規形のとき、
+    「[t']は[t]の正規形である」と言います。*)
 
 Definition step_normal_form := normal_form step.
 
 Definition normal_form_of (t t' : tm) :=
   (t ==>* t' /\ step_normal_form t').
 
-(** We have already seen that single-step reduction is
+(* We have already seen that single-step reduction is
     deterministic -- i.e., a given term can take a single step in
     at most one way.  It follows from this that, if [t] can reach
     a normal form, then this normal form is unique -- i.e.,
     [normal_form_of] is a partial function.  In other words, we
     can actually pronounce [normal_form t t'] as "[t'] is _the_
     normal form of [t]." *)
+(** 1ステップ簡約が決定性を持つことを既に見ました。
+    つまり、項が1ステップ進む方法は高々1種類だということです。
+    このことから、[t]が正規形に到達するならば、その正規形は1つに決まることになります。
+    つまり、[normal_form_of] は部分関数です。言い換えると、
+    [normal_form t t'] を、
+    (「[t']は[t]の正規形である」と読む以外に)
+    「[t]の正規形は[t']である」と読んでよいということです。
+    (訳注：原文では "_the_ normal form of [t]" 
+    と定冠詞を使ってよいことと記述されています。) *)
 
-(** **** Exercise: 3 stars, optional (test_stepmany_3) *)
+(* **** Exercise: 3 stars, optional (test_stepmany_3) *)
+(** **** 練習問題: ★★★, optional (test_stepmany_3) *)
 Theorem normal_forms_unique:
   partial_function normal_form_of.
 Proof.
@@ -1233,23 +1270,36 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Indeed, something stronger is true for this language (though not
+(* Indeed, something stronger is true for this language (though not
     for all languages): the reduction of _any_ term [t] will
     eventually reach a normal form -- i.e., [normal_form_of] is a
     _total_ function.  Formally, we say the [step] relation is
     _normalizing_. *)
+(** 実のところ、この言語については、より強いことが成立します
+    (これは他のすべての言語で成立することではありません):
+    「任意の」項[t]はいつかは正規形に到達する、ということです。
+    つまり [normal_form_of] は全関数です。
+    形式的には、[step]関係は正規化性を持つ(_normalizing_)と言います。 *)
 
 Definition normalizing {X:Type} (R:relation X) :=
   forall t, exists t',
     (refl_step_closure R) t t' /\ normal_form R t'.
 
-(** To prove that [step] is normalizing, we need a couple of lemmas.
+(* To prove that [step] is normalizing, we need a couple of lemmas.
 
     First, we observe that, if [t] reduces to [t'] in many steps, then
     the same sequence of reduction steps within [t] is also possible
     when [t] appears as the left-hand child of a [tm_plus] node, and
     similarly when [t] appears as the right-hand child of a [tm_plus]
     node (whose left-hand child is a value). *)
+(** [step]が正規化性を持つことを証明するため、二つの補題を必要とします。
+
+    一つは、[t]が[t']に何ステップかで簡約されるならば、
+    [t]が [tm_plus] ノードの左側の子ノードとして現れるときには、
+    [t]内で同じ簡約ステップ列が可能である、ということ、
+    そしてまた同様のことが、
+    [t]が(左側の子ノードが値である)[tm_plus]
+    の右側の子ノードとして現れるときにも言える、ということです。*)
 
 Lemma stepmany_congr_1 : forall t1 t1' t2,
      t1 ==>* t1' ->
@@ -1261,7 +1311,8 @@ Proof.
         apply ST_Plus1. apply H.
         apply IHrefl_step_closure.  Qed.
 
-(** **** Exercise: 2 stars *)
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
 Lemma stepmany_congr_2 : forall t1 t2 t2',
      value t1 ->
      t2 ==>* t2' ->
@@ -1270,7 +1321,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** _Theorem_: The [step] function is normalizing -- i.e., for every
+(* _Theorem_: The [step] function is normalizing -- i.e., for every
     [t] there exists some [t'] such that [t] steps to [t'] and [t'] is
     a normal form.
 
@@ -1293,6 +1344,27 @@ Proof.
 
       It is clear that our choice of [t' = tm_const (plus n1 n2)] is a
       value, which is in turn a normal form. [] *)
+(** 「定理」: [step] 関数は正規化性を持つ。つまり、
+    任意の[t]に対して、ある[t']があって、[t]からステップを進めると[t']に到達し、
+    かつ[t']は正規形である、が成立する。
+
+    「証明スケッチ」:項についての帰納法を使う。考える対象は2つの場合である:
+
+    - ある[n]について [t = tm_const n] である場合。
+      このとき、[t]はステップを進めることができないことから、
+      [t' = t] である。左辺は反射性から導出され、
+      右辺は、(a)([nf_same_as_value]より)値は正規形であること、
+      (b)([v_const]より)[t]は値であること、から導出される。
+
+    - ある[t1]、[t2]について、[t = tm_plus t1 t2] である場合。
+      帰納仮定より[t1]と[t2]はそれぞれ正規形[t1']と[t2']を持つ。
+      ([nf_same_as_value]より)正規形は値であったから、
+      ある [n1]、[n2]について、[t1' = tm_const n1] かつ [t2' = tm_const n2]
+      である。[t1]と[t2]についての [==>*] 導出を組合せると、
+      [tm_plus t1 t2] が幾つかのステップで [tm_const (plus n1 n2)] 
+      に簡約されることを証明できる。
+
+      [t' = tm_const (plus n1 n2)] が値であることは明らかなので、これは正規形である。*)
 
 Theorem step_normalizing :
   normalizing step.
