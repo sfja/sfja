@@ -1399,14 +1399,21 @@ Proof.
           rewrite nf_same_as_value. apply v_const.  Qed.
 
 (* ########################################################### *)
-(** ** Equivalence of Big-Step and Small-Step Reduction *)
+(* ** Equivalence of Big-Step and Small-Step Reduction *)
+(** ** ビッグステップ簡約とスモールステップ簡約の同値性 *)
 
-(** Having defined the operational semantics of our tiny programming
+(* Having defined the operational semantics of our tiny programming
     language in two different styles, it makes sense to ask whether
     these definitions actually define the same thing!  They do, but it
     is not completely straightforward to show this -- or even to see
     how to state it exactly, since one of the relations only goes a
     small step at a time while the other proceeds in large chunks. *)
+(** 小さなプログラミング言語に対して2つの異なったスタイルで操作的意味論を定義したので、
+    その2つの定義が本当に同じものを定義しているのかを考えるのは意味があります!
+    実際に定義は一致しているのですが、それを示すことはそれほど簡単にはできません。
+    というより、それを正確に主張することが難しいのです。
+    なぜなら、一方は1回で進むのが小さなステップだけですが、
+    もう一方は大きなまとまりで進むからです。*)
 
 Lemma eval__value : forall t1 t2,
      eval t1 t2 ->
@@ -1415,9 +1422,11 @@ Proof.
   intros t1 t2 HE.
   eval_cases (inversion HE) Case; apply v_const.  Qed.
 
-(** **** Exercise: 3 stars (eval__stepmany) *)
-(** You'll want to use the congruences and some properties of
+(* **** Exercise: 3 stars (eval__stepmany) *)
+(** **** 練習問題: ★★★ (eval__stepmany) *)
+(* You'll want to use the congruences and some properties of
     [rsc] for this. *)
+(** この証明のために合同と[rsc]のいくつかの性質を使うのが良いでしょう。*)
 
 Theorem eval__stepmany : forall t v,
   eval t v -> t ==>* v.
@@ -1425,14 +1434,21 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (eval__stepmany_inf) *)
-(** Write an informal version of the proof of eval__stepmany.
+(* **** Exercise: 3 stars (eval__stepmany_inf) *)
+(** **** 練習問題: ★★★ (eval__stepmany_inf) *)
+(* Write an informal version of the proof of eval__stepmany.
 
 (* FILL IN HERE *)
 []
 *)
+(** eval__stepmany の証明の非形式版を記述しなさい。
 
-(** **** Exercise: 3 stars (step__eval) *)
+(* ここを埋めなさい *)
+[]
+*)
+
+(* **** Exercise: 3 stars (step__eval) *)
+(** **** 練習問題: ★★★ (step__eval) *)
 Theorem step__eval : forall t t' v,
      t ==> t' ->
      t' || v ->
@@ -1455,8 +1471,10 @@ Proof.
   Case "rsc_step".
     eapply step__eval. eassumption. apply IHHs. reflexivity.  Qed.
 
-(** Bringing it all together, we can crisply say that the [v] is the
+(* Bringing it all together, we can crisply say that the [v] is the
     normal form of [t] iff [t] evaluates to [v]. *)
+(** 全部まとめることで、[v]が[t]の正規形であるのは、[t]が[v]に評価されるのと同値である、
+    とはっきりと言うことができます。*)    
 
 Corollary stepmany_iff_eval : forall t v,
   normal_form_of t v <-> t || v.
@@ -1467,11 +1485,15 @@ Proof.
     assumption. rewrite nf_same_as_value. eapply eval__value. eassumption.  Qed.
 
 (* ########################################################### *)
-(** ** Additional Exercises *)
+(* ** Additional Exercises *)
+(** ** さらなる練習問題 *)
 
-(** **** Exercise: 4 stars (combined_properties) *)
-(** We've considered the arithmetic and conditional expressions
+(* **** Exercise: 4 stars (combined_properties) *)
+(** **** 練習問題: ★★★★ (combined_properties) *)
+(* We've considered the arithmetic and conditional expressions
     separately.  This exercise explores how the two interact. *)
+(** ここまでに算術式と条件式を別々に考えてきました。
+    この練習問題ではこの2つがどのように相互作用するかを調べます。*)
 
 Module Combined.
 
@@ -1520,7 +1542,7 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
   | Case_aux c "ST_Plus1" | Case_aux c "ST_Plus2"
   | Case_aux c "ST_IfTrue" | Case_aux c "ST_IfFalse" | Case_aux c "ST_If" ].
 
-(** Earlier, we separately proved for both plus- and if-expressions...
+(* Earlier, we separately proved for both plus- and if-expressions...
 
     - that the step relation was a partial function (i.e., it was
       deterministic), and
@@ -1529,6 +1551,13 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
       value or can take a step.
 
     Prove or disprove these for the combined language. *)
+(** 前には、plus式とif式について、以下のことを別々に証明しました...
+
+    - ステップ関係が部分関数であること(つまり、決定性を持つこと)。
+
+    - すべての項が値であるか、1ステップ進むことができるかを主張する強進行補題。
+
+    結合した言語について、これらの性質を証明、または反証しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
