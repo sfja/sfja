@@ -1565,11 +1565,14 @@ End Combined.
 
 
 (* ########################################################### *)
-(** * Small-Step Imp *)
+(* * Small-Step Imp *)
+(** * スモールステップ Imp *)
 
-(** For a more serious example, here is the small-step version of the
+(* For a more serious example, here is the small-step version of the
     Imp operational semantics.  Although the definitions are bigger,
     the basic ideas are exactly the same as what we've seen above. *)
+(** より本気の例として、Impの操作的意味論のスモールステップ版を示します。
+    定義はより大きくなりますが、基本的な考え方は上述のものとまったく同じです。*)
 
 Inductive aval : aexp -> Prop :=
   av_num : forall n, aval (ANum n).
@@ -1654,11 +1657,14 @@ Inductive bstep : state -> bexp -> bexp -> Prop :=
 
   where " t '/' st '==>b' t' " := (bstep st t t').
 
-(** Notice that we didn't actually bother to define boolean values --
+(* Notice that we didn't actually bother to define boolean values --
     they aren't needed in the definition of [==>b] (why?), though
     they might be if our language were a bit larger. *)
+(** 実際にはブール値の定義にかかずらってはいなかったことに注意します。
+    [==>b] の定義にはブール値の定義は必要ありません(なぜでしょう？)。
+    言語がちょっと大きかったら必要になったかもしれませんが。*)
 
-(** The semantics of commands is the interesting part.  We need two
+(* The semantics of commands is the interesting part.  We need two
     small tricks to make it work:
 
        - We use [SKIP] as a "command value" -- i.e., a command that
@@ -1679,6 +1685,23 @@ Inductive bstep : state -> bexp -> bexp -> Prop :=
          they all share the feature that the original [WHILE] command
          needs to be saved somewhere while a single copy of the loop
          body is being evaluated.) *)
+(** コマンドの意味論は興味深い部分です。
+    うまくやるために2つの小さなトリックを使います:
+
+       - [SKIP] を「コマンド値」("command value")として使います。
+         つまり、正規形に逹したコマンドです。
+
+            - 代入コマンドは[SKIP]に簡約されます(その際に状態を更新します)。
+
+            - コマンド合成は、左側の部分コマンドが[SKIP]に簡約されるのを待って、
+              それを捨ててしまいます。そして続けて右側の部分コマンドの簡約をします。
+
+       - [WHILE]コマンドの簡約は、条件文とそれに続く同じ[WHILE]コマンドになります。
+
+         (求められる効果を得るために他にもいろいろな方法はありますが、
+          いずれも、
+          もとの[WHILE]コマンドをどこかに保存して、
+          ループ本体の1コピーを評価することには変わりありません。) *)
 
 Reserved Notation " t '/' st '==>' t' '/' st' "
                   (at level 40, st at level 39, t' at level 39).
@@ -1708,14 +1731,20 @@ Inductive cstep : (com * state) -> (com * state) -> Prop :=
   where " t '/' st '==>' t' '/' st' " := (cstep (t,st) (t',st')).
 
 (* ########################################################### *)
-(** * Concurrent Imp *)
+(* * Concurrent Imp *)
+(** * 並列実行 Imp *)
 
-(** Finally, to show the power of this definitional style, let's
+(* Finally, to show the power of this definitional style, let's
     enrich Imp with a new form of command that runs two subcommands in
     parallel and terminates when both have terminated.  To reflect the
     unpredictability of scheduling, the actions of the subcommands may
     be interleaved in any order, but they share the same memory and
     can communicate by reading and writing the same variables. *)
+(** 最後に、この定義スタイルの力を示すために、Imp に平行動作のコマンドを拡張しましょう。
+    このコマンドは2つのサブコマンドを平行実行し、両者が終了した時点で終了します。
+    スケジューリングの予測不能性を反映して、
+    サブコマンドのアクションは任意の順序でインターリーブします。
+    しかし、同じメモリをシェアし、同じ変数を読み書きすることでコミュニケーションできます。*)
 
 Module CImp.
 
@@ -1784,9 +1813,11 @@ Notation " t '/' st '==>*' t' '/' st' " :=
    (refl_step_closure cstep  (t,st) (t',st'))
    (at level 40, st at level 39, t' at level 39).
 
-(** Among the many interesting properties of this language is the fact
+(* Among the many interesting properties of this language is the fact
     that the following program can terminate with the variable [X] set
     to any value... *)
+(** この言語のいろいろな興味深い性質の中でも格別なものは、次のプログラムが、
+    変数[X]にどのような値を入れても停止するという事実です... *)
 
 Definition par_loop : com :=
   PAR
@@ -1797,7 +1828,8 @@ Definition par_loop : com :=
     END
   END.
 
-(** In particular, it can terminate with [X] set to [0]: *)
+(* In particular, it can terminate with [X] set to [0]: *)
+(** 特に、[X]を[0]にしても停止できます: *)
 
 Example par_loop_example_0:
   exists st',
@@ -1818,7 +1850,8 @@ Proof.
   eapply rsc_refl.
   reflexivity. Qed.
 
-(** It can also terminate with [X] set to [2]: *)
+(* It can also terminate with [X] set to [2]: *)
+(** [X]を[2]にしても停止します: *)
 
 Example par_loop_example_2:
   exists st',
@@ -1865,16 +1898,19 @@ Proof.
   eapply rsc_refl.
   reflexivity. Qed.
 
-(** More generally... *)
+(* More generally... *)
+(** より一般に... *)
 
-(** **** Exercise: 3 stars, optional *)
+(* **** Exercise: 3 stars, optional *)
+(** **** 練習問題: ★★★, optional *)
 Lemma par_body_n__Sn : forall n st,
   st X = n /\ st Y = 0 ->
   par_loop / st ==>* par_loop / (update st X (S n)).
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** **** Exercise: 3 stars, optional *)
+(* **** Exercise: 3 stars, optional *)
+(** **** 練習問題: ★★★, optional *)
 Lemma par_body_n : forall n st,
   st X = 0 /\ st Y = 0 ->
   exists st',
@@ -1882,8 +1918,9 @@ Lemma par_body_n : forall n st,
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** ... the above loop can exit with [X] having any value
+(* ... the above loop can exit with [X] having any value
     whatsoever. *)
+(** ... 上のループは[X]がどんな値をとっても抜け出せます。 *)
 
 Theorem par_loop_any_X:
   forall n, exists st',
