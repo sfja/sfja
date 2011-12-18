@@ -1,4 +1,5 @@
-(** * Stlc: The Simply Typed Lambda-Calculus *)
+(** * Stlc_J: 単純型付きラムダ計算 *)
+(* * Stlc: The Simply Typed Lambda-Calculus *)
 
 (* $Date: 2011-06-09 16:11:42 -0400 (Thu, 09 Jun 2011) $ *)
 
@@ -6,9 +7,10 @@
 Require Export Types_J.
 
 (* ###################################################################### *)
-(** * The Simply Typed Lambda-Calculus *)
+(* * The Simply Typed Lambda-Calculus *)
+(** * 単純型付きラムダ計算 *)
 
-(** The simply typed lambda-calculus (STLC) is a tiny core calculus
+(* The simply typed lambda-calculus (STLC) is a tiny core calculus
     embodying the key concept of _functional abstraction_, which shows
     up in pretty much every real-world programming language in some
     form (functions, procedures, methods, etc.).
@@ -19,11 +21,22 @@ Require Export Types_J.
     technical challenges (which will take some work to deal with) all
     arise from the mechanisms of _variable binding_ and
     _substitution_. *)
+(** 単純型付きラムダ計算(STLC)は、関数抽象(_functional abstraction_)
+    を具現する小さな核となる計算体系です。
+    関数抽象は、ほとんどすべての実世界のプログラミング言語に何らかの形
+    (関数、手続き、メソッド等)で現れます。
+
+    これから、この計算体系(構文、スモールステップ意味論、
+    型付け規則)とその性質(進行と保存)の形式化を、
+    これまでやったのとまったく同じパターンで行います。
+    (扱うためにいくらかの作業が必要になる)新しい技術的挑戦は、
+    すべて変数束縛(_variable binding_)と置換(_substitution_)の機構から生じます。*)
 
 (* ###################################################################### *)
-(** ** Overview *)
+(* ** Overview *)
+(** ** 概観 *)
 
-(** The STLC is built on some collection of _base types_ -- booleans,
+(* The STLC is built on some collection of _base types_ -- booleans,
     numbers, strings, etc.  The exact choice of base types doesn't
     matter -- the construction of the language and its theoretical
     properties work out pretty much the same -- so for the sake of
@@ -135,6 +148,110 @@ Require Export Types_J.
       - [\f:Bool->Bool. f (f true)] has type [(Bool->Bool) -> Bool]
 
       - [(\f:Bool->Bool. f (f true)) (\x:Bool. false)] has type [Bool]
+*)
+(** STLC は基本型(_base types_)の何らかの集まりの上に構成されます。
+    基本型はブール型、数値、文字列などです。
+    実際にどの基本型を選択するかは問題ではありません。
+    どう選択しても、言語の構成とその理論的性質はまったく同じように導かれます。
+    これから、簡潔にするため、しばらくは[Bool]だけとしましょう。
+    この章の終わりには、さらに基本型を追加する方法がわかるでしょう。
+    また後の章では、純粋なSTLCに、組、レコード、サブタイプ、
+    変更可能状態などの他の便利な構成要素をとり入れてよりリッチなものにします。
+
+    ブール値から始めて3つのものを追加します:
+        - 変数
+        - 関数抽象
+        - (関数)適用
+
+    これから、以下の抽象構文コンストラクタが出てきます
+    (ここではこれを非形式的BNF記法で書き出します。後に形式化します。):
+<<
+       t ::= x                       変数
+           | \x:T.t1                 抽象
+           | t1 t2                   適用
+           | true                    定数 true
+           | false                   定数 false
+           | if t1 then t2 else t3   条件式
+>>
+    関数抽象 [\x:T.t1] の [\]記号はよくギリシャ語のラムダで記述されます
+    (これがラムダ計算の名前の由来です)。
+    変数[x]は関数のパラメータ(_parameter_)、
+    項[t1]は関数の本体(_body_)と呼ばれます。
+    付記された [:T] は関数が適用される引数の型を定めます。
+
+    例をいくつか:
+
+      - [\x:Bool. x]
+
+        ブール値の恒等関数。
+
+      - [(\x:Bool. x) true]
+
+        ブール値[true]に適用された、ブール値の恒等関数。
+
+      - [\x:Bool. if x then false else true]
+
+        ブール値の否定関数。
+
+      - [\x:Bool. true]
+
+        すべての(ブール値の)引数に対して[true]を返す定数関数。
+
+      - [\x:Bool. \y:Bool. x]
+
+        2つのブール値をとり、最初のものを返す2引数関数。
+        (なお、Coqと同様、2引数関数は、実際には本体が1引数関数である1引数関数です。)
+
+      - [(\x:Bool. \y:Bool. x) false true]
+
+        2つのブール値をとり、最初のものを返す2引数関数を、ブール値[false]と[true]
+        に適用したもの。
+        なお、Coqと同様、適用は左結合です。つまり、この式は
+        [((\x:Bool. \y:Bool. x) false) true] と構文解析されます。
+
+      - [\f:Bool->Bool. f (f true)]
+
+        (ブール値からブール値への)「関数」[f]を引数にとる高階関数。
+        この高階関数は、[f]を[true]に適用し、その値にさらに[f]を適用します。
+
+      - [(\f:Bool->Bool. f (f true)) (\x:Bool. false)]
+
+        上記高階関数を、常に[false]を返す定数関数に適用したもの。
+
+    最後のいくつかの例で示されたように、STLCは高階(_higher-order_)関数の言語です。
+    他の関数を引数として取る関数や、結果として他の関数を返す関数を書き下すことができます。
+
+    別の注目点は、名前を持つ(_named_)関数を定義する基本構文を、STLCは何も持っていないことです。
+    すべての関数は「名無し」("anonymous")です。
+    後の[MoreStlc_J]章で、この体系に名前を持つ関数を追加することが簡単であることがわかるでしょう。
+    実のところ、基本的な命名と束縛の機構はまったく同じです。
+
+    STLCの型には[Bool]が含まれます。
+    この型はブール値定数[true]と[false]、および結果がブール値になるより複雑な計算の型です。
+    それに加えて「射型」(_arrow types_)があります。
+    これは関数の型です。
+<<
+      T ::= Bool
+          | T1 -> T2
+>>
+    例えば:
+
+      - [\x:Bool. false] は型 [Bool->Bool] を持ちます。
+
+      - [\x:Bool. x] は型 [Bool->Bool] を持ちます。
+
+      - [(\x:Bool. x) true] は型 [Bool] を持ちます。
+
+      - [\x:Bool. \y:Bool. x] は型 [Bool->Bool->Bool] 
+        (つまり [Bool -> (Bool->Bool)])を持ちます。
+
+      - [(\x:Bool. \y:Bool. x) false] は型 [Bool->Bool] を持ちます。
+
+      - [(\x:Bool. \y:Bool. x) false true] は型 [Bool] を持ちます。
+
+      - [\f:Bool->Bool. f (f true)] は型 [(Bool->Bool) -> Bool] を持ちます。
+
+      - [(\f:Bool->Bool. f (f true)) (\x:Bool. false)] は型 [Bool] を持ちます。
 *)
 
 (* ###################################################################### *)
