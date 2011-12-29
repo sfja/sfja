@@ -21,12 +21,12 @@ Require Export Types_J.
     technical challenges (which will take some work to deal with) all
     arise from the mechanisms of _variable binding_ and
     _substitution_. *)
-(** 単純型付きラムダ計算(STLC)は、関数抽象(_functional abstraction_)
-    を具現する小さな核となる計算体系です。
+(** 単純型付きラムダ計算(Simply Typed Lambda-Calculus, STLC)は、
+    関数抽象(_functional abstraction_)を具現する、小さな、核となる計算体系です。
     関数抽象は、ほとんどすべての実世界のプログラミング言語に何らかの形
     (関数、手続き、メソッド等)で現れます。
 
-    これから、この計算体系(構文、スモールステップ意味論、
+    ここでは、この計算体系(構文、スモールステップ意味論、
     型付け規則)とその性質(進行と保存)の形式化を、
     これまでやったのとまったく同じパターンで行います。
     (扱うためにいくらかの作業が必要になる)新しい技術的挑戦は、
@@ -173,7 +173,7 @@ Require Export Types_J.
            | false                   定数 false
            | if t1 then t2 else t3   条件式
 >>
-    関数抽象 [\x:T.t1] の [\]記号はよくギリシャ語のラムダで記述されます
+    関数抽象 [\x:T.t1] の [\]記号はよくギリシャ文字のラムダ(λ)で記述されます
     (これがラムダ計算の名前の由来です)。
     変数[x]は関数のパラメータ(_parameter_)、
     項[t1]は関数の本体(_body_)と呼ばれます。
@@ -255,19 +255,22 @@ Require Export Types_J.
 *)
 
 (* ###################################################################### *)
-(** ** Syntax *)
+(* ** Syntax *)
+(** ** 構文 *)
 
 Module STLC.
 
 (* ################################### *)
-(** *** Types *)
+(* *** Types *)
+(** *** 型 *)
 
 Inductive ty : Type :=
   | ty_Bool  : ty
   | ty_arrow : ty -> ty -> ty.
 
 (* ################################### *)
-(** *** Terms *)
+(* *** Terms *)
+(** *** 項 *)
 
 Inductive tm : Type :=
   | tm_var : id -> tm
@@ -277,11 +280,15 @@ Inductive tm : Type :=
   | tm_false : tm
   | tm_if : tm -> tm -> tm -> tm.
 
-(** Something to note here is that an abstraction [\x:T.t] (formally,
+(* Something to note here is that an abstraction [\x:T.t] (formally,
     [tm_abs x T t]) is always annotated with the type ([T]) of its
     parameter.  This is in contrast to Coq (and other functional
     languages like ML, Haskell, etc.), which use _type inference_ to
     fill in missing annotations. *)
+(** ここで注目すべきは、抽象 [\x:T.t] (形式的には [tm_abs x T t])
+    には常にパラメータの型([T])が付記されることです。
+    これは Coq(あるいは他のML、Haskellといった関数型言語)と対照的です。
+    それらは、付記がないものを型推論で補完します。*)
 
 Tactic Notation "tm_cases" tactic(first) ident(c) :=
   first;
@@ -289,7 +296,8 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   | Case_aux c "tm_abs" | Case_aux c "tm_true"
   | Case_aux c "tm_false" | Case_aux c "tm_if" ].
 
-(** Some examples... *)
+(* Some examples... *)
+(** いくつかの例... *)
 
 Notation a := (Id 0).
 Notation b := (Id 1).
@@ -316,22 +324,31 @@ Notation idBBBB :=
 
 Notation k := (tm_abs a ty_Bool (tm_abs b ty_Bool (tm_var a))).
 
-(** (We write these as [Notation]s rather than [Definition]s to make
+(* (We write these as [Notation]s rather than [Definition]s to make
     things easier for [auto].) *)
+(** (これらを[Definition]ではなく[Notation]とすることで、
+    [auto]に扱いやすくしています。) *)
 
 (* ###################################################################### *)
-(** ** Operational Semantics *)
+(* ** Operational Semantics *)
+(** ** 操作的意味論 *)
 
-(** To define the small-step semantics of STLC terms, we begin -- as
+(* To define the small-step semantics of STLC terms, we begin -- as
     always -- by defining the set of values.  Next, we define the
     critical notions of _free variables_ and _substitution_, which are
     used in the reduction rule for application expressions.  And
     finally we give the small-step relation itself. *)
+(** STLC項のスモールステップ意味論を定義するために、いつものように、
+    値の集合を定義することから始めます。
+    次に、自由変数(_free variables_)と置換(_substitution_)という、
+    重大な概念を定義します。これらは適用式の簡約規則に使われます。
+    そして最後に、スモールステップ関係自体を与えます。*)
 
 (* ################################### *)
-(** *** Values *)
+(* *** Values *)
+(** *** 値 *)
 
-(** To define the values of the STLC, we have a few cases to consider.
+(* To define the values of the STLC, we have a few cases to consider.
 
     First, for the boolean part of the language, the situation is
     clear: [true] and [false] are the only values.  (An [if]
@@ -366,6 +383,41 @@ Notation k := (tm_abs a ty_Bool (tm_abs b ty_Bool (tm_var a))).
     we'll always be reducing programs "from the outside in," and that
     means the [step] relation will always be working with closed
     terms (ones with no free variables).  *)
+(** STLCの値を定義するために、いくつかの場合を考えなければなりません。
+
+    最初に、言語のブール値については、状況は明確です:
+    [true]と[false]だけが値です。([if]式は決して値ではありません。)
+
+    二番目に、適用は明らかに値ではありません。
+    適用は関数が何らかの引数に対して呼ばれたことを表しているのですから、
+    明らかにこれからやることが残っています。
+
+    三番目に、抽象については選択肢があります:
+
+      - [\a:A.t1] が値であるのは、[t1]が値であるときのみである、
+        とすることができます。
+        つまり、関数の本体が
+        (どのような引数に適用されるかわからない状態で可能な限り)
+        簡約済みであるときのみ、ということです。
+
+      - あるいは、[\a:A.t1] は常に値である、とすることもできます。
+        [t1]が値であるかどうかに関係なく、です。
+        言いかえると、簡約は抽象で止まる、とすることです。
+
+    Coq は最初の選択肢を取っています。例えば、
+[[
+         Eval simpl in (fun a:bool => 3 + 4)
+]]
+    は [fun a:bool => 7] となります。
+    しかし実際の関数型プログラミング言語のほとんどは、
+    第二の選択肢を取っています。
+    つまり、関数の本体の簡約は、関数が実際に引数に適用されたときにのみ開始されます。
+    ここでは、同様に第二の選択肢を選びます。
+
+    最後に、抽象の中を簡約することを選択しなかったため、
+    変数が値であるかをどうかを心配する必要はなくなります。なぜなら、
+    プログラムの簡約は常に「外側から内側に」行われ、
+    [step]関係は常に閉じた(自由変数を持たない)項だけを対象とするからです。*)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T t,
@@ -378,9 +430,10 @@ Inductive value : tm -> Prop :=
 Hint Constructors value.
 
 (* ###################################################################### *)
-(** *** Free Variables and Substitution *)
+(* *** Free Variables and Substitution *)
+(** *** 自由変数と置換 *)
 
-(** Now we come to the heart of the matter: the operation of
+(* Now we come to the heart of the matter: the operation of
     substituting one term for a variable in another term.
 
     This operation will be used below to define the operational
@@ -434,6 +487,59 @@ Hint Constructors value.
                           if [s/x]t1 then [s/x]t2 else [s/x]t3
 ]]
     ... and formally: *)
+(** これから問題の核心に入ります: 項の変数を別の項で置換する操作です。
+
+    この操作は後で関数適用の操作的意味論を定義するために使います。
+    関数適用では、関数本体の中の関数パラメータを引数項で置換することが必要になります。
+    例えば、
+[[
+       (\x:Bool. if x then true else x) false
+]]
+    は、関数の本体のパラメータ[x]を[false]で置換することで、[false]に簡約されます。
+    一般に、ある項[t]の変数[x]の出現を、与えらえた項[s]で置換できることが必要です。
+    非形式的な議論では、これは通常 [ [s/x]t ] と書き、「[t]の[x]を[s]で置換する」と読みます。
+
+    いくつかの例を示します:
+
+      - [[true / a] (if a then a else false)] は [if true then true else false]
+        となります。
+
+      - [[true / a] a] は [true] となります。
+
+      - [[true / a] (if a then a else b)] は [if true then true else b]
+        となります。
+
+      - [[true / a] b] は [b] となります。
+
+      - [[true / a] false] は [false] となります(何もしない置換です)。
+
+      - [[true / a] (\y:Bool. if y then a else false)] は
+        [\y:Bool. if y then true else false] となります。
+
+      - [[true / a] (\y:Bool. a)] は [\y:Bool. true] となります。
+
+      - [[true / a] (\y:Bool. y)] は [\y:Bool. y] となります。
+
+      - [[true / a] (\a:Bool. a)] は [\a:Bool. a] となります。
+
+    最後の例はとても重要です。[\a:Bool. a] の [a] を [true] で置換したものは、
+    [\a:Bool. true] に「なりません」! 理由は、[\a:Bool. a] の本体の [a] 
+    は抽象で束縛されている(_bound_)からです。
+    この[a]は新しいローカルな名前で、たまたまグローバルな名前[a]と同じ綴りであったものです。
+
+    以下が、非形式的な定義です...
+[[
+      [s/x]x = s
+      [s/x]y = y                                     if x <> y
+      [s/x](\x:T11.t12)   = \x:T11. t12
+      [s/x](\y:T11.t12)   = \y:T11. [s/x]t12         if x <> y
+      [s/x](t1 t2)        = ([s/x]t1) ([s/x]t2)
+      [s/x]true           = true
+      [s/x]false          = false
+      [s/x](if t1 then t2 else t3) =
+                          if [s/x]t1 then [s/x]t2 else [s/x]t3
+]]
+    ... そして形式的には: *)
 
 Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
   match t with
@@ -445,16 +551,22 @@ Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
   | tm_if t1 t2 t3 => tm_if (subst s x t1) (subst s x t2) (subst s x t3)
   end.
 
-(** Technical note: Substitution becomes trickier to define if we
+(* Technical note: Substitution becomes trickier to define if we
     consider the case where [s], the term being substituted for a
     variable in some other term, may itself contain free variables.
     Since we are only interested in defining the [step] relation on
     closed terms here, we can avoid this extra complexity. *)
+(** 技術的注釈: 置換は、もし[s]、つまり他の項の変数を置換する項が、
+    それ自身に自由変数を含むときを考えると、
+    定義がよりトリッキーなものになります。
+    ここで興味があるのは閉じた項についての[step]関係の定義のみなので、
+    そのさらなる複雑さは避けることができます。*)
 
 (* ################################### *)
-(** *** Reduction *)
+(* *** Reduction *)
+(** *** 簡約 *)
 
-(** The small-step reduction relation for STLC follows the same
+(* The small-step reduction relation for STLC follows the same
     pattern as the ones we have seen before.  Intuitively, to
     reduce a function application, we first reduce its left-hand
     side until it becomes a literal function; then we reduce its
@@ -483,6 +595,32 @@ Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
    (plus the usual rules for booleans).
 
    Formally:
+*)
+(** STLCのスモールステップ簡約関係は、これまで見てきたものと同じパターンに従います。
+    直観的には、関数適用を簡約するため、最初に左側をリテラル関数になるまで簡約します。
+    次に左側(引数)を値になるまで簡約します。そして最後に関数の本体の束縛変数を引数で置換します。
+    この最後の規則は、非形式的には次のように書きます:
+[[
+      (\a:T.t12) v2 ==> [v2/a]t12
+]]
+    これは伝統的にベータ簡約("beta-reduction")と呼ばれます。
+
+    非形式的に:
+[[
+                     ---------------------------                    (ST_AppAbs)
+                     (\a:T.t12) v2 ==> [v2/a]t12
+
+                              t1 ==> t1'
+                           ----------------                           (ST_App1)
+                           t1 t2 ==> t1' t2
+
+                              t2 ==> t2'
+                           ----------------                        (ST_App2)
+                           v1 t2 ==> v1 t2'
+]]
+   (これに通常のブール値の規則をプラスします)。
+
+   形式的には:
 *)
 
 Reserved Notation "t1 '==>' t2" (at level 40).
@@ -520,7 +658,8 @@ Notation "t1 '==>*' t2" := (stepmany t1 t2) (at level 40).
 Hint Constructors step.
 
 (* ##################################### *)
-(** *** Examples *)
+(* *** Examples *)
+(** *** 例 *)
 
 Lemma step_example1 :
   (tm_app idBB idB) ==>* idB.
@@ -546,8 +685,9 @@ Proof.
     apply ST_AppAbs. simpl. auto.
   simpl. apply rsc_refl.  Qed.
 
-(** Again, we can use the [normalize] tactic from above to simplify
+(* Again, we can use the [normalize] tactic from above to simplify
     the proof. *)
+(** 再び、上述の[normalize]タクティックを使って、証明を簡単にすることができます。*)
 
 Lemma step_example2' :
   (tm_app idBB (tm_app idBB idB)) ==>* idB.
@@ -555,8 +695,10 @@ Proof.
   normalize.
 Qed.
 
-(** **** Exercise: 2 stars (step_example3) *)
-(** Try to do this one both with and without [normalize]. *)
+(* **** Exercise: 2 stars (step_example3) *)
+(** **** 練習問題: ★★ (step_example3) *)
+(* Try to do this one both with and without [normalize]. *)
+(** 次の証明を[normalize]を使う方法と使わない方法の両方で行ないなさい。*)
 
 Lemma step_example3 :
        (tm_app (tm_app idBBBB idBB) idB)
@@ -566,12 +708,14 @@ Proof.
 (** [] *)
 
 (* ###################################################################### *)
-(** ** Typing *)
+(* ** Typing *)
+(** ** 型付け *)
 
 (* ################################### *)
-(** *** Contexts *)
+(* *** Contexts *)
+(** *** コンテキスト *)
 
-(** Question: What is the type of the term "[x y]"?
+(* Question: What is the type of the term "[x y]"?
 
     Answer: It depends on the types of [x] and [y]!
 
@@ -585,6 +729,20 @@ Proof.
 
     We hide the definition of partial maps in a module since it is
     actually defined in SfLib. *)
+(** 問い: 項 "[x y]" の型は何でしょう？
+
+    答え: それは [x] と [y] の型に依存します!
+
+    つまり、項に型を付けるためには、
+    その自由変数の型についてどういう仮定をしなければならないかを知る必要があります。
+
+    このために、3つのものの間の型付けジャッジメント("typing judgment")を用意します。
+    これを非形式的には [Gamma |- t : T] と記述します。ここで
+    [Gamma] は「型付けコンテキスト」("typing context")、つまり、
+    変数から型への写像です。
+
+    モジュールにおける部分写像の定義は隠蔽します。
+    なぜなら、実際には SfLib で定義されているからです。*)
 
 Definition context := partial_map ty.
 
@@ -613,9 +771,10 @@ Qed.
 End Context.
 
 (* ################################### *)
-(** *** Typing Relation *)
+(* *** Typing Relation *)
+(** *** 型付け関係 *)
 
-(** Informally:
+(* Informally:
 [[[
                              Gamma x = T
                             --------------                              (T_Var)
@@ -642,6 +801,33 @@ End Context.
 ]]]
 The notation [ Gamma , x:T ] means "extend the partial function [Gamma]
 to also map [x] to [T]."
+*)
+(** 非形式的に:
+[[
+                             Gamma x = T
+                            --------------                              (T_Var)
+                            Gamma |- x : T
+
+                      Gamma , x:T11 |- t12 : T12
+                     ----------------------------                       (T_Abs)
+                     Gamma |- \x:T11.t12 : T11->T12
+
+                        Gamma |- t1 : T11->T12
+                          Gamma |- t2 : T11
+                        ----------------------                          (T_App)
+                         Gamma |- t1 t2 : T12
+
+                         --------------------                          (T_True)
+                         Gamma |- true : Bool
+
+                        ---------------------                         (T_False)
+                        Gamma |- false : Bool
+
+       Gamma |- t1 : Bool    Gamma |- t2 : T    Gamma |- t3 : T
+       --------------------------------------------------------          (T_If)
+                  Gamma |- if t1 then t2 else t3 : T
+]]
+記法 [ Gamma , x:T ] は「部分写像[Gamma]を拡張して[x]を[T]に写像するようにしたもの」を表します。
 *)
 
 Inductive has_type : context -> tm -> ty -> Prop :=
@@ -674,16 +860,19 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
 Hint Constructors has_type.
 
 (* ################################### *)
-(** *** Examples *)
+(* *** Examples *)
+(** *** 例 *)
 
 Example typing_example_1 :
   has_type empty (tm_abs a ty_Bool (tm_var a)) (ty_arrow ty_Bool ty_Bool).
 Proof.
   apply T_Abs. apply T_Var. reflexivity.  Qed.
 
-(** Note that since we added the has_type constructors to the
+(* Note that since we added the has_type constructors to the
     hints database, auto can actually solve this one immediately.
     *)
+(** has_typeコンストラクタをヒントデータベースに追加したことから、
+    これを auto は直接解くことができることに注意します。*)
 
 Example typing_example_1' :
   has_type empty (tm_abs a ty_Bool (tm_var a)) (ty_arrow ty_Bool ty_Bool).
@@ -691,11 +880,18 @@ Proof. auto.  Qed.
 
 Hint Unfold beq_id beq_nat extend.
 
-(** Written informally, the next one is:
+(* Written informally, the next one is:
 [[
      empty |- \a:A. \b:A->A. b (b a))
            : A -> (A->A) -> A.
 ]]
+*)
+(** 非形式的に書くと
+[[
+     empty |- \a:A. \b:A->A. b (b a))
+           : A -> (A->A) -> A.
+]]
+となるものが次の例です:
 *)
 
 Example typing_example_2 :
@@ -712,9 +908,11 @@ Proof with auto using extend_eq.
   apply T_Var...
 Qed.
 
-(** **** Exercise: 2 stars, optional *)
-(** Prove the same result without using [auto], [eauto], or
+(* **** Exercise: 2 stars, optional *)
+(** **** 練習問題: ★★, optional *)
+(* Prove the same result without using [auto], [eauto], or
     [eapply]. *)
+(** [auto]、[eauto]、[eapply] を使わずに同じ結果を証明しなさい。*)
 
 Example typing_example_2_full :
   has_type empty
@@ -726,8 +924,16 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars (typing_example_3) *)
-(** Formally prove the following typing derivation holds:
+(* **** Exercise: 2 stars (typing_example_3) *)
+(** **** 練習問題: ★★ (typing_example_3) *)
+(* Formally prove the following typing derivation holds:
+[[
+   empty |- (\a:Bool->B. \b:Bool->Bool. \c:Bool.
+               b (a c))
+         : T.
+]]
+*)
+(** 次の型付けが成立することを形式的に証明しなさい:
 [[
    empty |- (\a:Bool->B. \b:Bool->Bool. \c:Bool.
                b (a c))
@@ -748,13 +954,22 @@ Proof with auto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** We can also show that terms are _not_ typable.  For example, let's
+(* We can also show that terms are _not_ typable.  For example, let's
     formally check that there is no typing derivation assigning a type
     to the term [\a:Bool. \b:Bool, a b] -- i.e.,
 [[
     ~ exists T,
         empty |- (\a:Bool. \b:Bool, a b) : T.
 ]]
+*)
+(** 項が「型付けできない」ことを証明することもできます。
+    例えば [\a:Bool. \b:Bool, a b] に型をつける型付けが存在しないこと、
+    つまり、
+[[
+    ~ exists T,
+        empty |- (\a:Bool. \b:Bool, a b) : T.
+]]
+    を形式的にチェックしましょう。
 *)
 Example typing_nonexample_1 :
   ~ exists T,
@@ -775,8 +990,15 @@ Proof.
   (* rewrite extend_neq in H1. rewrite extend_eq in H1. *)
   inversion H1.  Qed.
 
-(** **** Exercise: 3 stars (typing_nonexample_3) *)
-(** Another nonexample:
+(* **** Exercise: 3 stars (typing_nonexample_3) *)
+(** **** 練習問題: ★★★ (typing_nonexample_3) *)
+(* Another nonexample:
+[[
+    ~ (exists S, exists T,
+          empty |- (\a:S. a a) : T).
+]]
+*)
+(** 別の型を持たない例:
 [[
     ~ (exists S, exists T,
           empty |- (\a:S. a a) : T).
@@ -793,9 +1015,23 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star (typing_statements) *)
+(* **** Exercise: 1 star (typing_statements) *)
+(** **** 練習問題: ★ (typing_statements) *)
 
-(** Which of the following propositions are provable?
+(* Which of the following propositions are provable?
+       - [b:Bool |- \a:Bool.a : Bool->Bool]
+
+       - [exists T,  empty |- (\b:Bool->Bool. \a:Bool. b a) : T]
+
+       - [exists T,  empty |- (\b:Bool->Bool. \a:Bool. a b) : T]
+
+       - [exists S, a:S |- (\b:Bool->Bool. b) a : S]
+
+       - [exists S, exists T,  a:S |- (a a a) : T]
+
+[]
+*)
+(** 以下のうち証明できるのものを挙げなさい。
        - [b:Bool |- \a:Bool.a : Bool->Bool]
 
        - [exists T,  empty |- (\b:Bool->Bool. \a:Bool. b a) : T]
@@ -809,11 +1045,26 @@ Proof.
 []
 *)
 
-(** **** Exercise: 1 star, optional (more_typing_statements) *)
+(* **** Exercise: 1 star, optional (more_typing_statements) *)
+(** **** 練習問題: ★, optional (more_typing_statements) *)
 
-(** Which of the following propositions are provable?  For the
+(* Which of the following propositions are provable?  For the
     ones that are, give witnesses for the existentially bound
     variables.
+       - [exists T,  empty |- (\b:B->B->B. \a:B, b a) : T]
+
+       - [exists T,  empty |- (\a:A->B, \b:B-->C, \c:A, b (a c)):T]
+
+       - [exists S, exists U, exists T,  a:S, b:U |- \c:A. a (b c) : T]
+
+       - [exists S, exists T,  a:S |- \b:A. a (a b) : T]
+
+       - [exists S, exists U, exists T,  a:S |- a (\c:U. c a) : T]
+
+[]
+*)
+(** 以下の命題のうち証明できるものを挙げなさい。証明できるものについては、
+    存在限量された変数に入る具体的な値を示しなさい。
        - [exists T,  empty |- (\b:B->B->B. \a:B, b a) : T]
 
        - [exists T,  empty |- (\a:A->B, \b:B-->C, \c:A, b (a c)):T]
