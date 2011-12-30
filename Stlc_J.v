@@ -167,8 +167,8 @@ Require Export Types_J.
     (ここではこれを非形式的BNF記法で書き出します。後に形式化します。):
 <<
        t ::= x                       変数
-           | \x:T.t1                 抽象
-           | t1 t2                   適用
+           | \x:T.t1                 関数抽象
+           | t1 t2                   関数適用
            | true                    定数 true
            | false                   定数 false
            | if t1 then t2 else t3   条件式
@@ -206,7 +206,7 @@ Require Export Types_J.
 
         2つのブール値をとり、最初のものを返す2引数関数を、ブール値[false]と[true]
         に適用したもの。
-        なお、Coqと同様、適用は左結合です。つまり、この式は
+        なお、Coqと同様、関数適用は左結合です。つまり、この式は
         [((\x:Bool. \y:Bool. x) false) true] と構文解析されます。
 
       - [\f:Bool->Bool. f (f true)]
@@ -285,7 +285,7 @@ Inductive tm : Type :=
     parameter.  This is in contrast to Coq (and other functional
     languages like ML, Haskell, etc.), which use _type inference_ to
     fill in missing annotations. *)
-(** ここで注目すべきは、抽象 [\x:T.t] (形式的には [tm_abs x T t])
+(** ここで注目すべきは、関数抽象 [\x:T.t] (形式的には [tm_abs x T t])
     には常にパラメータの型([T])が付記されることです。
     これは Coq(あるいは他のML、Haskellといった関数型言語)と対照的です。
     それらは、付記がないものを型推論で補完します。*)
@@ -341,7 +341,7 @@ Notation k := (tm_abs a ty_Bool (tm_abs b ty_Bool (tm_var a))).
 (** STLC項のスモールステップ意味論を定義するために、いつものように、
     値の集合を定義することから始めます。
     次に、自由変数(_free variables_)と置換(_substitution_)という、
-    重大な概念を定義します。これらは適用式の簡約規則に使われます。
+    重大な概念を定義します。これらは関数適用式の簡約規則に使われます。
     そして最後に、スモールステップ関係自体を与えます。*)
 
 (* ################################### *)
@@ -388,11 +388,11 @@ Notation k := (tm_abs a ty_Bool (tm_abs b ty_Bool (tm_var a))).
     最初に、言語のブール値については、状況は明確です:
     [true]と[false]だけが値です。([if]式は決して値ではありません。)
 
-    二番目に、適用は明らかに値ではありません。
-    適用は関数が何らかの引数に対して呼ばれたことを表しているのですから、
+    二番目に、関数適用は明らかに値ではありません。
+    関数適用は関数が何らかの引数に対して呼ばれたことを表しているのですから、
     明らかにこれからやることが残っています。
 
-    三番目に、抽象については選択肢があります:
+    三番目に、関数抽象については選択肢があります:
 
       - [\a:A.t1] が値であるのは、[t1]が値であるときのみである、
         とすることができます。
@@ -402,7 +402,7 @@ Notation k := (tm_abs a ty_Bool (tm_abs b ty_Bool (tm_var a))).
 
       - あるいは、[\a:A.t1] は常に値である、とすることもできます。
         [t1]が値であるかどうかに関係なく、です。
-        言いかえると、簡約は抽象で止まる、とすることです。
+        言いかえると、簡約は関数抽象で止まる、とすることです。
 
     Coq は最初の選択肢を取っています。例えば、
 [[
@@ -414,7 +414,7 @@ Notation k := (tm_abs a ty_Bool (tm_abs b ty_Bool (tm_var a))).
     つまり、関数の本体の簡約は、関数が実際に引数に適用されたときにのみ開始されます。
     ここでは、同様に第二の選択肢を選びます。
 
-    最後に、抽象の中を簡約することを選択しなかったため、
+    最後に、関数抽象の中を簡約することを選択しなかったため、
     変数が値であるかをどうかを心配する必要はなくなります。なぜなら、
     プログラムの簡約は常に「外側から内側に」行われ、
     [step]関係は常に閉じた(自由変数を持たない)項だけを対象とするからです。*)
@@ -524,7 +524,7 @@ Hint Constructors value.
 
     最後の例はとても重要です。[\a:Bool. a] の [a] を [true] で置換したものは、
     [\a:Bool. true] に「なりません」! 理由は、[\a:Bool. a] の本体の [a] 
-    は抽象で束縛されている(_bound_)からです。
+    は関数抽象で束縛されている(_bound_)からです。
     この[a]は新しいローカルな名前で、たまたまグローバルな名前[a]と同じ綴りであったものです。
 
     以下が、非形式的な定義です...
@@ -1079,16 +1079,24 @@ Proof.
 *)
 
 (* ###################################################################### *)
-(** ** Properties *)
+(* ** Properties *)
+(** ** 性質 *)
 
 (* ###################################################################### *)
-(** *** Free Occurrences *)
+(* *** Free Occurrences *)
+(** *** 自由な出現 *)
 
-(** A variable [x] _appears free in_ a term _t_ if [t] contains some
+(* A variable [x] _appears free in_ a term _t_ if [t] contains some
     occurrence of [x] that is not under an abstraction labeled [x].  For example:
       - [y] appears free, but [x] does not, in [\x:T->U. x y]
       - both [x] and [y] appear free in [(\x:T->U. x y) x]
       - no variables appear free in [\x:T->U. \y:T. x y]  *)
+(** 変数[x]が項 t に自由に出現する(_appears free in_ a term _t_)とは、
+    [t]が[x]の出現を含み、その出現が[x]のラベルが付けられた関数抽象のスコープ内にないことです。
+    例えば:
+      - [\x:T->U. x y] において[y]は自由に現れますが[x]はそうではありません。
+      - [(\x:T->U. x y) x] においては[x]と[y]はともに自由に現れます。
+      - [\x:T->U. \y:T. x y] においては自由に現れる変数はありません。*)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -1121,25 +1129,30 @@ Tactic Notation "afi_cases" tactic(first) ident(c) :=
 
 Hint Constructors appears_free_in.
 
-(** A term in which no variables appear free is said to be _closed_. *)
+(* A term in which no variables appear free is said to be _closed_. *)
+(** 自由に現れる変数を持たない項を「閉じている」(_closed_)と言います。 *)
 
 Definition closed (t:tm) :=
   forall x, ~ appears_free_in x t.
 
 (* ###################################################################### *)
-(** *** Substitution *)
+(* *** Substitution *)
+(** *** 置換 *)
 
-(** We first need a technical lemma connecting free variables and
+(* We first need a technical lemma connecting free variables and
     typing contexts.  If a variable [x] appears free in a term [t],
     and if we know [t] is well typed in context [Gamma], then it must
     be the case that [Gamma] assigns a type to [x]. *)
+(** 最初に、自由変数と型付けコンテキストを結び付ける技術的な補題が必要になります。
+    変数[x]が項[t]に自由に現れ、[t]がコンテキスト[Gamma]で型付けされるならば、
+    [Gamma]は[x]に型を付けなければなりません。*)
 
 Lemma free_in_context : forall x t T Gamma,
    appears_free_in x t ->
    has_type Gamma t T ->
    exists T', Gamma x = Some T'.
 
-(** _Proof_: We show, by induction on the proof that [x] appears free
+(* _Proof_: We show, by induction on the proof that [x] appears free
       in [t], that, for all contexts [Gamma], if [t] is well typed
       under [Gamma], then [Gamma] assigns some type to [x].
 
@@ -1167,6 +1180,30 @@ Lemma free_in_context : forall x t T Gamma,
         extended context [(Gamma, y:T11)].  To conclude that [Gamma]
         assigns a type to [x], we appeal to lemma [extend_neq], noting
         that [x] and [y] are different variables. *)
+(** 「証明」: [x]が[t]に自由に現れることの証明についての帰納法によって、
+      すべてのコンテキスト[Gamma]について、
+      [t]が[Gamma]のもとで型付けされるならば[Gamma]は[x]に型をつけることを示す。
+
+      - 最後の規則が [afi_var] の場合、[t = x] である。そして、[t]が[Gamma]
+        で型付けされるという仮定から、そのまま、[Gamma]で[x]に型付けされることが言える。
+
+      - 最後の規則が [afi_app1] の場合、[t = t1 t2] で[x]は[t1]に自由に出現する。
+        [t]が[Gamma]のもとで型付けされることから、型付け規則から[t1]も型付けされることになる。
+        従って帰納仮定より[Gamma]は[x]に型を付ける。
+
+      - 他のほとんどの場合も同様である。[x]が[t]の部分項に自由に現れ、
+        [t]が[Gamma]で片付けされることから、[x]が出現している[t]の部分項は同様に[Gamma]
+        で型付けされる。従って帰納仮定より求めるべき結果が得られる。
+
+      - 残るのは、最後の規則が [afi_abs] の場合だけである。この場合、
+        [t = \y:T11.t12] で[x]は[t12]に自由に現れる。
+        また[x]は[y]と異なっている。前の場合との違いは、
+        [t]は[Gamma]のもとで型付けされているが、
+        その本体[t12]は [(Gamma, y:T11)] のもとで型付けされているという点である。
+        このため、帰納仮定は、拡張されたコンテキスト [(Gamma, y:T11)] で[x]
+        に型付けされる、という主張になる。
+        [Gamma]のもとで[x]に型が付けられるという結論を得るため、
+        [x]と[y]が異なっているという点に注意して、補題[extend_neq]を使う。*)
 
 Proof.
   intros. generalize dependent Gamma. generalize dependent T.
@@ -1179,10 +1216,13 @@ Proof.
     rewrite extend_neq in H7; assumption.
 Qed.
 
-(** Next, we'll need the fact that any term [t] which is well typed in
+(* Next, we'll need the fact that any term [t] which is well typed in
     the empty context is closed -- that is, it has no free variables. *)
+(** 次に、空コンテキストで型付けされる任意の項は閉じている(自由変数を持たない)、
+    という事実を必要とします。*)
 
-(** **** Exercise: 2 stars (typable_empty__closed) *)
+(* **** Exercise: 2 stars (typable_empty__closed) *)
+(** **** 練習問題: ★★ (typable_empty__closed) *)
 Corollary typable_empty__closed : forall t T,
     has_type empty t T  ->
     closed t.
