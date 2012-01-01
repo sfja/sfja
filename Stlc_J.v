@@ -1230,19 +1230,25 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Sometimes, when we have a proof [Gamma |- t : T], we will need to
+(* Sometimes, when we have a proof [Gamma |- t : T], we will need to
     replace [Gamma] by a different context [Gamma'].  When is it safe
     to do this?  Intuitively, it must at least be the case that
     [Gamma'] assigns the same types as [Gamma] to all the variables
     that appear free in [t]. In fact, this is the only condition that
     is needed. *)
+(** しばしば、証明 [Gamma |- t : T] があるとき、コンテキスト[Gamma]
+    を別のコンテキスト[Gamma']に置換する必要が出てきます。
+    これはどのような場合に安全でしょうか？
+    直観的には、[t]に自由に現れるすべての変数について、[Gamma']が
+    [Gamma]と同じ型を割当てることが少なくとも必要です。
+    実際、この条件だけが必要になります。*)
 
 Lemma context_invariance : forall Gamma Gamma' t S,
      has_type Gamma t S  ->
      (forall x, appears_free_in x t -> Gamma x = Gamma' x) ->
      has_type Gamma' t S.
 
-(** _Proof_: By induction on a derivation of [Gamma |- t : T].
+(* _Proof_: By induction on a derivation of [Gamma |- t : T].
 
       - If the last rule in the derivation was [T_Var], then [t = x]
         and [Gamma x = T].  By assumption, [Gamma' x = T] as well, and
@@ -1284,6 +1290,47 @@ Lemma context_invariance : forall Gamma Gamma' t S,
         for free variables in [t2]; hence the desired result follows
         by the two IHs.
 *)
+(** 「証明」: [Gamma |- t : T] の導出についての帰納法を使う。
+
+      - 導出の最後の規則が[T_Var]のとき、[t = x] かつ [Gamma x = T] である。
+        仮定から [Gamma' x = T] であるから、[T_Var] より [Gamma' |- t : T] となる。
+
+      - 最後の規則が [T_Abs] のとき、[t = \y:T11. t12] かつ [T = T11 -> T12]
+        かつ [Gamma, y:T11 |- t12 : T12] である。
+        帰納法の仮定は、任意のコンテキスト[Gamma'']について、
+        もし [Gamma, y:T11] と [Gamma''] が [t12]
+        内のすべての自由変数に同じ型を割り当てるならば、
+        [t12] は [Gamma''] のもとで型[T12]を持つ、である。
+        [Gamma']を、[t]内の自由変数について[Gamma]
+        と同じ割当てをするコンテキストとする。
+        示すべきことは [Gamma' |- \y:T11. t12 : T11 -> T12] である。
+
+        [T_Abs] より、[Gamma', y:T11 |- t12 : T12] を示せば十分である。
+        帰納仮定(ただし [Gamma'' = Gamma', y:T11] とする)より、
+        [Gamma, y:T11] と [Gamma', y:T11] が
+        [t12]内に自由に現れるすべての変数について割当てが一致することを示せば十分である。
+
+        [t12]に自由に出現する任意の変数は[y]であるか、それ以外の変数かである。
+        [Gamma, y:T11] と [Gamma', y:T11] は明らかに[y]については一致する。
+        それ以外の場合、[t12]に自由に出現する[y]以外の任意の変数は
+        [t = \y:T11. t12] にも自由に現れることに注意すると、[Gamma] と [Gamma']
+        がそのような変数について割当てが一致するという仮定より、
+        [Gamma, y:T11] と [Gamma', y:T11] も一致する。
+
+      - 最後の規則が [T_App] の場合、[t = t1 t2] かつ [Gamma |- t1 : T2 -> T]
+        かつ [Gamma |- t2 : T2] である。
+        帰納法の仮定の1つは、すべてのコンテキスト[Gamma']について、
+        [Gamma']と[Gamma]が[t1]のすべての自由変数について同じ割当てをするならば、
+        [Gamma']のもとで[t1]は型 [T2 -> T] を持つ、となる。
+        [t2]についても同様の帰納仮定がある。
+        証明すべきことは、[Gamma']が[Gamma]と [t1 t2] 
+        のすべての自由変数について同一の割当てをするという仮定の上で、
+        [Gamma']のもとでも [t1 t2] が型[T]を持つ、ということである。
+        [T_App]より、[t1] と [t2] がそれぞれ
+        [Gamma']と[Gamma]のもとで同じ型を持つことを示せば十分である。
+        しかし、[t1]のすべての自由変数は [t1 t2] でも自由変数であり、
+        [t2]の自由変数についても同様である。ゆえに、2つの帰納仮定から求める結果が得られる。
+*)
 
 Proof with eauto.
   intros.
@@ -1301,7 +1348,7 @@ Proof with eauto.
     apply T_App with T11...
 Qed.
 
-(** Now we come to the conceptual heart of the proof that reduction
+(* Now we come to the conceptual heart of the proof that reduction
     preserves types -- namely, the observation that _substitution_
     preserves types.
 
@@ -1313,8 +1360,21 @@ Qed.
     the assumption we made about [x] when typing [t], we should be
     able to substitute [v] for each of the occurrences of [x] in [t]
     and obtain a new term that still has type [T]. *)
+(** ついに、簡約が型を保存することの証明の概念的な核心です。
+    つまり、「置換」が型を保存することを調べます。
 
-(** _Lemma_: If [Gamma,x:U |- t : T] and [|- v : U], then [Gamma |-
+    非形式的には、置換補題(_Substitution Lemma_)と呼ばれる補題は次のことを主張します:
+    項[t]が自由変数[x]を持ち、[x]が型[U]を持つという仮定のもとで[t]に型[T]が付けられるとする。
+    また、別の項[v]について、[v]が型[U]を持つことが示されるとする。このとき、
+    [v]は[t]の型付けに関する[x]についての上述の仮定を満たすことから、[t]におけるそれぞれの
+    [x]の出現を[v]で置換することはできるはずであり、
+    その置換によって型が[T]のままである新しい項を得る。*)
+(* (訳注：冒頭の "Formally" は "Informally" の間違いと文脈から判断。) *)
+   
+
+(* _Lemma_: If [Gamma,x:U |- t : T] and [|- v : U], then [Gamma |-
+    [v/x]t : T]. *)
+(** 「補題」: もし [Gamma,x:U |- t : T] かつ [|- v : U] ならば [Gamma |-
     [v/x]t : T]. *)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t T,
@@ -1322,7 +1382,7 @@ Lemma substitution_preserves_typing : forall Gamma x U v t T,
      has_type empty v U   ->
      has_type Gamma (subst v x t) T.
 
-(** One technical subtlety in the statement of the lemma is that we
+(* One technical subtlety in the statement of the lemma is that we
     assign [v] the type [U] in the _empty_ context -- in other words,
     we assume [v] is closed.  This assumption considerably simplifies
     the [T_Abs] case of the proof (compared to assuming [Gamma |- v :
@@ -1388,6 +1448,66 @@ Lemma substitution_preserves_typing : forall Gamma x U v t T,
     that we want.  It is possible to work around this, but the needed
     generalization is a little tricky.  The term [t], on the other
     hand, _is_ completely generic. *)
+(** 補題の主張について技術的に巧妙な点の1つは、[v]に型[U]を割当てるのが
+    「空」コンテキストであることです。言い換えると、[v]が閉じていると仮定しています。
+    この仮定は[T_Abs]の場合の証明を
+    (この場面でとりうる別の仮定である [Gamma |- v : U] を仮定するのに比べて)
+    大幅に簡単にします。
+    なぜなら、コンテキスト不変補題(the context invariance lemma)が、
+    どんなコンテキストでも[v]が型[U]を持つことを示すからです。
+    [v]内の自由変数が
+    [T-Abs]によってコンテキストに導入された変数と衝突することを心配する必要はありません。
+
+    「証明」: [t]についての帰納法によって、すべての [T] と [Gamma] について
+    [Gamma,x:U |- t : T] かつ [|- v : U] ならば、[Gamma |- [v/x]t : T]
+    であることを証明する。
+
+      - [t]が変数のとき、[t]が[x]であるか否かによって2つの場合がある。
+
+          - [t = x] の場合、[Gamma, x:U |- x : T] という事実から、
+            [U = T] になる。
+            ここで示すべきことは、空コンテキストのもとで[v]が型 [U = T] という仮定の上で、
+            [Gamma]のもとで [[v/x]x = v] が型[T]を持つことである。
+            これは、コンテキスト不変補題、
+            つまり、閉じた項が空コンテキストのもとで型[T]を持つならば、
+            その項は任意のコンテキストのもとで型[T]を持つ、ということから得られる。
+
+          - [t]が[x]以外の変数[y]である場合、[y]の型は[Gamma,x:U]のもとでも
+            [Gamma]のもとでも変わらないということに注意するだけでよい。
+
+      - [t]が関数抽象 [\y:T11. t12] のとき、帰納仮定から、すべての[Gamma']と[T']について、
+        [Gamma',x:U |- t12 : T'] かつ [|- v : U] ならば [Gamma' |- [v/x]t12 : T']
+        となる。
+        特に [Gamma,y:T11,x:U |- t12 : T12] かつ [|- v : U] ならば
+        [Gamma,y:T11 |- [v/x]t12 : T12] となる。
+        [x]と[y]が同じ変数か否かでまた2つの場合がある。
+
+        最初に [x = y] とすると、置換の定義から [[v/x]t = t] である。
+        これから [Gamma |- t : T] を示すだけで良い。しかし、[Gamma,x:U |- t : T]
+        であって、[\y:T11. t12]に[y]は自由に出現することはないから、
+        コンテキスト不変補題から [Gamma |- t : T] となる。
+
+        次に [x <> y] とする。型付け関係の反転から [Gamma,x:U,y:T11 |- t12 :
+        T12] であり、これとコンテキスト不変補題から [Gamma,y:T11,x:U |- t12 : T12]
+        となる。これから帰納仮定を使って、[Gamma,y:T11 |- [v/x]t12 : T12] が得られる。
+        [T_Abs]から [Gamma |- \y:T11. [v/x]t12 : T11->T12] となり、
+        置換の定義から([x <> y] に注意すると)求める
+        [Gamma |- \y:T11. [v/x]t12 : T11->T12] が得られる。
+
+      - [t] が関数適用 [t1 t2] のときは、結果は置換の定義と帰納法の仮定から直ぐに
+        得られる。
+
+      - 他の場合は、関数適用の場合と同様である。
+
+    別の技術的な注: この証明は、
+    型の導出についての帰納法ではなく項についての帰納法を使うことが議論をより簡単にするという、
+    珍しいものです。この理由は、仮定 [has_type (extend Gamma x U) t T] 
+    がある意味で完全に一般化されていないからです。
+    ある意味というのは、型関係の1つの「スロット」、つまりコンテキストが、
+    単に1つの変数ではないということです。
+    このことにより、Coq がもともと持っている帰納法のタクティックでは必要な帰納法の仮定が導かれません。
+    これを回避することは可能ですが、そのために必要な一般化はちょっとトリッキーです。
+    これに対して項[t]は完全に一般化されています。*)
 
 Proof with eauto.
   intros Gamma x U v t T Ht Hv.
@@ -1422,13 +1542,19 @@ Proof with eauto.
       rewrite <- Heqe...
 Qed.
 
-(** The substitution lemma can be viewed as a kind of "commutation"
+(* The substitution lemma can be viewed as a kind of "commutation"
     property.  Intuitively, it says that substitution and typing can
     be done in either order: we can either assign types to the terms
     [t] and [v] separately (under suitable contexts) and then combine
     them using substitution, or we can substitute first and then
     assign a type to [ [v/x] t ] -- the result is the same either
     way. *)
+(** 置換補題は一種の「交換性」("commutation" property)と見なせます。
+    直観的には、置換と型付けはどの順でやってもよいということを主張しています。
+    (適切なコンテキストのもとで)
+    項[t]と[v]に個別に型付けをしてから置換によって両者を組合せても良いし、
+    置換を先にやって後から [ [v/x] t ] に型をつけることもできます。
+    どちらでも結果は同じです。*)
 
 (* ###################################################################### *)
 (** *** Preservation *)
