@@ -1,11 +1,14 @@
-(** * MoreStlc: A Typechecker for STLC *)
+(** * Typechecking_J: STLCの型チェッカ *)
+(* * MoreStlc: A Typechecker for STLC *)
+(* (訳注: そもそも上の ":" の前は Typechecking の間違いだと思われるので、
+    それを前提に修正した) *)
 
 (* $Date: 2011-04-12 22:39:07 -0400 (Tue, 12 Apr 2011) $ *)
 
 Require Export Stlc_J.
 Require Import Relations.
 
-(** The [has_type] relation of the STLC defines what it means for a
+(* The [has_type] relation of the STLC defines what it means for a
     term to belong to a type (in some context).  But it doesn't, by
     itself, tell us how to _check_ whether or not a term is well
     typed.
@@ -16,14 +19,24 @@ Require Import Relations.
     typechecking _function_ that takes a term and a context and either
     returns the term's type or else signals that the term is not
     typable. *)
+(** STLCの[has_type]関係は(あるコンテキストのもとで)項が型に属するという意味を定義します。
+    しかし、それ自身では、項に型付けができるかどうかの「チェック方法」は与えません。
+
+    幸いにも、[has_type]を定義する規則は構文指向(_syntax directed_)です。
+    項の形にそのまま従います。このことから、
+    型付け規則を型チェック「関数」の節にそのまま変換することができます。
+    この関数は、項とコンテキストをとり、その項の型を返すか、項が型付けできないという信号を出します。
+    *)
 
 Module STLCChecker.
 Import STLC.
 
 (* ###################################################################### *)
-(** ** Comparing Types *)
+(* ** Comparing Types *)
+(** ** 型を比較する *)
 
-(** First, we need a function to compare two types for equality... *)
+(* First, we need a function to compare two types for equality... *)
+(** 最初に、2つの型の等しさを比較する関数が必要です... *)
 
 Fixpoint beq_ty (T1 T2:ty) : bool :=
   match T1,T2 with
@@ -35,9 +48,11 @@ Fixpoint beq_ty (T1 T2:ty) : bool :=
       false
   end.
 
-(** ... and we need to establish the usual two-way connection between
+(* ... and we need to establish the usual two-way connection between
     the boolean result returned by [beq_ty] and the logical
     proposition that its inputs are equal. *)
+(** ... そして、[beq_ty]が返すブール値の結果と2つの入力が等しいという論理命題との間の、
+    通常の双方向結合を確立します。*)
 
 Lemma beq_ty_refl : forall T1,
   beq_ty T1 T1 = true.
@@ -57,9 +72,10 @@ Proof with auto.
     apply IHT1_1 in Hbeq1. apply IHT1_2 in Hbeq2. subst...  Qed.
 
 (* ###################################################################### *)
-(** ** The Typechecker *)
+(* ** The Typechecker *)
+(** ** 型チェッカ *)
 
-(** Now here's the typechecker.  It works by walking over the
+(* Now here's the typechecker.  It works by walking over the
     structure of the given term, returning either [Some T] or [None].
     Each time we make a recursive call to find out the types of the
     subterms, we need to pattern-match on the results to make sure
@@ -67,6 +83,14 @@ Proof with auto.
     pattern matching to extract the left- and right-hand sides of the
     function's arrow type (and fail if the type of the function is not
     [ty_arrow T11 T12] for some [T1] and [T2]). *)
+(** そしてこれが型チェッカです。与えられた項の構造をたどって調べ、[Some T] または [None]
+    を返します。
+    部分項の型を調べるために再帰呼び出しをするたびに、結果についてパターンマッチをして、
+    [None]でないことを確認します。
+    [tm_app]の場合はさらに、パターンマッチングで関数の矢印型の右側と左側を抽出します
+    (そして関数の型が [ty_arrow T11 T12] という形ではないときは失敗します
+    (つまり[None]を返します))。
+    *)
 
 Fixpoint type_check (Gamma:context) (t:tm) : option ty :=
   match t with
@@ -94,12 +118,17 @@ Fixpoint type_check (Gamma:context) (t:tm) : option ty :=
   end.
 
 (* ###################################################################### *)
-(** ** Properties *)
+(* ** Properties *)
+(** ** 性質 *)
 
-(** To verify that this typechecking algorithm is the correct one, we
+(* To verify that this typechecking algorithm is the correct one, we
     show that it is _sound_ and _complete_ for the original [has_type]
     relation -- that is, [type_check] and [has_type] define the same
     partial function. *)
+(** この型チェックアルゴリズムが正しいことを検証するため、
+    この関数がオリジナルの[has_type]関係について健全(_sound_)で完全(_complete_)
+    であることを示します。
+    つまり、[type_check]と[has_type]が同じ部分関数を定義することです。*)
 
 Theorem type_checking_sound : forall Gamma t T,
   type_check Gamma t = Some T -> has_type Gamma t T.
