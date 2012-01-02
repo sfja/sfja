@@ -1557,12 +1557,18 @@ Qed.
     どちらでも結果は同じです。*)
 
 (* ###################################################################### *)
-(** *** Preservation *)
+(* *** Preservation *)
+(** *** 保存 *)
 
-(** We now have the tools we need to prove _preservation_: if a closed
+(* We now have the tools we need to prove _preservation_: if a closed
     term [t] has type [T], and takes an evaluation step to [t'], then [t']
     is also a closed term with type [T].  In other words, the small-step
     evaluation relation preserves types.
+*)
+(** さて、(型の)保存(_preservation_)を証明する道具立ては揃いました。
+    保存とは、閉じた項[t]が型[T]を持ち、[t']への評価ステップを持つならば、
+    [t']はまた型[T]を持つ閉じた項である、という性質です。
+    言い換えると、スモールステップ評価関係は型を保存するということです。
 *)
 
 Theorem preservation : forall t t' T,
@@ -1570,7 +1576,7 @@ Theorem preservation : forall t t' T,
      t ==> t'  ->
      has_type empty t' T.
 
-(** _Proof_: by induction on the derivation of [|- t : T].
+(* _Proof_: by induction on the derivation of [|- t : T].
 
     - We can immediately rule out [T_Var], [T_Abs], [T_True], and
       [T_False] as the final rules in the derivation, since in each of
@@ -1601,6 +1607,36 @@ Theorem preservation : forall t t' T,
         - Otherwise, [t] steps by [ST_If], and the desired conclusion
           follows directly from the induction hypothesis.
 *)
+(** 「証明」: [|- t : T] の導出についての帰納法を使う。
+
+    - まず最後の規則が [T_Var]、[T_Abs]、[T_True]、[T_False] 
+      である場合は外して良い。なぜなら、これらの場合、
+      [t]はステップを進むことができないからである。
+
+    - 導出の最後の規則が [T_App] のとき、[t = t1 t2] である。
+      このとき、[t1 t2] が [t'] にステップを進めたことを示すのに使われた規則について、
+      3つの場合が考えられる。
+
+        - [t1 t2] が[ST_App1]によってステップを進めた場合、
+          [t1]がステップを進めたものを[t1']とする。すると帰納仮定より
+          [t1']は[t1]と同じ型を持ち、したがって、[t1' t2] は [t1 t2] と同じ型を持つ。
+
+        - [ST_App2]の場合は同様である。
+
+        - [t1 t2] が[ST_AppAbs]によってステップを進めた場合、
+          [t1 = \x:T11.t12] であり、
+          [t1 t2] は [subst t2 x t12] にステップする。
+          すると置換が型を保存するという事実から求める結果となる。
+
+    - 導出の最後の規則が [T_If] のとき、[t = if t1 then t2 else t3] であり、
+      やはり[t]のステップについて3つの場合がある。
+
+        - [t]が[t2]または[t3]にステップした場合、結果は直ぐである。なぜなら
+          [t2]と[t3]は[t]と同じ型だからである。
+
+        - そうでない場合、[t]は[ST_If]でステップする。このとき、
+          帰納法の仮定から直接求める結果が得られる。
+*)
 
 Proof with eauto.
   remember (@empty ty) as Gamma.
@@ -1617,8 +1653,9 @@ Proof with eauto.
       inversion HT1...
 Qed.
 
-(** **** Exercise: 2 stars, recommended (subject_expansion_stlc) *)
-(** An exercise earlier in this file asked about the subject
+(* **** Exercise: 2 stars, recommended (subject_expansion_stlc) *)
+(** **** 練習問題: ★★, recommended (subject_expansion_stlc) *)
+(* An exercise earlier in this file asked about the subject
     expansion property for the simple language of arithmetic and
     boolean expressions.  Does this property hold for STLC?  That
     is, is it always the case that, if [t ==> t'] and [has_type
@@ -1628,20 +1665,37 @@ Qed.
 (* FILL IN HERE *)
 []
 *)
+(** このファイルの前の練習問題で、
+    算術式とブール式の簡単な言語についての主部展開性についてききました
+    (訳注:実際には Types_J.v内の練習問題)。
+    STLCでこの性質は成立するでしょうか？つまり、
+    [t ==> t'] かつ [has_type t' T] ならば [has_type t T] 
+    ということが常に言えるでしょうか？
+    もしそうならば証明しなさい。そうでなければ、反例を挙げなさい。
+
+(* FILL IN HERE *)
+[]
+*)
 
 (* ###################################################################### *)
-(** *** Progress *)
+(* *** Progress *)
+(** *** 進行 *)
 
-(** Finally, the _progress_ theorem tells us that closed, well-typed
+(* Finally, the _progress_ theorem tells us that closed, well-typed
     terms are never stuck: either a well-typed term is a value, or
     else it can take an evaluation step.
+*)
+(** 最後に、
+    「進行」定理(the _progress_ theorem)は閉じた、
+    型が付けられる項は行き詰まらないことを示します。
+    つまり、型が付けられる項は、値であるか、または評価ステップを進むことができるか、どちらかです。
 *)
 
 Theorem progress : forall t T,
      has_type empty t T ->
      value t \/ exists t', t ==> t'.
 
-(** _Proof_: by induction on the derivation of [|- t : T].
+(* _Proof_: by induction on the derivation of [|- t : T].
 
     - The last rule of the derivation cannot be [T_Var], since a
       variable is never well typed in an empty context.
@@ -1679,6 +1733,41 @@ Theorem progress : forall t T,
 
         - Otherwise, [t1] takes a step, and therefore so does [t] (by
           [ST_If]).
+
+*)
+(** 「証明」: [|- t : T] の導出についての帰納法による。
+
+    - 導出の最後の規則は[T_Var]ではありえない。なぜなら、
+      空コンテキストにおいて変数には型付けできないからである。
+
+    - [T_True]、[T_False]、[T_Abs]の場合は自明である。
+      なぜなら、これらの場合 [t]は値だからである。
+
+    - 導出の最後の規則が[T_App]の場合、[t = t1 t2] であり、
+      [t1]および[t2]はどちらも空コンテキストで型付けされる。
+      特に型[T2]があって、[|- t1 : T2 -> T] かつ [|- t2 : T2] となる。
+      帰納法の仮定から、[t1]は値であるか、評価ステップを進むことができる。
+
+        - [t1]が値のとき、[t2]を考えると、
+          帰納仮定からさらに値である場合と評価ステップを進む場合がある。
+
+            - [t2]が値のとき、[t1]は値で矢印型であるから、ラムダ抽象である。
+              ゆえに、[t1 t2] は [ST_AppAbs] でステップを進むことができる。
+
+            - そうでなければ、[t2]はステップを進むことができる。したがって
+              [ST_App2]で [t1 t2] もステップを進むことができる。
+
+        - [t1]がステップを進むことができるとき、[ST_App1] で [t1 t2] 
+          もステップを進むことができる。
+
+    - 導出の最後の規則が[T_If]のとき、[t = if t1 then t2 else t3] で
+      [t1] は型[Bool]を持つ。帰納仮定より[t1]は値かステップを進むことができるかどちらかである。
+
+        - [t1]が値のとき、その型が[Bool]であることから[t1]は[true]または[false]である。
+          [true]ならば[t]は[t2]に進み、そうでなければ[t3]に進む。
+
+        - そうでないとき、[t1]はステップを進むことができる。したがって([ST_If]より)
+          [t]もステップを進むことができる。
 
 *)
 
@@ -1724,9 +1813,11 @@ Proof with eauto.
       destruct H as [t1' Hstp]. exists (tm_if t1' t2 t3)...
 Qed.
 
-(** **** Exercise: 3 stars, optional (progress_from_term_ind) *)
-(** Show that progress can also be proved by induction on terms
+(* **** Exercise: 3 stars, optional (progress_from_term_ind) *)
+(** **** 練習問題: ★★★, optional (progress_from_term_ind) *)
+(* Show that progress can also be proved by induction on terms
     instead of types. *)
+(** 型についての帰納法ではなく項についての帰納法でも進行の証明ができることを示しなさい。*)
 
 Theorem progress' : forall t T,
      has_type empty t T ->
@@ -1738,27 +1829,37 @@ Proof.
 (** [] *)
 
 (* ###################################################################### *)
-(** *** Uniqueness of Types *)
+(* *** Uniqueness of Types *)
+(** *** 型の一意性 *)
 
-(** **** Exercise: 3 stars (types_unique) *)
-(** Another pleasant property of the STLC is that types are
+(* **** Exercise: 3 stars (types_unique) *)
+(** **** 練習問題: ★★★ (types_unique) *)
+(* Another pleasant property of the STLC is that types are
     unique: a given term (in a given context) has at most one
     type. *)
-(** Formalize this statement and prove it. *)
+(** STLCの別の好ましい性質は、型が唯一であることです。
+    つまり、与えらえた項については(与えられたコンテキストで)
+    高々1つの型しか型付けされません。*)
+(* Formalize this statement and prove it. *)
+(** この主張を形式化し、証明しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ###################################################################### *)
-(** ** Additional Exercises *)
+(* ** Additional Exercises *)
+(** ** さらなる練習問題 *)
 
-(** **** Exercise: 1 star (progress_preservation_statement) *)
-(** Without peeking, write down the progress and preservation
+(* **** Exercise: 1 star (progress_preservation_statement) *)
+(** **** 練習問題: ★ (progress_preservation_statement) *)
+(* Without peeking, write down the progress and preservation
     theorems for the simply typed lambda-calculus. *)
+(** なにも見ることなく、単純型付きラムダ計算の進行定理と保存定理を書き下しなさい。*)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (stlc_variation1) *)
-(** Suppose we add the following new rule to the evaluation
+(* **** Exercise: 2 stars, optional (stlc_variation1) *)
+(** **** 練習問題: ★★, optional (stlc_variation1) *)
+(* Suppose we add the following new rule to the evaluation
     relation of the STLC:
 [[
       | T_Strange : forall x t,
@@ -1777,12 +1878,36 @@ Proof.
 
 []
 *)
+(** STLCの評価関係に次の新しい規則を加えたとします:
+[[
+      | T_Strange : forall x t,
+           has_type empty (tm_abs x Bool t) Bool
+]]
+    この規則を加えても真であるSTLCの性質は以下のうちどれでしょうか？
+    それぞれについて、「真のまま」または「偽に変わる」と書きなさい。
+    偽に変わるものについては、反例を挙げなさい。
 
-(** **** Exercise: 2 stars (stlc_variation2) *)
-(** Suppose we remove the rule [ST_App1] from the [step]
+      - [step]の決定性
+
+      - 進行
+
+      - 保存      
+
+[]
+*)
+
+(* **** Exercise: 2 stars (stlc_variation2) *)
+(** **** 練習問題: ★★ (stlc_variation2) *)
+(* Suppose we remove the rule [ST_App1] from the [step]
     relation. Which of the three properties in the previous
     exercise become false in the absence of this rule? For each
     that becomes false, give a counterexample.
+
+[]
+*)
+(** [step]関係から[ST_App1]規則を除いたとします。
+    このとき前の練習問題の3つの性質のうち、偽になるものはどれでしょう？
+    偽になるものについては、反例を挙げなさい。
 
 []
 *)
@@ -1791,27 +1916,34 @@ End STLC.
 
 (* ###################################################################### *)
 (* ###################################################################### *)
-(** * Exercise: STLC with Arithmetic *)
+(* * Exercise: STLC with Arithmetic *)
+(** * 練習問題: 算術を持つSTLC *)
 
-(** To see how the STLC might function as the core of a real
+(* To see how the STLC might function as the core of a real
     programming language, let's extend it with a concrete base
     type of numbers and some constants and primitive
     operators. *)
+(** STLCが実際のプログラミング言語の核として機能することを見るため、
+    数値についての具体的な基本型と定数、いくつかの基本操作を追加しましょう。*)
 
 Module STLCArith.
 
 (* ###################################################################### *)
-(** ** Syntax and Operational Semantics *)
+(* ** Syntax and Operational Semantics *)
+(** ** 構文と操作的意味論 *)
 
-(** To types, we add a base type of natural numbers (and remove
+(* To types, we add a base type of natural numbers (and remove
     booleans, for brevity) *)
+(** 型について、自然数を基本型として加えます(そして簡潔さのためブール型を除きます)。 *)
 
 Inductive ty : Type :=
   | ty_arrow : ty -> ty -> ty
   | ty_Nat   : ty.
 
-(** To terms, we add natural number constants, along with
+(* To terms, we add natural number constants, along with
     successor, predecessor, multiplication, and zero-testing... *)
+(** 項について、自然数の定数、1つ前をとる関数、1つ後をとる関数、積算、ゼロか否かのテスト...
+    を加えます。 *)
 
 Inductive tm : Type :=
   | tm_var : id -> tm
@@ -1830,8 +1962,9 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   | Case_aux c "tm_succ" | Case_aux c "tm_pred"
   | Case_aux c "tm_mult" | Case_aux c "tm_if0" ].
 
-(** **** Exercise: 4 stars, recommended (STLCArith) *)
-(** Finish formalizing the definition and properties of the STLC extended
+(* **** Exercise: 4 stars, recommended (STLCArith) *)
+(** **** 練習問題: ★★★★, recommended (STLCArith) *)
+(* Finish formalizing the definition and properties of the STLC extended
     with arithmetic.  Specifically:
 
     - Copy the whole development of STLC that we went through above (from
@@ -1843,6 +1976,15 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
 
     - Extend the proofs of all the properties of the original STLC to deal
       with the new syntactic forms.  Make sure Coq accepts the whole file. *)
+(** 算術を拡張したSTLCの定義と性質の形式化を完成させなさい。特に:
+
+    - STLCについてここまでやってきたこと(定義から進行定理まで)の全体をコピーして、
+      ファイルのこの部分にペーストしなさい。
+
+    - [subst]操作と[step]関係の定義を拡張して、算術の操作の適切な節を含むようにしなさい。
+
+    - オリジナルのSTLCの性質の証明を拡張して、新しい構文を扱うようにしなさい。
+      Coq がその証明を受理することを確認しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
