@@ -1,4 +1,5 @@
-(** * MoreStlc: More on the Simply Typed Lambda-Calculus *)
+(** * MoreStlc_J: 単純型付きラムダ計算についてさらに *)
+(* * MoreStlc: More on the Simply Typed Lambda-Calculus *)
 
 (* $Date: 2011-04-20 14:26:52 -0400 (Wed, 20 Apr 2011) $ *)
 
@@ -6,24 +7,33 @@ Require Export Stlc_J.
 Require Import Relations.
 
 (* ###################################################################### *)
-(** * Simple Extensions to STLC *)
+(* * Simple Extensions to STLC *)
+(** * STLCの単純な拡張 *)
 
-(** The simply typed lambda-calculus has enough structure to make its
+(* The simply typed lambda-calculus has enough structure to make its
     theoretical properties interesting, but it is not yet much of a
     programming language.  In this chapter, we begin to close the gap
     with real-world languages by introducing a number of familiar
     features that have straightforward treatments at the level of
     typing. *)
+(** 単純型付きラムダ計算は理論的性質を興味深いものにするには十分な構造を持っていますが、
+    まだプログラミング言語といえるようなものではありません。
+    この章では、型レベルでの直接的な扱いがあるいくつもの馴染み深い機能を導入することで、
+    実世界の言語とのギャップを埋め始めます。*)
 
-(** *** Numbers *)
+(* *** Numbers *)
+(** *** 数値 *)
 
-(** Adding types, constants, and primitive operations for numbers is
+(* Adding types, constants, and primitive operations for numbers is
     easy -- just a matter of combining the two halves of the [Stlc]
     chapter. *)
+(** 数値に関する型、定数、基本操作を追加することは容易です。
+    [Stlc_J]章の前半と後半をくっつけるだけです。*)
 
-(** *** [let]-bindings *)
+(* *** [let]-bindings *)
+(** *** [let]束縛 *)
 
-(** When writing a complex expression, it is often useful to give
+(* When writing a complex expression, it is often useful to give
     names to some of its subexpressions: this avoids repetition and
     often increases readability.  Most languages provide one or more
     ways of doing this.  In OCaml (and Coq), for example, we can write
@@ -65,10 +75,48 @@ Require Import Relations.
                         Gamma |- let x=t1 in t2 : T2
 ]]]
  *)
+(** 複雑な式を書くとき、部分式に名前をつけるのが便利なことがよくあります。
+    同じことを繰り返すのを避けることができ、またしばしば可読性が向上します。
+    ほとんどの言語はこのための1つ以上の方法を持っています。
+    OCaml(および Coq)では、例えば [let x=t1 in t2] と書くと
+    「式[t1]を評価して、その結果を名前[x]に束縛して[t2]を評価する」ことを意味します。
 
-(** *** Pairs *)
+    ここで導入する[let]束縛子はOCamlに従って値呼び(call-by-value)評価順序とします。
+    つまり、[let]本体の評価が始まる前に[let]束縛項は完全に評価されます。
+    型付け規則[T_Let]は、[let]の型が次の手順で計算されることを示しています:
+    まず[let]束縛項の型の計算、次にその型の束縛によるコンテキストの拡張、
+    さらにこの拡張されたコンテキストでの[let]本体の型の計算をすると、それが[let]式全体の型になります。
 
-(** Our functional programming examples have made frequent use of
+    コースのこの時点では、新しい機能の定義のためにたくさんの日本語の文章を読み通すより、
+    同じ情報を伝える規則を単に見る方が、おそらく簡単でしょう。以下がその規則です:
+
+    構文:
+<<
+       t ::=                項
+           | ...               (前と同じ他の項)
+           | let x=t in t      let束縛
+>>
+    簡約:
+[[
+                                 t1 ==> t1'
+                     ----------------------------------               (ST_Let1)
+                     let x=t1 in t2 ==> let x=t1' in t2
+
+                        ----------------------------              (ST_LetValue)
+                        let x=v1 in t2 ==> [v1/x] t2
+]]
+    型付け:
+[[
+                Gamma |- t1 : T1      Gamma , x:T1 |- t2 : T2
+                --------------------------------------------            (T_Let)
+                        Gamma |- let x=t1 in t2 : T2
+]]
+ *)
+
+(* *** Pairs *)
+(** *** 組 *)
+
+(* Our functional programming examples have made frequent use of
     _pairs_ of values.  The type of such pairs is called a _product
     type_.
 
@@ -173,10 +221,105 @@ Require Import Relations.
    and [T_Snd] tell us that, if [t1] has a product type
    [T11*T12] (i.e., if it will evaluate to a pair), then the types of
    the projections from this pair are [T11] and [T12]. *)
+(** ここまでの関数プログラミングの例では、値の組(_pairs_)を頻繁に使ってきました。
+    そのような組の型は積型(_product type_)と呼ばれます。
 
-(** *** Sums *)
+    組の形式化はほとんど議論する余地がないほど簡単です。
+    しかし、共通パターンを強調するため、定義のいろいろな部分をちょっと見てみましょう。
 
-(** Many programs need to deal with values that can take two distinct
+    Coqでは、組の構成要素を抽出する基本的な方法は、パターンマッチング(_pattern matching_)です。
+    別の方法としては、[fst]と[snd]、つまり、
+    1番目と2番目の要素の射影操作を基本操作として持つ方法があります。
+    お遊びで、積をこの方法でやってみましょう。
+    例えば、数値の組をとり、その和と差の組を返す関数の書き方は次の通りです:
+<<
+       \x:Nat*Nat.
+          let sum = x.fst + x.snd in
+          let diff = x.fst - x.snd in
+          (sum,diff)
+>>
+
+    これから、単純型付きラムダ計算に組を追加するには、2つの新しい項の形を追加することが含まれます。
+    1つは組で [(t1,t2)] と書きます。もう1つは射影で、第1射影は [t.fst]、第2射影は [t.snd]
+    と書きます。さらに1つの型コンストラクタ [T1*T2] を追加します。これは[T1]と[T2]の積と呼びます。
+
+    構文:
+<<
+       t ::=                項
+           | ...
+           | (t,t)             組
+           | t.fst             第1射影
+           | t.snd             第2射影
+
+       v ::=                値
+           | ...
+           | (v,v)             組値
+
+       T ::=                型
+           | ...
+           | T * T             積型
+>>
+
+   評価については、組と射影がどう振る舞うかを規定するいくつかの新しい規則が必要です。
+[[
+                              t1 ==> t1'
+                         --------------------                        (ST_Pair1)
+                         (t1,t2) ==> (t1',t2)
+
+                              t2 ==> t2'
+                         --------------------                        (ST_Pair2)
+                         (v1,t2) ==> (v1,t2')
+
+                              t1 ==> t1'
+                          ------------------                          (ST_Fst1)
+                          t1.fst ==> t1'.fst
+
+                          ------------------                       (ST_FstPair)
+                          (v1,v2).fst ==> v1
+
+                              t1 ==> t1'
+                          ------------------                          (ST_Snd1)
+                          t1.snd ==> t1'.snd
+
+                          ------------------                       (ST_SndPair)
+                          (v1,v2).snd ==> v2
+]]
+    規則[ST_FstPair]と[ST_SndPair]は、
+    完全に評価された組が第1射影または第2射影に遭遇したとき、結果が対応する要素であることを規定します。
+    合同規則[ST_Fst1]と[ST_Snd1]は、射影の対象の項が完全に評価されきっていないとき、
+    その簡約を認めるものです。
+    [ST_Pair1]と[ST_Pair2]は組の構成部分の評価です。
+    最初に左の部分を評価し、それが値を持ったら、次に右の部分を評価します。
+    これらの規則内でメタ変数[v]と[t]を使うことで現れる順番は、
+    組を左から右の順で評価すること(left-to-right evaluation)を規定しています。
+    (暗黙の慣習として、[v]や[v1]などのメタ変数は値のみを指すものとしています。)
+    また値の定義に節を加え、[(v1,v2)] が値であることを規定しています。
+    組値の要素自体が値でなければならないという事実は、関数の引数として渡された組が、
+    関数の本体の実行が開始される前に完全に評価されることを保証します。
+
+   組と射影の型付け規則はそのまま直ぐに得られます。
+[[
+               Gamma |- t1 : T1       Gamma |- t2 : T2
+               ---------------------------------------                 (T_Pair)
+                       Gamma |- (t1,t2) : T1*T2
+
+                        Gamma |- t1 : T11*T12
+                        ---------------------                           (T_Fst)
+                        Gamma |- t1.fst : T11
+
+                        Gamma |- t1 : T11*T12
+                        ---------------------                           (T_Snd)
+                        Gamma |- t1.snd : T12
+]]
+   規則[T_Pair]は、[t1]が型[T1]を持ち、[t2]が型[T2]を持つならば、 [(t1,t2)] 
+   が型 [T1*T2] を持つことを言っています。逆に、規則[T_Fst]と[T_Snd]は、
+   [t1]が積型[T11*T12]を持つ(つまり評価結果が組になる)ならば、
+   射影の型は[T11]と[T12]になることを定めます。*)
+
+(* *** Sums *)
+(** *** 直和 *)
+
+(* Many programs need to deal with values that can take two distinct
    forms.  For example, we might identify employees in an accounting
    application using using _either_ their name _or_ their id number.
    A search function might return _either_ a matching value _or_ an
@@ -303,10 +446,130 @@ Typing:
     an injection.  This is rather heavyweight for programmers (and so
     real languages adopt other solutions), but it is easy to
     understand and formalize. *)
+(** 多くのプログラムでは2つの異なった形を持つ値を扱うことが求められます。
+   例えばアカウント処理をするアプリケーションで名前か、「または」、
+   IDナンバーで雇用者を認証するかもしれません。
+   探索関数はマッチした値か、「または」、エラーコードを返すかもしれません。
 
-(** *** Lists *)
+   これらは、(2項の)直和型(_sum type_)の例です。
+   (2項)直和型は2つの与えられた型から抽出した値の集合にあたります。
+   例えば
+<<
+       Nat + Bool
+>>
+   この型の要素を、それぞれの構成部分の型の要素にタグ付けする(_tagging_)ことで生成します。
+   例えば、[n]が[Nat]ならば [inl v] は [Nat+Bool] の要素です。
+   同様に、[b]が[Bool]ならば [inr b] は [Nat+Bool] の要素です。
+   タグの名前[inl]と[inr]は、これらのタグを関数と考えるところから出ています。
 
-(** The typing features we have seen can be classified into _base
+<<
+   inl : Nat -> Nat + Bool
+   inr : Bool -> Nat + Bool
+>>
+
+   これらの関数は、[Nat]または[Bool]の要素を直和型[Nat+Bool]
+   の左部分または右部分に単射("inject")します。
+   (しかし、実際にはこれらを関数としては扱いません。[inl]と[inr]
+   はキーワードで、[inl t] と [inr t] は基本構文形であり、
+   関数適用ではありません。この扱いによって、
+   これらに特別な型付け規則を用意できるようになります。)
+
+   一般に、型 [T1 + T2] の要素は [T1]の要素に[inl]をタグ付けしたものと、
+   [T2]の要素に[inr]をタグ付けしたものから成ります。
+
+   直和型の要素を「使う」目的で、その分解のために[case]構文を導入します(これは
+   Coqの[match]の非常に単純化された形です)。
+   例えば、以下の手続きは、[Nat+Bool] を[Nat]に変換します:
+
+<<
+    getNat =
+      \x:Nat+Bool.
+        case x of
+          inl n => n
+        | inr b => if b then 1 else 0
+>>
+
+    より形式的に...
+
+    構文:
+<<
+       t ::=                項
+           | ...
+           | inl T t           タグ付け(左)
+           | inr T t           タグ付け(右)
+           | case t of         case
+               inl x => t
+             | inr x => t
+
+       v ::=                値
+           | ...
+           | inl T v           タグ付き値(左)
+           | inr T v           タグ付き値(右)
+
+       T ::=                型
+           | ...
+           | T + T             直和型
+>>
+
+   評価:
+
+[[
+                              t1 ==> t1'
+                        ----------------------                         (ST_Inl)
+                        inl T t1 ==> inl T t1'
+
+                              t1 ==> t1'
+                        ----------------------                         (ST_Inr)
+                        inr T t1 ==> inr T t1'
+
+                              t0 ==> t0'
+                   -------------------------------------------       (ST_Case)
+                   case t0 of inl x1 => t1 | inr x2 => t2 ==>
+                   case t0' of inl x1 => t1 | inr x2 => t2
+
+            ----------------------------------------------         (ST_CaseInl)
+            case (inl T v0) of inl x1 => t1 | inl x2 => t2
+                           ==>  [v0/x1] t1
+
+            ----------------------------------------------         (ST_CaseInr)
+            case (inr T v0) of inl x1 => t1 | inl x2 => t2
+                           ==>  [v0/x2] t2
+]]
+
+型付け:
+[[
+                          Gamma |- t1 :  T1
+                     ----------------------------                       (T_Inl)
+                     Gamma |- inl T2 t1 : T1 + T2
+
+                           Gamma |- t1 : T2
+                     ----------------------------                       (T_Inr)
+                     Gamma |- inr T1 t1 : T1 + T2
+
+                         Gamma |- t0 : T1+T2
+                       Gamma , x1:T1 |- t1 : T
+                       Gamma , x2:T2 |- t2 : T
+         ---------------------------------------------------           (T_Case)
+         Gamma |- case t0 of inl x1 => t1 | inr x2 => t2 : T
+]]
+
+    [inl]と[inr]の形に型を付記する理由は、型の一意性を保つためです。
+    この情報がなければ、型推論規則[T_Inl]は、例えば、[t1]が型[T1]の要素であることを示した後、
+    「任意の」型[T2]について [inl t1] が [T1 + T2] の要素であることを導出できます。
+    例えば、[inl 5 : Nat + Nat] と [inl 5 : Nat + Bool] の両方
+    (および無限に多数の他の型付け)が導出できます。
+    この型の一意性の失敗は、型チェックアルゴリズムを、ここまでやってきたように
+    「規則を下から上に読む」という単純な方法で構築することができなくなることを意味します。
+
+    この問題を扱うのにはいろいろな方法があります。簡単なものの1つは、ここで採用する方法ですが、
+    単射を実行するときに直和型の「別の側」をプログラマが明示的に付記することを強制するというものです。
+    これはプログラマにとってかなりヘビーウェイトです(そのため実際の言語は別の解法を採用しています)。
+    しかし、理解と形式化は容易な方法です。*)
+
+(* *** Lists *)
+(** *** リスト *)
+
+(* The typing features we have seen can be classified into _base
     types_ like [Bool], and _type constructors_ like [->] and [*] that
     build new types from old ones.  Another useful type constructor is
     [List].  For every type [T], the type [List T] describes
@@ -336,8 +599,38 @@ Typing:
     While we say that [cons v1 v2] is a value, we really mean that
     [v2] should also be a list -- we'll have to enforce this in the
     formal definition of value. *)
+(** ここまで見てきた型付け機能は、[Bool]のような基本型(_base types_)と、
+    古い型から新しい型を構築する[->]や[*]のような型コンストラクタ(_type constructors_)
+    に分類できます。もう一つの有用な型コンストラクタが[List]です。
+    すべての型[T]について、型 [List T] は[T]から抽出したものを要素とする有限長リストを表します。
 
-(**
+    原理的には、リストの機構を使って、変種を定義したり、
+    再帰型(_recursive_ types)を定義したりすることができます。
+    しかし、前者の詳細はここまで省略してきており、後者に意味を与えることは簡単ではありません。
+    その代わりに、リストの特別な場合を直接議論します。
+
+    以下にリストの構文、意味、型付け規則を与えます。
+    [nil]に対して明示的に型を付記することが必須であり、[cons]には付記できないという点を除けば、
+    ここで定義されたリストは本質的にCoqで構築したものと同じです。
+    リストを分解するために[lcase]を使います。
+    これは「空リストの[head]は何か？」というような問題を扱うことを避けるためです。
+    従って、例えば、数値リストの最初の2つの要素の和を計算する関数は次の通りです:
+
+<<
+    \x:List Nat.
+    lcase x of nil -> 0
+       | a::x' -> lcase x' of nil -> a
+                     | b::x'' -> a+b
+>>
+
+    [cons v1 v2] が値というときには、[v2] もリストでなければなりません。
+     値の形式的定義ではこのことを強制します。*)
+(* (訳注: "we could develop lists given facilities ..." は
+         何かが抜けていると思われ、正確な意味がつかめないので、
+         前後の文脈からの推察で訳した。) *)
+
+
+(*
     Syntax:
 <<
        t ::=                Terms
@@ -395,11 +688,70 @@ Typing:
           Gamma |- (lcase t1 of nil -> t2 | h::t -> t3) : T
 ]]]
 *)
+(**
+    構文:
+<<
+       t ::=                Terms
+           | ...
+           | nil T
+           | cons t t
+           | lcase t of nil -> t | x::x -> t
+
+       v ::=                Values
+           | ...
+           | nil T             nil value
+           | cons v v          cons value
+
+       T ::=                Types
+           | ...
+           | List T            list of Ts
+>>
+   簡約:
+[[
+                                 t1 ==> t1'
+                       --------------------------                    (ST_Cons1)
+                       cons t1 t2 ==> cons t1' t2
+
+                                 t2 ==> t2'
+                       --------------------------                    (ST_Cons2)
+                       cons v1 t2 ==> cons v1 t2'
+
+                              t1 ==> t1'
+                ----------------------------------------             (ST_Lcase1)
+                (lcase t1 of nil -> t2 | h::t -> t3) ==>
+                (lcase t1' of nil -> t2 | h::t -> t3)
+
+               ---------------------------------------            (ST_LcaseNil)
+               (lcase nil T of nil -> t2 | h::t -> t3)
+                                ==> t2
+
+            ----------------------------------------------       (ST_LcaseCons)
+            (lcase (cons vh vt) of nil -> t2 | h::t -> t3)
+                          ==> [vh/h,vt/t]t3
+]]
+
+   型付け:
+[[
+                          -----------------------                       (T_Nil)
+                          Gamma |- nil T : List T
+
+                Gamma |- t1 : T      Gamma |- t2 : List T
+                -----------------------------------------              (T_Cons)
+                       Gamma |- cons t1 t2: List T
+
+                        Gamma |- t1 : List T1
+                           Gamma |- t2 : T
+                   Gamma , h:T1, t:List T1 |- t3 : T
+          -------------------------------------------------           (T_Lcase)
+          Gamma |- (lcase t1 of nil -> t2 | h::t -> t3) : T
+]]
+*)
 
 
-(** *** General Recursion *)
+(* *** General Recursion *)
+(** *** 一般再帰 *)
 
-(** Another facility found in most programming languages (including
+(* Another facility found in most programming languages (including
     Coq) is the ability to define recursive functions.  For example,
     we might like to be able to define the factorial function like
     this:
@@ -462,9 +814,79 @@ Typing:
                             Gamma |- fix t1 : T1
 ]]]
  *)
+(** (Coqを含む)ほとんどのプログラミング言語に現れるもう1つの機構が、再帰関数を定義する機能です。
+    例えば、階乗関数を次のように定義できるとよいと思うでしょう:
+<<
+   fact = \x:Nat.
+             if x=0 then 1 else x * (fact (pred x)))
+>>
+   しかし、これを形式化するには、なかなかの作業が必要になります。
+   そうするには、「関数定義」("function definitions")の概念を導入し、
+   [step]の定義の中で、関数定義の「環境」("environment")を持ち回ることが必要になるでしょう。
 
-(** **** Exercise: 1 star (halve_fix) *)
-(** Translate this recursive definition into one using [fix]:
+   ここでは、直接的に形式化する別の方法をとります。
+   右辺に定義しようとしている識別子を含む再帰的定義を書く代わりに、
+   不動点演算子(_fixed-point operator_)を定義することができます。
+   不動点演算子は、簡約の過程で再帰的定義の右辺を遅延(lazy)して
+   「展開」("unfold")するものです。
+<<
+   fact =
+       fix
+         (\f:Nat->Nat.
+            \x:Nat.
+               if x=0 then 1 else x * (f (pred x)))
+>>
+   直観的には[fix]に渡される高階関数[f]は[fact]関数の生成器(_generator_)です。
+   [f]が、[fact]に求められる振る舞いを[n]まで近似する関数(つまり、
+   [n]以下の入力に対して正しい結果を返す関数)に適用されるとき、
+   [f]はより良い近似、つまり、[n+1]まで正しい答えを返す関数、を返します。
+   [fix]をこの生成器に適用すると、生成器の不動点(_fixed point_)を返します。
+   この不動点は、すべての入力[n]について求められる振る舞いをする関数です。
+
+   (不動点("fixed point")という用語は通常の数学とまったく同じ意味で使っています。
+   通常の数学では、関数[f]の不動点とは、[f(x) = x] となる入力 [x] のことです。
+   これから、(いってみれば)型 [(Nat->Nat)->(Nat->Nat)] を持つ関数[F]の不動点は、
+   [F f]が[f]と振る舞い同値である関数[f]です。)
+
+   構文:
+<<
+       t ::=                項
+           | ...
+           | fix t             不動点演算子
+>>
+   簡約:
+[[
+                                 t1 ==> t1'
+                             ------------------                       (ST_Fix1)
+                             fix t1 ==> fix t1'
+
+                -------------------------------------------         (ST_FixAbs)
+                fix (\x:T1.t2) ==> [(fix(\x:T1.t2)) / x] t2
+]]
+   型付け:
+[[
+                            Gamma |- t1 : T1->T1
+                            --------------------                        (T_Fix)
+                            Gamma |- fix t1 : T1
+]]
+ *)
+(* (訳注: 階乗に関する記述中、[f]と[fact]を書き間違えていると思われる部分があったので、
+         修正して訳した。) *)
+
+(* **** Exercise: 1 star (halve_fix) *)
+(** **** 練習問題: ★ (halve_fix) *)
+(* Translate this recursive definition into one using [fix]:
+<<
+   halve =
+     \x:Nat.
+        if x=0 then 0
+        else if (pred x)=0 then 0
+        else 1 + (halve (pred (pred x))))
+>>
+(* FILL IN HERE *)
+[]
+*)
+(** 次の再帰的定義を[fix]を用いた定義に直しなさい:
 <<
    halve =
      \x:Nat.
@@ -476,16 +898,23 @@ Typing:
 []
 *)
 
-(** **** Exercise: 1 star, recommended (fact_steps) *)
-(** Write down the sequence of steps that the term [fact 1] goes
+(* **** Exercise: 1 star, recommended (fact_steps) *)
+(** **** 練習問題: ★, recommended (fact_steps) *)
+(* Write down the sequence of steps that the term [fact 1] goes
     through to reduce to a normal form (assuming the usual reduction
     rules for arithmetic operations).
 
     (* FILL IN HERE *)
 []
 *)
+(** 項 [fact 1] が正規形まで簡約されるステップ列を書き下しなさい
+    (ただし、算術演算については通常の簡約規則を仮定します)。
 
-(** The ability to form the fixed point of a function of type [T->T]
+    (* FILL IN HERE *)
+[]
+*)
+
+(* The ability to form the fixed point of a function of type [T->T]
     for any [T] has some surprising consequences.  In particular, it
     implies that _every_ type is inhabited by some term.  To see this,
     observe that, for every type [T], we can define the term
@@ -511,6 +940,43 @@ Typing:
     And finally, here is an example where [fix] is used to define a
     _pair_ of recursive functions (illustrating the fact that the type
     [T1] in the rule [T_Fix] need not be a function type):
+<<
+    evenodd =
+      fix
+        (\eo: (Nat->Bool * Nat->Bool).
+           let e = \n:Nat. if n=0 then true  else eo.snd (pred n) in
+           let o = \n:Nat. if n=0 then false else eo.fst (pred n) in
+           (e,o))
+
+    even = evenodd.fst
+    odd  = evenodd.snd
+>>
+
+*)
+(** 任意の[T]について、型 [T->T] の関数の不動点を記述する能力を使うと、驚くようなことができます。
+    特に、すべての型が何らかの項に住まれている(inhabited)ということが導かれます。
+    これを確認するため、すべての型[T]について、項
+[[
+    fix (\x:T.x)
+]]
+    が定義できることを見てみましょう。
+    [T_Fix]と[T_Abs]から、この項は型[T]を持ちます。
+    [ST_FixAbs]より、この項を簡約すると何度やっても自分自身になります。
+    したがって、この項は[T]の未定義要素(_undefined element_)です。
+
+    より有用なこととして、次は[fix]を使って2引数の再帰関数を定義する例です:
+<<
+    equal =
+      fix
+        (\eq:Nat->Nat->Bool.
+           \m:Nat. \n:Nat.
+             if m=0 then iszero n
+             else if n=0 then false
+             else eq (pred m) (pred n))
+>>
+
+    そして最後に、次は[fix]を使って再帰関数の組を定義する例です
+    (この例は、規則[T_Fix]の型[T1]は関数型ではなくてもよいことを示しています):
 <<
     evenodd =
       fix
