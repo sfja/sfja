@@ -114,7 +114,7 @@ Require Import Relations.
  *)
 
 (* *** Pairs *)
-(** *** 組 *)
+(** *** 対 *)
 
 (* Our functional programming examples have made frequent use of
     _pairs_ of values.  The type of such pairs is called a _product
@@ -221,17 +221,17 @@ Require Import Relations.
    and [T_Snd] tell us that, if [t1] has a product type
    [T11*T12] (i.e., if it will evaluate to a pair), then the types of
    the projections from this pair are [T11] and [T12]. *)
-(** ここまでの関数プログラミングの例では、値の組(_pairs_)を頻繁に使ってきました。
-    そのような組の型は積型(_product type_)と呼ばれます。
+(** ここまでの関数プログラミングの例では、値の対(_pairs_)を頻繁に使ってきました。
+    そのような対の型は直積型(_product type_)と呼ばれます。
 
-    組の形式化はほとんど議論する余地がないほど簡単です。
+    対の形式化はほとんど議論する余地がないほど簡単です。
     しかし、共通パターンを強調するため、定義のいろいろな部分をちょっと見てみましょう。
 
-    Coqでは、組の構成要素を抽出する基本的な方法は、パターンマッチング(_pattern matching_)です。
+    Coqでは、対の構成要素を抽出する基本的な方法は、パターンマッチング(_pattern matching_)です。
     別の方法としては、[fst]と[snd]、つまり、
     1番目と2番目の要素の射影操作を基本操作として持つ方法があります。
-    お遊びで、積をこの方法でやってみましょう。
-    例えば、数値の組をとり、その和と差の組を返す関数の書き方は次の通りです:
+    お遊びで、直積をこの方法でやってみましょう。
+    例えば、数値の対をとり、その和と差の対を返す関数の書き方は次の通りです:
 <<
        \x:Nat*Nat.
           let sum = x.fst + x.snd in
@@ -239,28 +239,29 @@ Require Import Relations.
           (sum,diff)
 >>
 
-    これから、単純型付きラムダ計算に組を追加するには、2つの新しい項の形を追加することが含まれます。
-    1つは組で [(t1,t2)] と書きます。もう1つは射影で、第1射影は [t.fst]、第2射影は [t.snd]
-    と書きます。さらに1つの型コンストラクタ [T1*T2] を追加します。これは[T1]と[T2]の積と呼びます。
+    これから、単純型付きラムダ計算に対を追加するには、2つの新しい項の形を追加することが含まれます。
+    1つは対で [(t1,t2)] と書きます。もう1つは射影で、第1射影は [t.fst]、第2射影は [t.snd]
+    と書きます。さらに1つの型コンストラクタ [T1*T2] を追加します。
+    これは[T1]と[T2]の直積と呼びます。
 
     構文:
 <<
        t ::=                項
            | ...
-           | (t,t)             組
+           | (t,t)             対
            | t.fst             第1射影
            | t.snd             第2射影
 
        v ::=                値
            | ...
-           | (v,v)             組値
+           | (v,v)             対値
 
        T ::=                型
            | ...
-           | T * T             積型
+           | T * T             直積型
 >>
 
-   評価については、組と射影がどう振る舞うかを規定するいくつかの新しい規則が必要です。
+   評価については、対と射影がどう振る舞うかを規定するいくつかの新しい規則が必要です。
 [[
                               t1 ==> t1'
                          --------------------                        (ST_Pair1)
@@ -285,19 +286,19 @@ Require Import Relations.
                           (v1,v2).snd ==> v2
 ]]
     規則[ST_FstPair]と[ST_SndPair]は、
-    完全に評価された組が第1射影または第2射影に遭遇したとき、結果が対応する要素であることを規定します。
+    完全に評価された対が第1射影または第2射影に遭遇したとき、結果が対応する要素であることを規定します。
     合同規則[ST_Fst1]と[ST_Snd1]は、射影の対象の項が完全に評価されきっていないとき、
     その簡約を認めるものです。
-    [ST_Pair1]と[ST_Pair2]は組の構成部分の評価です。
+    [ST_Pair1]と[ST_Pair2]は対の構成部分の評価です。
     最初に左の部分を評価し、それが値を持ったら、次に右の部分を評価します。
     これらの規則内でメタ変数[v]と[t]を使うことで現れる順番は、
-    組を左から右の順で評価すること(left-to-right evaluation)を規定しています。
+    対を左から右の順で評価すること(left-to-right evaluation)を規定しています。
     (暗黙の慣習として、[v]や[v1]などのメタ変数は値のみを指すものとしています。)
     また値の定義に節を加え、[(v1,v2)] が値であることを規定しています。
-    組値の要素自体が値でなければならないという事実は、関数の引数として渡された組が、
+    対値の要素自体が値でなければならないという事実は、関数の引数として渡された対が、
     関数の本体の実行が開始される前に完全に評価されることを保証します。
 
-   組と射影の型付け規則はそのまま直ぐに得られます。
+   対と射影の型付け規則はそのまま直ぐに得られます。
 [[
                Gamma |- t1 : T1       Gamma |- t2 : T2
                ---------------------------------------                 (T_Pair)
@@ -313,7 +314,7 @@ Require Import Relations.
 ]]
    規則[T_Pair]は、[t1]が型[T1]を持ち、[t2]が型[T2]を持つならば、 [(t1,t2)] 
    が型 [T1*T2] を持つことを言っています。逆に、規則[T_Fst]と[T_Snd]は、
-   [t1]が積型[T11*T12]を持つ(つまり評価結果が組になる)ならば、
+   [t1]が直積型[T11*T12]を持つ(つまり評価結果が対になる)ならば、
    射影の型は[T11]と[T12]になることを定めます。*)
 
 (* *** Sums *)
@@ -604,7 +605,7 @@ Typing:
     に分類できます。もう一つの有用な型コンストラクタが[List]です。
     すべての型[T]について、型 [List T] は[T]から抽出したものを要素とする有限長リストを表します。
 
-    原理的には、リストの機構を使って、変種を定義したり、
+    原理的には、リストの機構を使って、バリアントを定義したり、
     再帰型(_recursive_ types)を定義したりすることができます。
     しかし、前者の詳細はここまで省略してきており、後者に意味を与えることは簡単ではありません。
     その代わりに、リストの特別な場合を直接議論します。
@@ -953,7 +954,8 @@ Typing:
 >>
 
 *)
-(** 任意の[T]について、型 [T->T] の関数の不動点を記述する能力を使うと、驚くようなことができます。
+(** 任意の[T]について型 [T->T] の関数の不動点が記述できる形ができたことから、
+    驚くようなことが起こります。
     特に、すべての型が何らかの項に住まれている(inhabited)ということが導かれます。
     これを確認するため、すべての型[T]について、項
 [[
@@ -975,7 +977,7 @@ Typing:
              else eq (pred m) (pred n))
 >>
 
-    そして最後に、次は[fix]を使って再帰関数の組を定義する例です
+    そして最後に、次は[fix]を使って再帰関数の対を定義する例です
     (この例は、規則[T_Fix]の型[T1]は関数型ではなくてもよいことを示しています):
 <<
     evenodd =
@@ -994,9 +996,10 @@ Typing:
 
 
 (* ###################################################################### *)
-(** ** Records and Variants (Optional) *)
+(* ** Records and Variants (Optional) *)
+(** ** レコードとバリアント (Optional) *)
 
-(** As a final example of a basic extension of the STLC, let's look
+(* As a final example of a basic extension of the STLC, let's look
     briefly at how to formalize _records_ and their types.  This
     extension is conceptually a straightforward generalization of
     pairs and product types, but notationally it becomes a little
@@ -1005,11 +1008,19 @@ Typing:
 
     This material is not included in the extended exercise below.  It
     can be skipped or skimmed, if desired. *)
+(** STLCの基本拡張の最後の例として、
+    レコード(_records_)とその型をどのように形式化するかをちょっと見てみましょう。
+    この拡張は概念的には対と直積型の真っ直ぐな一般化ですが、記法的にはちょっとたいへんです。
+    このため、形式的な扱いは独立した章([Records_J])まで置いておきます。
+
+    この素材は以下の追加の練習問題には含まれません。
+    必要ならば、とばしても斜め読みしても構いません。*)
 
 (* ################################# *)
-(** *** The [Unit] Type *)
+(* *** The [Unit] Type *)
+(** *** [Unit]型 *)
 
-(** Another handy base type, found especially in languages in the ML
+(* Another handy base type, found especially in languages in the ML
     family, is the singleton type [Unit].  It has a single element --
     the term constant [unit] (with a small [u]) -- and a typing rule
     making [unit] an element of [Unit].  We also add [unit] to the set
@@ -1048,11 +1059,49 @@ Syntax:
     sorts of nonlocal control structures, etc.  In such languages, it
     is convenient to have a type for the (trivial) result of an
     expression that is evaluated only for its effect. *)
+(** もう一つの便利な基本型は、MLファミリーの言語に特に見られるものですが、1要素の型[Unit]です。
+    この型は要素を1つ持ちます。それは項定数[unit]です(先頭の文字は小文字の[u]です)。
+    型付け規則は [unit]を[Unit]の要素と定めます。
+    計算の結果として取りうる値の集合にも[unit]を加えます。
+    実際、[unit]は型[Unit]の式の評価結果としてとり得る唯一の値です。
+
+    構文:
+<<
+       t ::=                項
+           | ...
+           | unit              unit値
+
+       v ::=                値
+           | ...
+           | unit              unit
+
+       T ::=                型
+           | ...
+           | Unit              Unit型
+>>
+    型付け:
+[[
+                         --------------------                          (T_Unit)
+                         Gamma |- unit : Unit
+]]
+
+    単に1つだけの要素を持つ型を定義することにわずらわされるのは、少々奇妙なことに見えるかもしれません。
+    何と言っても、このような型の中の計算はどうでも良いものだけではないのでしょうか？
+
+    これは妥当な質問です。実際STLCでは[Unit]型は特別、問題ではありません
+    (ちょっと後でこの型のある使い道を見ることになりますが)。
+    [Unit]が本当に便利なのはよりリッチな言語でいろいろな種類の副作用
+    (_side effects_)を持つ場合です。
+    例えば、変更可能な変数やポインタについての代入文や、
+    例外その他のローカルではないコントロール機構を持つ場合、などです。
+    そのような言語では、副作用のためだけに評価される式の(どうでもよい)結果のための型が便利なのです。
+    *)
 
 (* ###################################################################### *)
-(** *** Records *)
+(* *** Records *)
+(** *** レコード *)
 
-(** Another familiar structure from everyday programming languages is
+(* Another familiar structure from everyday programming languages is
     _records_.  Intuitively, records can be obtained from pairs by two
     kinds of generalization:   they are n-ary products (rather than just binary)
     and their fields are accessed by _label_ (rather than position).
@@ -1115,11 +1164,75 @@ Syntax:
 ]]]
 
 *)
+(** 日常的なプログラミング言語のもう1つの馴染み深い構造が、レコード(_records_)です。
+    直観的には、レコードは2種類の一般化の組み合わせによって得られます。
+    1つは(2項だけではなく)n-項積です。
+    もう1つはフィールドアクセスに(場所ではなく)ラベル(_label_)を使うことです。
+
+    構文:
+<<
+       t ::=                          項
+           | ...
+           | {i1=t1, ..., in=tn}         レコード
+           | t.i                         射影
+
+       v ::=                          値
+           | ...
+           | {i1=v1, ..., in=vn}         レコード値
+
+       T ::=                          型
+           | ...
+           | {i1:T1, ..., in:Tn}         レコード型
+>>
+   直観的には、この一般化はかなり明確です。
+   しかし、ここで実際に記述したものはかなり非形式的であることは注意しておくべきです。
+   特に、いろいろなところで、"[...]"を「これらを何個か」という意味で使っていますし、
+   レコードに同じラベルが複数回出てきてはいけない、
+   という通常の付加条件を明示的に述べることを省いています。
+   より詳細な非形式的記法を考案することもできますが、
+   それはかなりヘビーで、また定義の大事な点をわかりにくくすることになりかねません。
+   このため、ここではちょっとルーズなまま残しておいて(とにかく、どちらにしろ非形式的なのです)、
+   きっちり仕上げるのは別のところ([Records_J.v])でやります。
+
+   簡約:
+[[
+                              ti ==> ti'
+                 ------------------------------------                  (ST_Rcd)
+                     {i1=v1, ..., im=vm, in=ti, ...}
+                 ==> {i1=v1, ..., im=vm, in=ti', ...}
+
+                              t1 ==> t1'
+                            --------------                           (ST_Proj1)
+                            t1.i ==> t1'.i
+
+                      -------------------------                    (ST_ProjRcd)
+                      {..., i=vi, ...}.i ==> vi
+]]
+   再び、これらの規則はちょっと非形式的です。
+   例えば、最初の規則は
+   「[ti]が値でないフィールドのうち最も左のもので、[ti]は[ti']にステップで進むならば、
+   レコード全体のステップは...」と読まれることを意図しています。
+   最後の規則では、i と呼ばれるフィールドは1つだけで、
+   他のすべてのフィールドは値を持っていることを意図しています。
+
+   型付け:
+[[
+            Gamma |- t1 : T1     ...     Gamma |- tn : Tn
+          --------------------------------------------------            (T_Rcd)
+          Gamma |- {i1=t1, ..., in=tn} : {i1:T1, ..., in:Tn}
+
+                    Gamma |- t : {..., i:Ti, ...}
+                    -----------------------------                      (T_Proj)
+                          Gamma |- t.i : Ti
+]]
+
+*)
 
 (* ###################################################################### *)
-(** *** Encoding Records *)
+(* *** Encoding Records *)
+(** *** レコードのエンコード *)
 
-(** There are several ways to make the above definitions precise.
+(* There are several ways to make the above definitions precise.
 
       - We can directly formalize the syntactic forms and inference
         rules, staying as close as possible to the form we've given
@@ -1218,18 +1331,116 @@ Syntax:
     "direct" presentation of records are validated by this
     encoding.  (The reduction rules are "almost validated" -- not
     quite, because the encoding reorders fields.) *)
+(** 上述の定義を精密にするにはいろいろな方法があります。
 
-(** Of course, this encoding will not be very efficient if we
+      - 構文の形と推論規則を、上記の形になるべく近いまま直接形式化するという方法があります。
+        これは概念的に「直球」で、もし本当のコンパイラを作るならば、
+        おそらくいちばん合っているでしょう。
+        特に、形式化の中にエラーメッセージのプリントを含めることができるので、
+        プログラマが理解するのが容易になるでしょう。
+        しかし、規則の形式化版はまったくきれいにはなりません!
+
+      - レコードを表現する、よりスムーズな方法を探すことができます。
+        例えば、1つのコンストラクタでレコード全体を一度に作るのではなく、
+        空レコードに対応する1つのコンストラクタと、
+        存在するレコードに1つのフィールドを追加する別のコンストラクタの2つで表現するという方法があります。
+        この方法は、レコードについての計算のメタ理論に一番の興味がある場合には正しい方法です。
+        なぜなら、この方法をとると、きれいで優雅な定義と証明が得られるからです。
+        ファイル[Records_J.v]では、この方法がどのように行えるかを示しています。
+
+      - 別の方法として、望むならば、レコードを形式化することを完全に避けることができます。
+        このためには、レコード記法は、対と直積型を含むより複雑な式の単なる非形式的な略記法である、
+        と規定します。ここではこのアプローチのスケッチを与えます。
+
+    最初に、任意のサイズの組が対と[unit]値のネストでエンコードできることを確認します。
+    対の記法 [(t1,t2)] を混用するのを避けるため、
+    組を書き下すためにはラベルを持たない中カッコ([{..}])を使います。
+    これから、[{}]は0個組、[{5}]は一つ組、[{5,6}]は二つ組(おそらく対と同じ)、
+    [{5,6,7}]は三つ組、等です。
+<<
+    {}                 ---->  unit
+    {t1, t2, ..., tn}  ---->  (t1, trest)
+                              ただし {t2, ..., tn} ----> trest
+>>
+    同様に、組の型を直積型のネストでエンコードすることができます。
+<<
+    {}                 ---->  Unit
+    {T1, T2, ..., Tn}  ---->  T1 * TRest
+                              ただし {T2, ..., Tn} ----> TRest
+>>
+    組のフィールドの射影演算は、第2射影の列に続く第1射影としてエンコードできます:
+<<
+    t.0        ---->  t.fst
+    t.(n+1)    ---->  (t.snd).n
+>>
+
+    次に、レコードラベルに何らかの全順序があり、そのため各ラベルに一意に自然数が関連づけられると仮定します。
+    この数をラベルのポジション(_position_)と呼びます。
+    例えば、以下のようにポジションが定められるとします:
+<<
+      LABEL   POSITION
+      a       0
+      b       1
+      c       2
+      ...     ...
+      foo     1004
+      ...     ...
+      bar     10562
+      ...     ...
+>>
+
+    このポジションを、レコード値を組(つまりネストされた対)でエンコードするために使います。
+    つまり、フィールドをそのポジションでソートします。
+    例えば:
+<<
+      {a=5, b=6}      ---->   {5,6}
+      {a=5, c=7}      ---->   {5,unit,7}
+      {c=7, a=5}      ---->   {5,unit,7}
+      {c=5, b=3}      ---->   {unit,3,5}
+      {f=8,c=5,a=7}   ---->   {7,unit,5,unit,unit,8}
+      {f=8,c=5}       ---->   {unit,unit,5,unit,unit,8}
+>>
+    以下のことに注意します。
+    各フィールドはそのラベルに関連づけられたポジションに現れます。
+    また、組の大きさは、最大のポジションを持つラベルによって決定されます。
+    そして、使われていないポジションは[unit]で埋められます。
+
+    レコードの型についてもまったくおなじことをします:
+<<
+      {a:Nat, b:Nat}      ---->   {Nat,Nat}
+      {c:Nat, a:Nat}      ---->   {Nat,Unit,Nat}
+      {f:Nat,c:Nat}       ---->   {Unit,Unit,Nat,Unit,Unit,Nat}
+>>
+
+    最後に、レコードの射影は適切なポジションについての組の射影でエンコードされます:
+<<
+      t.l  ---->  t.(position of l)
+>>
+
+    レコードのオリジナルの「直接の」表現に対するすべての型付け規則が、
+    このエンコードで正しいことをチェックするのは難しいことではありません。
+    (簡約規則は正しさを「ほぼ」確認できます。完全に、ではありません。
+    なぜなら、フィールドの並べ直しのエンコードのためです。) *)
+    (* (訳注: "reorders fields" が何を指すのか意味がとれない) *)
+
+(* Of course, this encoding will not be very efficient if we
     happen to use a record with label [bar]!  But things are not
     actually as bad as they might seem: for example, if we assume that
     our compiler can see the whole program at the same time, we can
     _choose_ the numbering of labels so that we assign small positions
     to the most frequently used labels.  Indeed, there are industrial
     compilers that essentially do this! *)
+(** もちろん、ラベル[bar]を持つレコードをたまたま使ったときには、
+    このエンコードはあまり効率的ではありません。
+    しかしこの問題は見た目ほど深刻ではありません。
+    もし、コンパイラがプログラム全体を同時に見ることができると仮定するなら、
+    ラベルの番号づけをうまく選んで、一番よく使われるラベルに小さいポジションを与えることができます。
+    実際、商用のコンパイラで本質的にこれをやっているものがあります! *)
 
-(** *** Variants *)
+(* *** Variants *)
+(** *** バリアント *)
 
-(** Just as products can be generalized to records, sums can be
+(* Just as products can be generalized to records, sums can be
     generalized to n-ary labeled types called _variants_.  Instead of
     [T1+T2], we can write something like [<l1:T1,l2:T2,...ln:Tn>]
     where [l1],[l2],... are field labels which are used both to build
@@ -1241,6 +1452,17 @@ Syntax:
     type definitions.  We won't cover this here, but detailed
     treatments can be found in many textbooks -- e.g., Types and
     Programming Languages. *)
+(** 直積がレコードに一般化できたのと同様、直和は n-個のラベルを持った型
+    「バリアント」(_variants_)に一般化できます。
+    [T1+T2] の代わりに [<l1:T1,l2:T2,...ln:Tn>] のように書くことができます。
+    ここで[l1]、[l2]、... はフィールドラベルで、インスタンスの構成と、
+    case のラベルの両方に使われます。
+
+    n-個のバリアントは、
+    リストや木構造のような任意の帰納的データ型をゼロから構築するのに必要なメカニズムのほとんどを与えます。
+    唯一足りないのは、型定義の再帰です。ここではこの話題は扱いません。
+    ただ、詳細な扱いはいろいろなテキストブックに書かれています。
+    例えば "Types and Programming Languages" です。*)
 
 (* ###################################################################### *)
 (** * Formalizing the Extensions *)
