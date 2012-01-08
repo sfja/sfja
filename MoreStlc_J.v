@@ -1465,10 +1465,12 @@ Syntax:
     例えば "Types and Programming Languages" です。*)
 
 (* ###################################################################### *)
-(** * Formalizing the Extensions *)
+(* * Formalizing the Extensions *)
+(** * 拡張を形式化する *)
 
-(** **** Exercise: 4 stars, recommended (STLC_extensions) *)
-(** Formalizing the extensions (not including the optional ones) is
+(* **** Exercise: 4 stars, recommended (STLC_extensions) *)
+(** **** 練習問題: ★★★★, recommended (STLC_extensions) *)
+(* Formalizing the extensions (not including the optional ones) is
     left to you.  We've provided the necessary extensions to the
     syntax of terms and types, and we've included a few examples that
     you can test your definitions with to make sure they are working
@@ -1489,11 +1491,37 @@ Syntax:
       - sums (which involve slightly more complex binding)
       - lists (which involve yet more complex binding)
       - [fix] *)
+(** 拡張(オプションの1つを除く)の形式化は読者に残してあります。
+    項と型の構文の必要な拡張は提示しておきました。
+    また、読者が、自分の定義が期待された通りに動作するかをテストすることができるように、
+    いくつかの例を示しておきました。
+    読者は定義の残りの部分を埋め、それに合わせて証明を拡張しなさい。
+    (訳注：節構成がまぎらわしいですが、この章のここ以降はすべてこの練習問題の内部のようです。
+     埋めるのはその中の「ここを埋めなさい」という部分です。
+     なお、以下の記述はCoq記述内の埋め込みコメントを読まないと理解できない部分があると思いますが、
+     HTML化したものでは、埋め込みコメントが表示されていないかもしれません。
+     その場合はHTML化前のCoqソースを見てください。)
+
+    よい戦略は、ファイルの最初から最後までを1パスで行おうとせずに、
+    複数回のパスで拡張項目を一つづつやることです。
+    定義または証明のそれぞれについて、提示されたパーツを注意深く読むことから始めなさい。
+    その際に、ハイレベルの直観については[Stlc_J]章のテキストを参照し、
+    詳細の機構については、埋め込まれたコメントを参照しなさい。
+
+    拡張を試みる良い順番は以下の順でしょう:
+      - 最初に数値(なぜなら、馴染み深く簡単なので)
+      - 直積
+      - let (束縛を含むので)
+      - 直和 (より複雑な束縛を含むので)
+      - リスト (さらに複雑な束縛を含むので)
+      - [fix]
+    *)
 
 Module STLCExtended.
 
 (* ###################################################################### *)
-(** *** Syntax and Operational Semantics *)
+(* *** Syntax and Operational Semantics *)
+(** *** 構文と操作的意味論 *)
 
 Inductive ty : Type :=
   | ty_arrow : ty -> ty -> ty
@@ -1510,42 +1538,83 @@ Tactic Notation "ty_cases" tactic(first) ident(c) :=
 
 Inductive tm : Type :=
   (* pure STLC *)
+  (** <<
+  (* 拡張されていないSTLC *)
+>> *)
   | tm_var : id -> tm
   | tm_app : tm -> tm -> tm
   | tm_abs : id -> ty -> tm -> tm
   (* pairs *)
+  (** <<
+  (* 対 *)
+>> *)
   | tm_pair : tm -> tm -> tm
   | tm_fst : tm -> tm
   | tm_snd : tm -> tm
   (* sums *)
+  (** <<
+  (* 直和 *)
+>> *)
   | tm_inl : ty -> tm -> tm
   | tm_inr : ty -> tm -> tm
   | tm_case : tm -> id -> tm -> id -> tm -> tm
           (* i.e., [case t0 of inl x1 => t1 | inr x2 => t2] *)
+          (** <<
+          (* 例えば、[case t0 of inl x1 => t1 | inr x2 => t2] *)
+>> *)
   (* lists *)
+  (** <<
+  (* リスト *)
+>> *)
   | tm_nil : ty -> tm
   | tm_cons : tm -> tm -> tm
   | tm_lcase : tm -> tm -> id -> id -> tm -> tm
           (* i.e., [lcase t1 of | nil -> t2 | x::y -> t3] *)
+          (** <<
+          (* 例えば、[lcase t1 of | nil -> t2 | x::y -> t3] *)
+>> *)
   (* numbers *)
+  (** <<
+  (* 数値 *)
+>> *)
   | tm_nat : nat -> tm
   | tm_succ : tm -> tm
   | tm_pred : tm -> tm
   | tm_mult : tm -> tm -> tm
   | tm_if0  : tm -> tm -> tm -> tm
   (* let *)
+  (** <<
+  (* let *)
+>> *)
   | tm_let : id -> tm -> tm -> tm
           (* i.e., [let x = t1 in t2] *)
+          (** <<
+          (* 例えば、[let x = t1 in t2] *)
+>> *)
   (* fix *)
+  (** <<
+  (* fix *)
+>> *)
   | tm_fix  : tm -> tm.
 
-(** Note that, for brevity, we've omitted booleans and instead
+(* Note that, for brevity, we've omitted booleans and instead
     provided a single [if0] form combining a zero test and a
     conditional.  That is, instead of writing
 <<
        if x = 0 then ... else ...
 >>
     we'll write this:
+<<
+       if0 x then ... else ...
+>>
+*)
+(** なお、簡潔にするため、ブール値をなくし、
+    その代わりゼロテストと条件分岐を組み合わせた [if0] 構文を提供してきています。
+    つまり、
+<<
+       if x = 0 then ... else ...
+>>
+    と書く代わりに、次のように書きます:
 <<
        if0 x then ... else ...
 >>
@@ -1562,7 +1631,8 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   | Case_aux c "tm_let" | Case_aux c "tm_fix" ].
 
 (* ###################################################################### *)
-(** *** Substitution *)
+(* *** Substitution *)
+(** *** 置換 *)
 
 Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   match t with
@@ -1573,18 +1643,29 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   | tm_app t1 t2 =>
       tm_app (subst x s t1) (subst x s t2)
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
   | _ => t  (* ... and delete this line *)
+  (** <<
+  (* ...そして上の行を消しなさい。 *)
+>> *)
   end.
 
 (* ###################################################################### *)
-(** *** Reduction *)
+(* *** Reduction *)
+(** *** 簡約 *)
 
-(** Next we define the values of our language. *)
+(* Next we define the values of our language. *)
+(** 次にこの言語の値を定義します。 *)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T11 t12,
       value (tm_abs x T11 t12)
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
   .
 
 Hint Constructors value.
@@ -1603,6 +1684,9 @@ Inductive step : tm -> tm -> Prop :=
          t2 ==> t2' ->
          (tm_app v1 t2) ==> (tm_app v1 t2')
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
 
 where "t1 '==>' t2" := (step t1 t2).
 
@@ -1610,6 +1694,9 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "ST_AppAbs" | Case_aux c "ST_App1" | Case_aux c "ST_App2"
     (* FILL IN HERE *)
+    (** <<
+    (* ここを埋めなさい *)
+>> *)
   ].
 
 Notation stepmany := (refl_step_closure step).
@@ -1618,12 +1705,15 @@ Notation "t1 '==>*' t2" := (stepmany t1 t2) (at level 40).
 Hint Constructors step.
 
 (* ###################################################################### *)
-(** *** Typing *)
+(* *** Typing *)
+(** *** 型付け *)
 
 Definition context := partial_map ty.
 
-(** Next we define the typing rules.  These are nearly direct
+(* Next we define the typing rules.  These are nearly direct
     transcriptions of the inference rules shown above. *)
+(** 次に型付け規則を定義します。
+    上述の推論規則のほとんど直接の転写です。*)
 
 Inductive has_type : context -> tm -> ty -> Prop :=
   (* Typing rules for proper terms *)
@@ -1638,6 +1728,9 @@ Inductive has_type : context -> tm -> ty -> Prop :=
       has_type Gamma t2 T1 ->
       has_type Gamma (tm_app t1 t2) T2
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
   .
 
 Hint Constructors has_type.
@@ -1646,12 +1739,16 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "T_Var" | Case_aux c "T_Abs" | Case_aux c "T_App"
     (* FILL IN HERE *)
+    (** <<
+    (* ここを埋めなさい *)
+>> *)
 ].
 
 (* ###################################################################### *)
-(** ** Examples *)
+(* ** Examples *)
+(** ** 例 *)
 
-(** This section presents formalized versions of the examples from
+(* This section presents formalized versions of the examples from
     above (plus several more).  The ones at the beginning focus on
     specific features; you can use these to make sure your definition
     of a given feature is reasonable before moving on to extending the
@@ -1659,12 +1756,20 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
     The later examples require all the features together, so you'll
     need to come back to these when you've got all the definitions
     filled in. *)
+(** この節では上述の例(および追加のいくつか)の形式化版を示します。
+    最初の方のものは、特定の拡張項目に焦点を当てています。
+    ファイルの後の方の、その拡張項目について証明を拡張するところに進む前に、
+    これらの例を使って拡張項目についての自分の定義が適切かを確認することができます。
+    後の方の例はいろいろな拡張項目をまとめて必要とします。
+    すべての定義を埋めた後、これらの例に戻ってみる必要があるでしょう。*)
 
 Module Examples.
 
-(** *** Preliminaries *)
+(* *** Preliminaries *)
+(** *** 準備 *)
 
-(** First, let's define a few variable names: *)
+(* First, let's define a few variable names: *)
+(** 最初に、いくつか変数名を定義しましょう: *)
 
 Notation a := (Id 0).
 Notation f := (Id 1).
@@ -1684,7 +1789,7 @@ Notation even := (Id 16).
 Notation odd := (Id 17).
 Notation eo := (Id 18).
 
-(** Next, a bit of Coq hackery to automate searching for typing
+(* Next, a bit of Coq hackery to automate searching for typing
     derivations.  You don't need to understand this bit in detail --
     just have a look over it so that you'll know what to look for if
     you ever find yourself needing to make custom extensions to
@@ -1698,23 +1803,48 @@ Notation eo := (Id 18).
     [e1] and [e2].  We also include a hint to "try harder" when
     solving equality goals; this is useful to automate uses of
     [T_Var] (which includes an equality as a precondition). *)
+(** 次に、Coq にちょっと手を入れて、型の導出の検索を自動化します。
+    詳細を理解する必要はまったくありません。
+    ざっと眺めておけば、もし[auto]に独自の拡張をしなければならなくなったとき、
+    何を調べれば良いかがわかるでしょう。
+
+    以下の[Hint]宣言は、次のように言っています:
+    [auto]が [(has_type G (tm_app e1 e2) T)] という形のゴールに到達したときは常に、
+    [eapply T_App] を考えなさい。
+    この結果、中間的な型 T1 の存在変数が残ります。
+    (コメントになっている)[lcase]についても同様です。
+    その存在変数は、[e1]と[e2]の型導出の探索の仮定で具体化されます。
+    またヒントに、等号による比較の形のゴールを解く場合に「より困難なことを試しなさい」
+    ということも追加します。
+    これは、[T_Var](これは事前条件に等号による比較を含みます)を自動的に使用するのに便利です。*)
 
 Hint Extern 2 (has_type _ (tm_app _ _) _) =>
   eapply T_App; auto.
 (* You'll want to uncomment the following line once
    you've defined the [T_Lcase] constructor for the typing
    relation: *)
+(** <<
+(* 型関係に[T_Lcase]を定義した後では、次の部分のコメントをはずすのが良いでしょう。 *)
+>> *)
 (*
 Hint Extern 2 (has_type _ (tm_lcase _ _ _ _ _) _) =>
   eapply T_Lcase; auto.
 *)
+(** <<
+(* 
+Hint Extern 2 (has_type _ (tm_lcase _ _ _ _ _) _) =>
+  eapply T_Lcase; auto.
+*)
+>> *)
 Hint Extern 2 (_ = _) => compute; reflexivity.
 
-(** *** Numbers *)
+(* *** Numbers *)
+(** *** 数値 *)
 
 Module Numtest.
 
 (* if0 (pred (succ (pred (2 * 0))) then 5 else 6 *)
+(** [if0 (pred (succ (pred (2 * 0)))) then 5 else 6] *)
 Definition test :=
   tm_if0
     (tm_pred
@@ -1726,7 +1856,7 @@ Definition test :=
     (tm_nat 5)
     (tm_nat 6).
 
-(** Remove the comment braces once you've implemented enough of the
+(* Remove the comment braces once you've implemented enough of the
     definitions that you think this should work. *)
 
 (*
@@ -1746,13 +1876,36 @@ Proof.
 Qed.
 *)
 
+(** 動くだけ定義が十分に行えたと思ったなら、以降の[Example]のコメントをはずしなさい。*)
+
+(** <<
+(*
+Example typechecks :
+  has_type (@empty ty) test ty_Nat.
+Proof.
+  unfold test.
+  (* この型導出は非常に深く、そのため[auto]の最大探索深度を、
+     デフォルトの5から10に上げなければなりません。 *)
+  auto 10.
+Qed.
+
+Example numtest_reduces :
+  test ==>* tm_nat 5.
+Proof.
+  unfold test. normalize.
+Qed.
+*)
+>> *)
+
 End Numtest.
 
-(** *** Products *)
+(* *** Products *)
+(** *** 直積 *)
 
 Module Prodtest.
 
 (* ((5,6),7).fst.snd *)
+(** [((5,6),7).fst.snd] *)
 Definition test :=
   tm_snd
     (tm_fst
@@ -1771,6 +1924,17 @@ Example reduces :
   test ==>* tm_nat 6.
 Proof. unfold test. normalize. Qed.
 *)
+(** <<
+(*
+Example typechecks :
+  has_type (@empty ty) test ty_Nat.
+Proof. unfold test. eauto 15. Qed.
+
+Example reduces :
+  test ==>* tm_nat 6.
+Proof. unfold test. normalize. Qed.
+*)
+>> *)
 
 End Prodtest.
 
@@ -1779,6 +1943,7 @@ End Prodtest.
 Module LetTest.
 
 (* let x = pred 6 in succ x *)
+(** [let x = pred 6 in succ x] *)
 Definition test :=
   tm_let
     x
@@ -1794,16 +1959,31 @@ Example reduces :
   test ==>* tm_nat 6.
 Proof. unfold test. normalize. Qed.
 *)
+(** <<
+(*
+Example typechecks :
+  has_type (@empty ty) test ty_Nat.
+Proof. unfold test. eauto 15. Qed.
+
+Example reduces :
+  test ==>* tm_nat 6.
+Proof. unfold test. normalize. Qed.
+*)
+>> *)
 
 End LetTest.
 
-(** *** Sums *)
+(* *** Sums *)
+(** *** 直和 *)
 
 Module Sumtest1.
 
 (* case (inl Nat 5) of
      inl x => x
    | inr y => y *)
+(** [case (inl Nat 5) of
+     inl x => x
+   | inr y => y] *)
 
 Definition test :=
   tm_case (tm_inl ty_Nat (tm_nat 5))
@@ -1819,6 +1999,17 @@ Example reduces :
   test ==>* (tm_nat 5).
 Proof. unfold test. normalize. Qed.
 *)
+(** <<
+(*
+Example typechecks :
+  has_type (@empty ty) test ty_Nat.
+Proof. unfold test. eauto 15. Qed.
+
+Example reduces :
+  test ==>* (tm_nat 5).
+Proof. unfold test. normalize. Qed.
+*)
+>> *)
 
 End Sumtest1.
 
@@ -1830,6 +2021,12 @@ Module Sumtest2.
           inl n => n
           inr n => if0 n then 1 else 0 in
    (processSum (inl Nat 5), processSum (inr Nat 5))    *)
+(** [let processSum =
+     \x:Nat+Nat.
+        case x of
+          inl n => n
+          inr n => if0 n then 1 else 0 in
+   (processSum (inl Nat 5), processSum (inr Nat 5))]    *)
 
 Definition test :=
   tm_let
@@ -1851,10 +2048,22 @@ Example reduces :
   test ==>* (tm_pair (tm_nat 5) (tm_nat 0)).
 Proof. unfold test. normalize. Qed.
 *)
+(** <<
+(*
+Example typechecks :
+  has_type (@empty ty) test (ty_prod ty_Nat ty_Nat).
+Proof. unfold test. eauto 15. Qed.
+
+Example reduces :
+  test ==>* (tm_pair (tm_nat 5) (tm_nat 0)).
+Proof. unfold test. normalize. Qed.
+*)
+>> *)
 
 End Sumtest2.
 
-(** *** Lists *)
+(* *** Lists *)
+(** *** リスト *)
 
 Module ListTest.
 
@@ -1862,6 +2071,10 @@ Module ListTest.
    lcase l of
      nil => 0
    | x::y => x*x *)
+(** [let l = cons 5 (cons 6 (nil Nat)) in
+   lcase l of
+     nil => 0
+   | x::y => x*x] *)
 
 Definition test :=
   tm_let l
@@ -1879,6 +2092,17 @@ Example reduces :
   test ==>* (tm_nat 25).
 Proof. unfold test. normalize. Qed.
 *)
+(** <<
+(*
+Example typechecks :
+  has_type (@empty ty) test ty_Nat.
+Proof. unfold test. eauto 20. Qed.
+
+Example reduces :
+  test ==>* (tm_nat 25).
+Proof. unfold test. normalize. Qed.
+*)
+>> *)
 
 End ListTest.
 
@@ -1890,6 +2114,10 @@ Module FixTest1.
              (\f:nat->nat.
                 \a:nat.
                    if a=0 then 1 else a * (f (pred a))) *)
+(** [fact := fix
+             (\f:nat->nat.
+                \a:nat.
+                   if a=0 then 1 else a * (f (pred a)))] *)
 Definition fact :=
   tm_fix
     (tm_abs f (ty_arrow ty_Nat ty_Nat)
@@ -1901,8 +2129,10 @@ Definition fact :=
               (tm_var a)
               (tm_app (tm_var f) (tm_pred (tm_var a))))))).
 
-(** (Warning: you may be able to typecheck [fact] but still have some
+(* (Warning: you may be able to typecheck [fact] but still have some
     rules wrong!) *)
+(** (ワーニング: [fact]の型チェックが通るかもしれませんが、それでもいくつかの規則が間違ったままです。)
+     *)
 
 (*
 Example fact_typechecks :
@@ -1910,12 +2140,27 @@ Example fact_typechecks :
 Proof. unfold fact. auto 10.
 Qed.
 *)
+(** <<
+(*
+Example fact_typechecks :
+  has_type (@empty ty) fact (ty_arrow ty_Nat ty_Nat).
+Proof. unfold fact. auto 10.
+Qed.
+*)
+>> *)
 
 (*
 Example fact_example:
   (tm_app fact (tm_nat 4)) ==>* (tm_nat 24).
 Proof. unfold fact. normalize. Qed.
 *)
+(** <<
+(*
+Example fact_example:
+  (tm_app fact (tm_nat 4)) ==>* (tm_nat 24).
+Proof. unfold fact. normalize. Qed.
+*)
+>> *)
 
 End FixTest1.
 
@@ -1929,6 +2174,14 @@ Module FixTest2.
                case l of
                | [] -> []
                | x::l -> (g x)::(f l)) *)
+(** [map :=
+     \g:nat->nat.
+       fix
+         (\f:[nat]->[nat].
+            \l:[nat].
+               case l of
+               | [] -> []
+               | x::l -> (g x)::(f l))] *)
 Definition map :=
   tm_abs g (ty_arrow ty_Nat ty_Nat)
     (tm_fix
@@ -1955,6 +2208,24 @@ Example map_example :
 Proof. unfold map. normalize. Qed.
 *)
 
+(** <<
+(* 
+(* 上記の最後の [Hint Extern] のコメントが外されていることを確認すること... *)
+Example map_typechecks :
+  has_type empty map
+    (ty_arrow (ty_arrow ty_Nat ty_Nat)
+      (ty_arrow (ty_List ty_Nat)
+        (ty_List ty_Nat))).
+Proof. unfold map. auto 10. Qed.
+
+Example map_example :
+  tm_app (tm_app map (tm_abs a ty_Nat (tm_succ (tm_var a))))
+         (tm_cons (tm_nat 1) (tm_cons (tm_nat 2) (tm_nil ty_Nat)))
+  ==>* (tm_cons (tm_nat 2) (tm_cons (tm_nat 3) (tm_nil ty_Nat))).
+Proof. unfold map. normalize. Qed.
+*)
+>> *)
+
 End FixTest2.
 
 Module FixTest3.
@@ -1966,7 +2237,13 @@ Module FixTest3.
              if0 m then (if0 n then 1 else 0)
              else if0 n then 0
              else eq (pred m) (pred n))   *)
-
+(** [equal =
+      fix
+        (\eq:Nat->Nat->Bool.
+           \m:Nat. \n:Nat.
+             if0 m then (if0 n then 1 else 0)
+             else if0 n then 0
+             else eq (pred m) (pred n))]   *)
 Definition equal :=
   tm_fix
     (tm_abs eq (ty_arrow ty_Nat (ty_arrow ty_Nat ty_Nat))
@@ -1980,6 +2257,7 @@ Definition equal :=
                               (tm_pred (tm_var m)))
                       (tm_pred (tm_var n)))))))).
 
+(** <<
 (*
 Example equal_typechecks :
   has_type (@empty ty) equal (ty_arrow ty_Nat (ty_arrow ty_Nat ty_Nat)).
@@ -1998,6 +2276,7 @@ Example equal_example2:
   (tm_app (tm_app equal (tm_nat 4)) (tm_nat 5)) ==>* (tm_nat 0).
 Proof. unfold equal. normalize. Qed.
 *)
+>> *)
 
 End FixTest3.
 
@@ -2012,6 +2291,16 @@ Module FixTest4.
     let even = evenodd.fst in
     let odd  = evenodd.snd in
     (even 3, even 4)
+*)
+(** [let evenodd =
+         fix
+           (\eo: (Nat->Nat * Nat->Nat).
+              let e = \n:Nat. if0 n then 1 else eo.snd (pred n) in
+              let o = \n:Nat. if0 n then 0 else eo.fst (pred n) in
+              (e,o)) in
+    let even = evenodd.fst in
+    let odd  = evenodd.snd in
+    (even 3, even 4)]
 *)
 
 Definition eotest :=
@@ -2033,6 +2322,7 @@ Definition eotest :=
     (tm_app (tm_var even) (tm_nat 3))
     (tm_app (tm_var even) (tm_nat 4))))).
 
+(** <<
 (*
 Example eotest_typechecks :
   has_type (@empty ty) eotest (ty_prod ty_Nat ty_Nat).
@@ -2045,20 +2335,25 @@ Example eotest_example1:
   eotest ==>* (tm_pair (tm_nat 0) (tm_nat 1)).
 Proof. unfold eotest. normalize. Qed.
 *)
+>> *)
 
 End FixTest4.
 
 End Examples.
 
 (* ###################################################################### *)
-(** ** Properties of Typing *)
+(* ** Properties of Typing *)
+(** ** 型付けの性質 *)
 
-(** The proofs of progress and preservation for this system are
+(* The proofs of progress and preservation for this system are
     essentially the same (though of course somewhat longer) as for the
     pure simply typed lambda-calculus. *)
+(** このシステムの進行と保存の証明は、純粋な単純型付きラムダ計算のものと本質的に同じです
+    (もちろんいくらか長くはなりますが)。 *)
 
 (* ###################################################################### *)
-(** *** Progress *)
+(* *** Progress *)
+(** *** 進行 *)
 
 Theorem progress : forall t T,
      has_type empty t T ->
@@ -2068,6 +2363,12 @@ Proof with eauto.
        1. t is a value, or
        2. t ==> t' for some t'.
      Proof: By induction on the given typing derivation. *)
+  (** <<
+  (* 定理: empty |- t : T と仮定する。すると次のいずれかである:
+       1. t は値、または
+       2. ある t' について t ==> t' 
+     証明: 与えられた型導出についての帰納法によって。 *)
+>> *)
   intros t T Ht.
   remember (@empty ty) as Gamma.
   generalize dependent HeqGamma.
@@ -2076,10 +2377,19 @@ Proof with eauto.
     (* The final rule in the given typing derivation cannot be [T_Var],
        since it can never be the case that [empty |- x : T] (since the
        context is empty). *)
+    (** <<
+    (* 与えられた型導出の最後の規則が [T_Var] ではあり得ない。
+       なぜなら、この規則では [empty |- x : T] にならないので
+       (コンテキストが empty ではない)。*)
+>> *)
     inversion H.
   Case "T_Abs".
     (* If the [T_Abs] rule was the last used, then [t = tm_abs x T11 t12],
        which is a value. *)
+    (** <<
+    (* もし [T_Abs] が最後の規則ならば、[t = tm_abs x T11 t12] となるが、
+       これは値である。 *)
+>> *)
     left...
   Case "T_App".
     (* If the last rule applied was T_App, then [t = t1 t2], and we know
@@ -2088,6 +2398,12 @@ Proof with eauto.
          [empty |- t2 : T1]
        By the induction hypothesis, each of t1 and t2 either is a value
        or can take a step. *)
+    (** <<
+    (* 最後の規則が T_App ならば、[t = t1 t2] である。規則の形から
+         [empty |- t1 : T1 -> T2]
+         [empty |- t2 : T1]
+       となる。帰納法の仮定から、t1 と t2 のそれぞれは値であるかステップを進むことができる。 *)
+>> *)
     right.
     destruct IHHt1; subst...
     SCase "t1 is a value".
@@ -2097,21 +2413,38 @@ Proof with eauto.
          [t1 = tm_abs x T11 t12], since abstractions are the only values
          that can have an arrow type.  But
          [(tm_abs x T11 t12) t2 ==> subst x t2 t12] by [ST_AppAbs]. *)
+      (** <<
+      (* [t1] と [t2] がどちらも値のとき、[t1 = tm_abs x T11 t12] となる。
+         なぜなら関数抽象は、関数型を持つ唯一の値であるから。しかし、[ST_AppAbs]より
+         [(tm_abs x T11 t12) t2 ==> subst x t2 t12] となる。 *)
+>> *)
         inversion H; subst; try (solve by inversion).
         exists (subst x t2 t12)...
       SSCase "t2 steps".
         (* If [t1] is a value and [t2 ==> t2'], then [t1 t2 ==> t1 t2']
            by [ST_App2]. *)
+        (** <<
+        (* もし [t1] が値で [t2 ==> t2'] ならば、
+           [ST_App2]より [t1 t2 ==> t1 t2'] である。 *)
+>> *)
         destruct H0 as [t2' Hstp]. exists (tm_app t1 t2')...
     SCase "t1 steps".
       (* Finally, If [t1 ==> t1'], then [t1 t2 ==> t1' t2] by [ST_App1]. *)
+      (** <<
+      (* 最後に、もし [t1 ==> t1'] ならば、
+         [ST_App1] より [t1 t2 ==> t1' t2] である。 *)
+>> *)
       destruct H as [t1' Hstp]. exists (tm_app t1' t2)...
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
 Qed.
 
 
 (* ###################################################################### *)
-(** *** Context Invariance *)
+(* *** Context Invariance *)
+(** *** コンテキスト不変性 *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -2125,6 +2458,9 @@ Inductive appears_free_in : id -> tm -> Prop :=
         appears_free_in x t12 ->
         appears_free_in x (tm_abs y T11 t12)
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
   .
 
 Hint Constructors appears_free_in.
@@ -2144,6 +2480,9 @@ Proof with eauto.
     unfold extend. remember (beq_id x y) as e.
     destruct e...
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
 Qed.
 
 Lemma free_in_context : forall x t T Gamma,
@@ -2158,10 +2497,14 @@ Proof with eauto.
     unfold extend in Hctx.
     apply not_eq_beq_id_false in H2. rewrite H2 in Hctx...
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
 Qed.
 
 (* ###################################################################### *)
-(** *** Preservation *)
+(* *** Preservation *)
+(** *** 保存 *)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      has_type (extend Gamma x U) t S  ->
@@ -2170,12 +2513,21 @@ Lemma substitution_preserves_typing : forall Gamma x U v t S,
 Proof with eauto.
   (* Theorem: If Gamma,x:U |- t : S and empty |- v : U, then
      Gamma |- (subst x v t) S. *)
+  (** <<
+  (* 定理: もし Gamma,x:U |- t : S かつ empty |- v : U ならば、
+     Gamma |- (subst x v t) S. である。 *)
+>> *)
   intros Gamma x U v t S Htypt Htypv.
   generalize dependent Gamma. generalize dependent S.
   (* Proof: By induction on the term t.  Most cases follow directly
      from the IH, with the exception of tm_var and tm_abs.
      The former aren't automatic because we must reason about how the
      variables interact. *)
+  (** <<
+  (* 証明: t についての帰納法を使う。ほとんどの場合は、帰納仮定から直接示される。
+     tm_var と tm_abs だけが例外である。
+     前者は自動化できない。変数がどのように相互作用するか推論しなければならないからである。 *)
+>> *)
   tm_cases (induction t) Case;
     intros S Gamma Htypt; simpl; inversion Htypt; subst...
   Case "tm_var".
@@ -2187,12 +2539,27 @@ Proof with eauto.
        show that [Gamma |- subst x v y : S].
 
        There are two cases to consider: either [x=y] or [x<>y]. *)
+    (** <<
+    (* もし t = y ならば、次が成立する:
+         [empty |- v : U] and
+         [Gamma,x:U |- y : S]
+       そして、inversion から [extend Gamma x U y = Some S] となる。
+       示したいのは [Gamma |- subst x v y : S] である。
+
+       考慮するのは2つの場合、[x=y] の場合と [x<>y] の場合である。 *)
+>> *)
     remember (beq_id x y) as e. destruct e.
     SCase "x=y".
     (* If [x = y], then we know that [U = S], and that [subst x v y = v].
        So what we really must show is that if [empty |- v : U] then
        [Gamma |- v : U].  We have already proven a more general version
        of this theorem, called context invariance. *)
+    (** <<
+    (* もし [x = y] ならば、[U = S] であり、また [subst x v y = v] である。
+       これから実際に示さなければならないことは、
+       もし [empty |- v : U] ならば [Gamma |- v : U] である、ということである。
+       この定理のより一般化されたバージョンを既に証明している。それはコンテキスト不変性である。 *)
+>> *)
       apply beq_id_eq in Heqe. subst.
       unfold extend in H1. rewrite <- beq_id_refl in H1.
       inversion H1; subst. clear H1.
@@ -2203,6 +2570,10 @@ Proof with eauto.
     SCase "x<>y".
     (* If [x <> y], then [Gamma y = Some S] and the substitution has no
        effect.  We can show that [Gamma |- y : S] by [T_Var]. *)
+    (** <<
+    (* もし [x <> y] ならば、[Gamma y = Some S] で、置換は何も影響しない。
+       [T_Var] より [Gamma |- y : S] を示すことができる。 *)
+>> *)
       apply T_Var... unfold extend in H1. rewrite <- Heqe in H1...
   Case "tm_abs".
     rename i into y. rename t into T11.
@@ -2222,6 +2593,24 @@ Proof with eauto.
          [Gamma,y:T11 |- if beq_id x y then t0 else subst x v t0 : T12]
        We consider two cases: [x = y] and [x <> y].
     *)
+    (** <<
+    (* もし [t = tm_abs y T11 t0] ならば、次が成立する:
+         [Gamma,x:U |- tm_abs y T11 t0 : T11->T12]
+         [Gamma,x:U,y:T11 |- t0 : T12]
+         [empty |- v : U]
+       帰納仮定より、すべての S Gamma について
+         [Gamma,x:U |- t0 : S -> Gamma |- subst x v t0 S] となる。
+
+       次の計算ができる:
+         subst x v t = tm_abs y T11 (if beq_id x y
+                                      then t0
+                                      else subst x v t0)
+       そして、示すべきことは [Gamma |- subst x v t : T11->T12] である。
+       [T_Abs] を使うためには、残っているのは次を示すことである:
+         [Gamma,y:T11 |- if beq_id x y then t0 else subst x v t0 : T12]
+       2つの場合、[x = y] の場合と [x <> y] の場合を考える。
+    *)
+>> *)
     apply T_Abs...
     remember (beq_id x y) as e. destruct e.
     SCase "x=y".
@@ -2229,6 +2618,12 @@ Proof with eauto.
        invariance shows that [Gamma,y:U,y:T11] and [Gamma,y:T11] are
        equivalent.  Since the former context shows that [t0 : T12], so
        does the latter. *)
+    (** <<
+    (* もし [x = y] ならば、置換は何も影響しない。
+       コンテキスト不変性より [Gamma,y:U,y:T11] と [Gamma,y:T11] 
+       が同値であることが示される。前者のコンテキストが [t0 : T12] を示すことから、
+       後者についても同じことが言える。 *)
+>> *)
       eapply context_invariance...
       apply beq_id_eq in Heqe. subst.
       intros x Hafi. unfold extend.
@@ -2238,12 +2633,21 @@ Proof with eauto.
          [Gamma,x:U,y:T11 |- t0 : T12]       =>
          [Gamma,y:T11,x:U |- t0 : T12]       =>
          [Gamma,y:T11 |- subst x v t0 : T12] *)
+    (** <<
+    (* もし [x <> y] ならば、帰納仮定とコンテキスト不変性より次が示される:
+         [Gamma,x:U,y:T11 |- t0 : T12]       =>
+         [Gamma,y:T11,x:U |- t0 : T12]       =>
+         [Gamma,y:T11 |- subst x v t0 : T12] *)
+>> *)
       apply IHt. eapply context_invariance...
       intros z Hafi. unfold extend.
       remember (beq_id y z) as e0. destruct e0...
       apply beq_id_eq in Heqe0. subst.
       rewrite <- Heqe...
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
 Qed.
 
 Theorem preservation : forall t t' T,
@@ -2253,10 +2657,18 @@ Theorem preservation : forall t t' T,
 Proof with eauto.
   intros t t' T HT.
   (* Theorem: If [empty |- t : T] and [t ==> t'], then [empty |- t' : T]. *)
+  (** <<
+  (* 定理: もし [empty |- t : T] かつ [t ==> t'] ならば、[empty |- t' : T] である。 *)
+>> *)
   remember (@empty ty) as Gamma. generalize dependent HeqGamma.
   generalize dependent t'.
   (* Proof: By induction on the given typing derivation.  Many cases are
      contradictory ([T_Var], [T_Abs]).  We show just the interesting ones. *)
+  (** <<
+  (* 証明: 与えられた型導出についての帰納法を使う。ほとんどの場合は、
+     [T_Var] と [T_Abs] の矛盾である(contradictory ([T_Var], [T_Abs]))。
+     興味深いものだけを示す。 *)
+>> *)
   has_type_cases (induction HT) Case;
     intros t' HeqGamma HE; subst; inversion HE; subst...
   Case "T_App".
@@ -2264,6 +2676,11 @@ Proof with eauto.
        could have been used to show [t ==> t']: [ST_App1], [ST_App2], and
        [ST_AppAbs]. In the first two cases, the result follows directly from
        the IH. *)
+    (** <<
+    (* もし最後の規則が [T_App] ならば、[t = t1 t2] である。
+       [t ==> t'] を示すのに使うことができる規則は3つ、[ST_App1]、[ST_App2]、[ST_AppAbs]
+       である。最初の2つについては、結果は帰納仮定から直ぐに導かれる。 *)
+>> *)
     inversion HE; subst...
     SCase "ST_AppAbs".
       (* For the third case, suppose
@@ -2278,9 +2695,27 @@ Proof with eauto.
          We have already proven that substitution_preserves_typing and
              [empty |- v2 : T1]
          by assumption, so we are done. *)
+      (** <<
+      (* 3つ目の場合、
+           [t1 = tm_abs x T11 t12]
+         かつ
+           [t2 = v2]
+         と仮定する。示すべきは [empty |- subst x v2 t12 : T2] である。
+         仮定から
+             [empty |- tm_abs x T11 t12 : T1->T2]
+         であり、inversion から
+             [x:T1 |- t12 : T2]
+         となる。
+         substitution_preserves_typing を既に証明しており、また仮定から
+             [empty |- v2 : T1]
+         である。これで証明された。 *)
+>> *)
       apply substitution_preserves_typing with T1...
       inversion HT1...
   (* FILL IN HERE *)
+  (** <<
+  (* ここを埋めなさい *)
+>> *)
 Qed.
 (** [] *)
 
