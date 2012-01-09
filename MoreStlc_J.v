@@ -1521,7 +1521,7 @@ Module STLCExtended.
 
 (* ###################################################################### *)
 (* *** Syntax and Operational Semantics *)
-(** *** 構文と操作的意味論 *)
+(** *** 構文と操作的意味 *)
 
 Inductive ty : Type :=
   | ty_arrow : ty -> ty -> ty

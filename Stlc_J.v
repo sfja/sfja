@@ -1930,7 +1930,7 @@ Module STLCArith.
 
 (* ###################################################################### *)
 (* ** Syntax and Operational Semantics *)
-(** ** 構文と操作的意味論 *)
+(** ** 構文と操作的意味 *)
 
 (* To types, we add a base type of natural numbers (and remove
     booleans, for brevity) *)
