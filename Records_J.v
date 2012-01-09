@@ -1,4 +1,5 @@
-(** * Records: Adding Records to STLC *)
+(** * Records_J: STLCにレコードを追加する *)
+(* * Records: Adding Records to STLC *)
 
 (* $Date: 2011-03-21 13:05:05 -0400 (Mon, 21 Mar 2011) $ *)
 
@@ -6,9 +7,10 @@ Require Export Stlc_J.
 Require Import Relations.
 
 (* ###################################################################### *)
-(** * Adding Records *)
+(* * Adding Records *)
+(** * レコードを追加する *)
 
-(** We saw in [MoreStlc.v] how records can be treated as syntactic
+(* We saw in [MoreStlc.v] how records can be treated as syntactic
     sugar for nested uses of products.  This is fine for simple
     examples, but the encoding is informal (in reality, if we really
     treated records this way, it would be carried out in the parser,
@@ -17,8 +19,17 @@ Require Import Relations.
     first-class citizens of the language.
 
     Recall the informal definitions we gave before: *)
+(** [MoreStlc_J.v]で、レコードを、直積のネストされた使用の構文糖衣として扱う方法を見ました。
+    これは簡単な例にはよいです。しかし、エンコードは非形式的です。
+    (現実的に、もしこの方法でレコードを本当に扱うならパーサ内で実行されることになりますが、
+    パーサはここでは省いています。)
+    そしていずれにしろ、あまり効率的ではありません。
+    これから、
+    レコードを言語の第一級(first-class)のメンバーとしてはどのように扱えるのか見るのも興味があるところです。
 
-(**
+    前の非形式的定義を思い出してみましょう: *)
+
+(*
     Syntax:
 <<
        t ::=                          Terms:
@@ -58,17 +69,60 @@ Require Import Relations.
                              Gamma |- t.i : Ti
 ]]]
 *)
+(**
+    構文:
+<<
+       t ::=                          項:
+           | ...
+           | {i1=t1, ..., in=tn}         レコード
+           | t.i                         射影
+
+       v ::=                          値:
+           | ...
+           | {i1=v1, ..., in=vn}         レコード値
+
+       T ::=                          型:
+           | ...
+           | {i1:T1, ..., in:Tn}         レコード型
+>>
+   簡約:
+[[
+                                 ti ==> ti'                            (ST_Rcd)
+    --------------------------------------------------------------------
+    {i1=v1, ..., im=vm, in=tn, ...} ==> {i1=v1, ..., im=vm, in=tn', ...}
+
+                                 t1 ==> t1'
+                               --------------                        (ST_Proj1)
+                               t1.i ==> t1'.i
+
+                          -------------------------                (ST_ProjRcd)
+                          {..., i=vi, ...}.i ==> vi
+]]
+   型付け:
+[[
+               Gamma |- t1 : T1     ...     Gamma |- tn : Tn
+             --------------------------------------------------         (T_Rcd)
+             Gamma |- {i1=t1, ..., in=tn} : {i1:T1, ..., in:Tn}
+
+                       Gamma |- t : {..., i:Ti, ...}
+                       -----------------------------                   (T_Proj)
+                             Gamma |- t.i : Ti
+]]
+*)
 
 (* ###################################################################### *)
-(** * Formalizing Records *)
+(* * Formalizing Records *)
+(** * レコードを形式化する *)
 
 Module STLCExtendedRecords.
 
 (* ###################################################################### *)
-(** *** Syntax and Operational Semantics *)
+(* *** Syntax and Operational Semantics *)
+(** *** 構文と操作的意味 *)
 
-(** The most obvious way to formalize the syntax of record types would
+(* The most obvious way to formalize the syntax of record types would
     be this: *)
+(** レコード型の構文を形式化する最も明らかな方法はこうです: *)
 
 Module FirstTry.
 
@@ -79,11 +133,15 @@ Inductive ty : Type :=
   | ty_arrow    : ty -> ty -> ty
   | ty_rcd      : (alist ty) -> ty.
 
-(** Unfortunately, we encounter here a limitation in Coq: this type
+(* Unfortunately, we encounter here a limitation in Coq: this type
     does not automatically give us the induction principle we expect
     -- the induction hypothesis in the [ty_rcd] case doesn't give us
     any information about the [ty] elements of the list, making it
     useless for the proofs we want to do.  *)
+(** 残念ながら、ここで Coq の限界につきあたりました。
+    この型は期待する帰納原理を自動的には提供してくれないのです。
+    [ty_rcd]の場合の帰納法の仮定はリストの[ty]要素について何の情報も提供してくれないのです。
+    このせいで、行いたい証明に対してこの型は役に立たなくなっています。 *)
 
 (* Check ty_ind.
    ====>
@@ -94,10 +152,21 @@ Inductive ty : Type :=
         (forall a : alist ty, P (ty_rcd a)) ->    (* ??? *)
         forall t : ty, P t
 *)
+(** <<
+(* Check ty_ind.
+   ====>
+    ty_ind :
+      forall P : ty -> Prop,
+        (forall i : id, P (ty_base i)) ->
+        (forall t : ty, P t -> forall t0 : ty, P t0 -> P (ty_arrow t t0)) ->
+        (forall a : alist ty, P (ty_rcd a)) ->    (* ??? *)
+        forall t : ty, P t
+*)
+>> *)
 
 End FirstTry.
 
-(** It is possible to get a better induction principle out of Coq, but
+(* It is possible to get a better induction principle out of Coq, but
     the details of how this is done are not very pretty, and it is not
     as intuitive to use as the ones Coq generates automatically for
     simple [Inductive] definitions.
@@ -106,6 +175,13 @@ End FirstTry.
     is, in some ways, even simpler and more natural: instead of using
     the existing [list] type, we can essentially include its
     constructors ("nil" and "cons") in the syntax of types. *)
+(** より良い帰納法の原理をCoqから取り出すこともできます。
+    しかしそれをやるための詳細はあまりきれいではありません。
+    またCoqが単純な[Inductive]定義に対して自動生成したものほど直観的でもありません。
+
+    幸い、レコードについて、別の、ある意味より単純でより自然な形式化方法があります。
+    既存の[list]型の代わりに、型の構文にリストのコンストラクタ("nil"と"cons")
+    を本質的に含めてしまうという方法です。*)
 
 Inductive ty : Type :=
   | ty_base : id -> ty
@@ -118,15 +194,20 @@ Tactic Notation "ty_cases" tactic(first) ident(c) :=
   [ Case_aux c "ty_base" | Case_aux c "ty_arrow"
   | Case_aux c "ty_rnil" | Case_aux c "ty_rcons" ].
 
-(** Similarly, at the level of terms, we have constructors [tm_rnil]
+(* Similarly, at the level of terms, we have constructors [tm_rnil]
     -- the empty record -- and [tm_rcons], which adds a single field to
     the front of a list of fields. *)
+(** 同様に、項のレベルで、空レコードに対応するコンストラクタ[tm_rnil]と、
+    フィールドのリストの前に1つのフィールドを追加するコンストラクタ[tm_rcons]を用意します。*)
 
 Inductive tm : Type :=
   | tm_var : id -> tm
   | tm_app : tm -> tm -> tm
   | tm_abs : id -> ty -> tm -> tm
   (* records *)
+  (** <<
+  (* レコード *)
+>> *)
   | tm_proj : tm -> id -> tm
   | tm_rnil :  tm
   | tm_rcons : id -> tm -> tm -> tm.
@@ -136,7 +217,8 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   [ Case_aux c "tm_var" | Case_aux c "tm_app" | Case_aux c "tm_abs"
   | Case_aux c "tm_proj" | Case_aux c "tm_rnil" | Case_aux c "tm_rcons" ].
 
-(** Some variables, for examples... *)
+(**Some variables, for examples... *)
+(** いくつかの変数、例えば... *)
 
 Notation a := (Id 0).
 Notation f := (Id 1).
@@ -151,11 +233,18 @@ Notation i2 := (Id 8).
 (** [{ i1:A }] *)
 
 (* Check (ty_rcons i1 A ty_rnil). *)
+(** <<
+(* Check (ty_rcons i1 A ty_rnil). *)
+>> *)
 
 (** [{ i1:A->B, i2:A }] *)
 
 (* Check (ty_rcons i1 (ty_arrow A B)
            (ty_rcons i2 A ty_rnil)). *)
+(** <<
+(* Check (ty_rcons i1 (ty_arrow A B)
+           (ty_rcons i2 A ty_rnil)). *)
+>> *)
 
 (* ###################################################################### *)
 (** *** Well-Formedness *)
