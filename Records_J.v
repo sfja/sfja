@@ -247,24 +247,34 @@ Notation i2 := (Id 8).
 >> *)
 
 (* ###################################################################### *)
-(** *** Well-Formedness *)
+(* *** Well-Formedness *)
+(** *** Well-Formedness(正しい形をしていること、整式性) *)
 
-(** Generalizing our abstract syntax for records (from lists to the
+(* Generalizing our abstract syntax for records (from lists to the
     nil/cons presentation) introduces the possibility of writing
     strange types like this *)
+(** レコードの抽象構文を(リストから nil/cons 構成に)一般化すると、
+    次のような奇妙な型を書くことがができるようになります。 *)
 
 Definition weird_type := ty_rcons X A B.
 
-(** where the "tail" of a record type is not actually a record type! *)
+(* where the "tail" of a record type is not actually a record type! *)
+(** ここでレコード型の「後部」は実際にはレコード型ではありません! *)
 
-(** We'll structure our typing judgement so that no ill-formed types
+(* We'll structure our typing judgement so that no ill-formed types
     like [weird_type] are assigned to terms.  To support this, we
     define [record_ty] and [record_tm], which identify record types
     and terms, and [well_formed_ty] which rules out the ill-formed
     types. *)
+(** 以降で型ジャッジメントを、
+    [weird_type]のような正しくない形の型が項に割当てられないように構成します。
+    これをサポートするために、レコード型と項を識別するための[record_ty]と[record_tm]、
+    および形が正しくない型を排除するための[well_formed_ty]を定義します。*)
 
-(** First, a type is a record type if it is built with just [ty_rnil]
+(* First, a type is a record type if it is built with just [ty_rnil]
     and [ty_rcons] at the outermost level. *)
+(** 最初に、型がレコード型なのは、
+    それの一番外側のレベルが[ty_rnil]と[ty_rcons]だけを使って構築されたもののときです。*)
 
 Inductive record_ty : ty -> Prop :=
   | rty_nil :
@@ -272,8 +282,10 @@ Inductive record_ty : ty -> Prop :=
   | rty_cons : forall i T1 T2,
         record_ty (ty_rcons i T1 T2).
 
-(** Similarly, a term is a record term if it is built with [tm_rnil]
+(* Similarly, a term is a record term if it is built with [tm_rnil]
     and [tm_rcons] *)
+(** 同様に、項がレコード項であるのは、
+    [tm_rnil]と[tm_rcons]から構築されたもののときです。 *)
 
 Inductive record_tm : tm -> Prop :=
   | rtm_nil :
@@ -281,7 +293,7 @@ Inductive record_tm : tm -> Prop :=
   | rtm_cons : forall i t1 t2,
         record_tm (tm_rcons i t1 t2).
 
-(** Note that [record_ty] and [record_tm] are not recursive -- they
+(* Note that [record_ty] and [record_tm] are not recursive -- they
     just check the outermost constructor.  The [well_formed_ty]
     property, on the other hand, verifies that the whole type is well
     formed in the sense that the tail of every record (the second
@@ -291,8 +303,18 @@ Inductive record_tm : tm -> Prop :=
     just types; but typechecking can rules those out without the help
     of an extra [well_formed_tm] definition because it already
     examines the structure of terms.  *)
+(** [record_ty]と[record_tm]は再帰的ではないことに注意します。
+    両者は、一番外側のコンストラクタだけをチェックします。
+    一方[well_formed_ty]は型全体が正しい形をしているか、
+    つまり、レコードのすべての後部([ty_rcons]の第2引数)がレコードであるか、を検証します。
+
+    もちろん、型だけでなく項についても、形が正しくない可能性を考慮しなければなりません。
+    しかし、別途[well_formed_tm]を用意しなくても、形が正しくない項は型チェックが排除します。
+    なぜなら、型チェックが既に項の構成を調べるからです。*)    
 (** LATER : should they fill in part of this as an exercise?  We
     didn't give rules for it above *)
+(** (訳注：この"LATER"部分が誰向けに何を言おうとしているのかはっきりしないので、
+    訳さずに残しておきました。) *)
 
 Inductive well_formed_ty : ty -> Prop :=
   | wfty_base : forall i,
@@ -312,7 +334,8 @@ Inductive well_formed_ty : ty -> Prop :=
 Hint Constructors record_ty record_tm well_formed_ty.
 
 (* ###################################################################### *)
-(** *** Substitution *)
+(* *** Substitution *)
+(** *** 置換 *)
 
 Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   match t with
@@ -325,10 +348,12 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   end.
 
 (* ###################################################################### *)
-(** *** Reduction *)
+(* *** Reduction *)
+(** *** 簡約 *)
 
-(** Next we define the values of our language.  A record is a value if
+(* Next we define the values of our language.  A record is a value if
     all of its fields are. *)
+(** 次に言語の値を定義します。レコードが値であるのは、そのフィールドがすべて値であるときです。*)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T11 t12,
@@ -341,8 +366,9 @@ Inductive value : tm -> Prop :=
 
 Hint Constructors value.
 
-(** Utility functions for extracting one field from record type or
+(* Utility functions for extracting one field from record type or
     term: *)
+(** レコード型またはレコード項から1つのフィールドを取り出すユーティリティ関数です: *)
 
 Fixpoint ty_lookup (i:id) (Tr:ty) : option ty :=
   match Tr with
@@ -356,9 +382,11 @@ Fixpoint tm_lookup (i:id) (tr:tm) : option tm :=
   | _ => None
   end.
 
-(** The [step] function uses the term-level lookup function (for the
+(* The [step] function uses the term-level lookup function (for the
     projection rule), while the type-level lookup is needed for
     [has_type]. *)
+(** [step]関数は(射影規則に対応する)項レベルのlookup関数を使います。
+    一方、型レベルのlookupは[has_type]で必要になります。*)
 
 Reserved Notation "t1 '==>' t2" (at level 40).
 
@@ -402,11 +430,12 @@ Notation "t1 '==>*' t2" := (stepmany t1 t2) (at level 40).
 Hint Constructors step.
 
 (* ###################################################################### *)
-(** *** Typing *)
+(* *** Typing *)
+(** *** 型付け *)
 
 Definition context := partial_map ty.
 
-(** Next we define the typing rules.  These are nearly direct
+(* Next we define the typing rules.  These are nearly direct
     transcriptions of the inference rules shown above.  The only major
     difference is the use of [well_formed_ty].  In the informal
     presentation we used a grammar that only allowed well formed
@@ -431,6 +460,29 @@ Definition context := partial_map ty.
 
     In the rules you must write, the only necessary [well_formed_ty]
     check comes in the [tm_nil] case.  *)
+(** 次に型付け規則を定義します。これは上述の推論規則をほぼそのまま転写したものです。
+    大きな違いは[well_formed_ty]の使用だけです。
+    非形式的な表記では、正しい形のレコード型だけを許す文法を使ったので、
+    別のチェックを用意する必要はありませんでした。
+
+    ここでは、[has_type Gamma t T] が成立するときは常に [well_formed_ty T] 
+    が成立するようにしたいところです。つまり、[has_type] 
+    は項に正しくない形の型を割当てることはないようにするということです。
+    このことを後で実際に証明します。
+
+    しかしながら、[has_type]の定義を、[well_formed_ty]
+    を不必要に使って取り散らかしたくはありません。
+    その代わり、[well_formed_ty]によるチェックを必要な所だけに配置します。
+    ここで、必要な所というのは、[has_type]
+    の帰納的呼び出しによっても未だ型の形の正しさのチェックが行われていない所のことです。
+
+    例えば、[T_Var]の場合、[well_formed_ty T] をチェックします。
+    なぜなら、[T]の形の正しさを調べる帰納的な[has_type]の呼び出しがないからです。
+    同様に[T_Abs]の場合、[well_formed_ty T11] の証明を必要とします。
+    なぜなら、[has_type]の帰納的呼び出しは [T12] の形が正しいことだけを保証するからです。
+
+    読者が記述しなければならない規則の中で[well_formed_ty]チェックが必要なのは、
+    [tm_nil]の場合だけです。 *)
 
 Inductive has_type : context -> tm -> ty -> Prop :=
   | T_Var : forall Gamma x T,
@@ -467,16 +519,23 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   | Case_aux c "T_Proj" | Case_aux c "T_RNil" | Case_aux c "T_RCons" ].
 
 (* ###################################################################### *)
-(** ** Examples *)
+(* ** Examples *)
+(** ** 例 *)
 
-(** **** Exercise: 2 stars (examples) *)
-(** Finish the proofs. *)
+(* **** Exercise: 2 stars (examples) *)
+(** **** 練習問題: ★★ (examples) *)
+(* Finish the proofs. *)
+(** 証明を完成させなさい。 *)
 
-(** Feel free to use Coq's automation features in this proof.
+(* Feel free to use Coq's automation features in this proof.
     However, if you are not confident about how the type system works,
     you may want to carry out the proof first using the basic
     features ([apply] instead of [eapply], in particular) and then
     perhaps compress it using automation. *)
+(** 証明の中ではCoq の自動化機能を自由に使って構いません。
+    しかし、もし型システムがどのように動作するか確信できていないなら、
+    最初に基本機能(特に[eapply]ではなく[apply])を使った証明を行い、
+    次に自動化を使ってその証明を圧縮するのがよいかもしれません。 *)
 
 Lemma typing_example_2 :
   has_type empty
@@ -491,8 +550,10 @@ Lemma typing_example_2 :
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** Before starting to prove this fact (or the one above!), make sure
+(* Before starting to prove this fact (or the one above!), make sure
     you understand what it is saying. *)
+(** 次の事実(あるいはすぐ上の事実も!)の証明を始める前に、
+    それが何を主張しているかを確認しなさい。 *)
 
 Example typing_nonexample :
   ~ exists T,
@@ -516,6 +577,9 @@ Proof.
 (* ###################################################################### *)
 (** ** Properties of Typing *)
 
+(* The proofs of progress and preservation for this system are
+    essentially the same as for the pure simply typed lambda-calculus,
+    but we need to add some technical lemmas involving records. *)
 (** The proofs of progress and preservation for this system are
     essentially the same as for the pure simply typed lambda-calculus,
     but we need to add some technical lemmas involving records. *)
