@@ -1,11 +1,12 @@
-(** * References: Typing Mutable References *)
+(** * References_J: 変更可能な参照の型付け *)
+(* * References: Typing Mutable References *)
 
 (* $Date: 2011-06-03 13:58:55 -0400 (Fri, 03 Jun 2011) $ *)
 
 
 Require Export Smallstep_J.
 
-(** So far, we have considered a variety of _pure_ language features,
+(* So far, we have considered a variety of _pure_ language features,
     including functional abstraction, basic types such as numbers and
     booleans, and structured types such as records and variants.  These
     features form the backbone of most programming languages -- including
@@ -31,11 +32,34 @@ Require Export Smallstep_J.
     _store_ (or _heap_).  This extension is straightforward to define;
     the most interesting part is the refinement we need to make to the
     statement of the type preservation theorem. *)
+(** ここまでは、いろいろな「純粋な」(_pure_)言語機能を考えてきました。
+    関数抽象、数値やブール値などの基本型、レコードやバリアントのような構造型などです。
+    これらの機能はほとんどのプログラミング言語のバックボーンを構成しています。
+    その言語の中にはHaskellのような純粋な関数型言語、MLのような
+    「ほとんど関数型の」("mostly functional")言語、Cのような命令型言語、
+    Javaのようなオブジェクト指向言語を含みます。
+
+    ほとんどの実際のプログラミング言語は、
+    ここまで使ってきた単純な意味論の枠組みでは記述できない様々な「不純な」(_impure_)
+    機能も持っています。特に、これらの言語では項を評価することで、単に結果を得る他に、
+    変更可能な変数(あるいは参照セル、配列、変更可能なレコードフィールド、等)に代入したり、
+    ファイルや画面やネットワークに入出力したり、例外やジャンプ、
+    継続によってローカルな枠を越えて制御を移したり、プロセス間の同期や通信を行ったりします。
+    プログラミング言語についての文献では、
+    これらの計算の副作用("side effects")はより一般に計算作用(_computational effects_)
+    と参照されます。
+
+    この章では、
+    ここまで学習してきた計算体系に一つの計算作用「変更可能な参照」を追加する方法を見ます。
+    主要な拡張は、記憶状態(_store_、あるいはヒープ(_heap_))を明示的に扱うことです。
+    この拡張は直接的に定義できます。
+    一番興味深い部分は、型保存定理の主張のために必要な修正(refinement)です。 *)
 
 (* ###################################################################### *)
-(** ** Definitions *)
+(* ** Definitions *)
+(** ** 定義 *)
 
-(** Pretty much every programming language provides some form of
+(* Pretty much every programming language provides some form of
     assignment operation that changes the contents of a previously
     allocated piece of storage.  (Coq's internal language is a rare
     exception!)
@@ -67,13 +91,40 @@ Require Export Smallstep_J.
 
     In this chapter, we study adding mutable references to the
     simply-typed lambda calculus with natural numbers. *)
+(** ほとんどすべてのプログラミング言語が、
+    記憶領域に以前に置かれた内容を変更する何らかの代入操作を持っています
+    (Coqの内部言語は稀な例外です!)。
+
+    いくつかの言語(特にMLやその親戚)では、
+    名前束縛の機構と代入の機構を区別しています。
+    「値」として数値[5]を持つ変数[x]を持つことも、
+    現在の内容が[5]である変更可能なセルへの参照(_reference_、
+    またはポインタ(_pointer_))を値とする変数[y]を持つこともできます。
+    この2つは別のものです。プログラマにも両者の違いは見ることができます。
+    [x]と別の数を足すことは可能ですが、それを[x]に代入することはできません。
+    [y]を直接使って、[y]が指すセルに別の値を代入することが([y:=84] と書くことで)できます。
+    しかし、この値は[+]のような操作の引数として直接使うことはできません。
+    その代わり、現在の内容を得るために明示的に参照を手繰る
+    (_dereference_、逆参照する)ことが必要です。これを[!y]と書きます。
+
+    他のほとんどの言語では、特に、Javaを含むCファミリーのすべてのメンバーでは、
+    すべての変数名は変更可能なセルを指します。
+    そして、現在の値を得るための変数の逆参照操作は暗黙に行われます。
+
+    形式的な学習の目的には、この2つの機構を分離しておいた方が便利です。
+    この章の進行は、MLのやり方にほとんど従います。
+    ここでやったことをCのような言語に適用するのは、分離していたものを一緒にすることと、
+    逆参照のような操作を明示的なものから暗黙のものにするという単純な問題です。
+
+    この章では、自然数を持つ単純型付きラムダ計算に変更可能な参照を追加すること学習します。 *)
 
 (* ###################################################################### *)
-(** ** Syntax *)
+(* ** Syntax *)
+(** ** 構文 *)
 
 Module STLCRef.
 
-(** The basic operations on references are _allocation_,
+(* The basic operations on references are _allocation_,
     _dereferencing_, and _assignment_.
 
        - To allocate a reference, we use the [ref] operator, providing
@@ -90,17 +141,45 @@ Module STLCRef.
          value [7] in the cell referenced by [r].  However, [r := 7]
          evaluates to the trivial value [unit]; it exists only to have
          the _side effect_ of modifying the contents of a cell. *)
+(** 参照についての基本操作はアロケート(_allocation_)、逆参照(_dereferencing_)、
+    代入(_assignment_)です。
+
+       - 参照をアロケートするには、[ref]演算子を使います。
+         これにより新しいセルに初期値が設定されます。
+         例えば [ref 5] は値[5]を格納した新しいセルを生成し、
+         そのセルへの参照に評価されます。
+
+       - セルの現在の値を読むためには、逆参照演算子[!]を使います。
+         例えば [!(ref 5)] は [5] に評価されます。
+
+       - セルに格納された値を変更するには、代入演算子を使います。
+         [r]が参照ならば、[r := 7] は [r] によって参照されるセルに値[7]を格納します。
+         しかし [r := 7] はどうでも良い値 [unit] に評価されます。
+         この演算子はセルの内容を変更するという副作用のためだけに存在します。 *)
 
 (* ################################### *)
-(** *** Types *)
+(* *** Types *)
+(** *** 型 *)
 
-(** We start with the simply typed lambda calculus over the
+(* We start with the simply typed lambda calculus over the
     natural numbers. To the base natural number type and arrow types
     we need to add two more types to deal with references. First, we
     need the _unit type_, which we will use as the result type of an
     assignment operation.  We then add _reference types_. *)
-(** If [T] is a type, then [Ref T] is the type of references which
+(** 自然数の上の単純型付きラムダ計算から始めます。
+    基本の自然数型と関数型に参照を扱う2つの型を追加する必要があります。
+    第一に「Unit型」です。これは代入演算子の結果の型として使います。
+    それから参照型(_reference types_)を追加します。 *)
+(* If [T] is a type, then [Ref T] is the type of references which
     point to a cell holding values of type [T].
+<<
+      T ::= Nat
+          | Unit
+          | T -> T
+          | Ref T
+>>
+*)
+(** [T]が型のとき、[Ref T] は型[T]の値を持つセルを指す参照の型です。
 <<
       T ::= Nat
           | Unit
@@ -116,11 +195,22 @@ Inductive ty : Type :=
   | ty_Ref   : ty -> ty.
 
 (* ################################### *)
-(** *** Terms *)
+(* *** Terms *)
+(** *** 項 *)
 
-(** Besides variables, abstractions, applications,
+(* Besides variables, abstractions, applications,
     natural-number-related terms, and [unit], we need four more sorts
     of terms in order to handle mutable references:
+<<
+      t ::= ...              Terms
+          | ref t              allocation
+          | !t                 dereference
+          | t := t             assignment
+          | l                  location
+>>
+*)
+(** 変数、関数抽象、関数適用、自然数に関する項、[unit]の他に、
+    変更可能な参照を扱うために4種類の項を追加する必要があります:
 <<
       t ::= ...              Terms
           | ref t              allocation
@@ -147,7 +237,7 @@ Inductive tm  : Type :=
   | tm_assign : tm -> tm -> tm
   | tm_loc    : nat -> tm.
 
-(** Intuitively...
+(* Intuitively...
     - [ref t] (formally, [tm_ref t]) allocates a new reference cell
       with the value [t] and evaluates to the location of the newly
       allocated cell;
@@ -160,12 +250,25 @@ Inductive tm  : Type :=
 
     - [l] (formally, [tm_loc l]) is a reference to the cell at
       location [l].  We'll discuss locations later. *)
+(** 直観的には...
+    - [ref t] (形式的には [tm_ref t])は値[t]が格納された新しい参照セルをアロケートし、
+      新しくアロケートされたセルの場所(location)を評価結果とします。
 
-(** In informal examples, we'll also freely use the extensions
+    - [!t] (形式的には [tm_deref t])は[t]で参照されるセルの内容を評価結果とします。
+
+    - [t1 := t2] (形式的には [tm_assign t1 t2])は[t1]で参照されるセルに[t2]を代入します。
+
+    - [l] (形式的には [tm_loc l])は場所[l]のセルの参照です。場所については後で議論します。 *)
+
+(* In informal examples, we'll also freely use the extensions
     of the STLC developed in the [MoreStlc] chapter; however, to keep
     the proofs small, we won't bother formalizing them again here.  It
     would be easy to do so, since there are no very interesting
     interactions between those features and references. *)
+(** 非形式的な例では、[MoreStlc_J]章で行ったSTLCの拡張も自由に使います。
+    しかし、証明を小さく保つため、ここでそれらを再度形式化することに煩わされることはしません。
+    やろうと思えばそうすることは簡単です。なぜなら、
+    それらの拡張と参照とには興味深い相互作用はないからです。*)
 
 Tactic Notation "tm_cases" tactic(first) ident(c) :=
   first;
@@ -187,9 +290,10 @@ Definition s := Id 3.
 End ExampleVariables.
 
 (* ################################### *)
-(** *** Typing (Preview) *)
+(* *** Typing (Preview) *)
+(** *** 型付け (プレビュー) *)
 
-(** Informally, the typing rules for allocation, dereferencing, and
+(* Informally, the typing rules for allocation, dereferencing, and
     assignment will look like this:
 [[[
                            Gamma |- t1 : T1
@@ -208,12 +312,32 @@ End ExampleVariables.
     The rule for locations will require a bit more machinery, and this
     will motivate some changes to the other rules; we'll come back to
     this later. *)
+(** 非形式的には、アロケーション、逆参照、代入の型付け規則は以下のようになります:
+[[
+                           Gamma |- t1 : T1
+                       ------------------------                         (T_Ref)
+                       Gamma |- ref t1 : Ref T1
+
+                        Gamma |- t1 : Ref T11
+                        ---------------------                         (T_Deref)
+                          Gamma |- !t1 : T11
+
+                        Gamma |- t1 : Ref T11
+                          Gamma |- t2 : T11
+                       ------------------------                      (T_Assign)
+                       Gamma |- t1 := t2 : Unit
+]]
+    場所についての規則はもう少し仕掛けが必要になり、
+    それが他の規則にいくらかの変更を求めることになります。
+    これについては後にまた戻ってきます。*)
 
 (* ################################### *)
-(** *** Values and Substitution *)
+(* *** Values and Substitution *)
+(** *** 値と置換 *)
 
-(** Besides abstractions and numbers, we have two new types of values:
+(* Besides abstractions and numbers, we have two new types of values:
     the unit value, and locations.  *)
+(** 関数抽象と数値に加えて、新たに2種類の値を持ちます: unit値と場所です。 *)
 
 Inductive value : tm -> Prop :=
   | v_abs  : forall x T t,
@@ -227,8 +351,9 @@ Inductive value : tm -> Prop :=
 
 Hint Constructors value.
 
-(** Extending substitution to handle the new syntax of terms is
+(* Extending substitution to handle the new syntax of terms is
     straightforward.  *)
+(** 新しい項の構文を扱うための置換の拡張は直接的です。 *)
 
 Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   match t with
