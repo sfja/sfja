@@ -267,9 +267,9 @@ Definition weird_type := ty_rcons X A B.
     and terms, and [well_formed_ty] which rules out the ill-formed
     types. *)
 (** 以降で型ジャッジメントを、
-    [weird_type]のような正しくない形の型が項に割当てられないように構成します。
+    [weird_type]のようなill-formedの(正しくない形の)型が項に割当てられないように構成します。
     これをサポートするために、レコード型と項を識別するための[record_ty]と[record_tm]、
-    および形が正しくない型を排除するための[well_formed_ty]を定義します。*)
+    およびill-formedの型を排除するための[well_formed_ty]を定義します。*)
 
 (* First, a type is a record type if it is built with just [ty_rnil]
     and [ty_rcons] at the outermost level. *)
@@ -305,11 +305,11 @@ Inductive record_tm : tm -> Prop :=
     examines the structure of terms.  *)
 (** [record_ty]と[record_tm]は再帰的ではないことに注意します。
     両者は、一番外側のコンストラクタだけをチェックします。
-    一方[well_formed_ty]は型全体が正しい形をしているか、
+    一方[well_formed_ty]は型全体がwell-formedか(正しい形をしているか)、
     つまり、レコードのすべての後部([ty_rcons]の第2引数)がレコードであるか、を検証します。
 
-    もちろん、型だけでなく項についても、形が正しくない可能性を考慮しなければなりません。
-    しかし、別途[well_formed_tm]を用意しなくても、形が正しくない項は型チェックが排除します。
+    もちろん、型だけでなく項についても、ill-formedの可能性を考慮しなければなりません。
+    しかし、別途[well_formed_tm]を用意しなくても、ill-formed項は型チェックが排除します。
     なぜなら、型チェックが既に項の構成を調べるからです。*)    
 (** LATER : should they fill in part of this as an exercise?  We
     didn't give rules for it above *)
@@ -385,7 +385,7 @@ Fixpoint tm_lookup (i:id) (tr:tm) : option tm :=
 (* The [step] function uses the term-level lookup function (for the
     projection rule), while the type-level lookup is needed for
     [has_type]. *)
-(** [step]関数は(射影規則に対応する)項レベルのlookup関数を使います。
+(** [step]関数は(射影規則について)項レベルのlookup関数を使います。
     一方、型レベルのlookupは[has_type]で必要になります。*)
 
 Reserved Notation "t1 '==>' t2" (at level 40).
@@ -462,24 +462,24 @@ Definition context := partial_map ty.
     check comes in the [tm_nil] case.  *)
 (** 次に型付け規則を定義します。これは上述の推論規則をほぼそのまま転写したものです。
     大きな違いは[well_formed_ty]の使用だけです。
-    非形式的な表記では、正しい形のレコード型だけを許す文法を使ったので、
+    非形式的な表記では、well-formedレコード型だけを許す文法を使ったので、
     別のチェックを用意する必要はありませんでした。
 
     ここでは、[has_type Gamma t T] が成立するときは常に [well_formed_ty T] 
     が成立するようにしたいところです。つまり、[has_type] 
-    は項に正しくない形の型を割当てることはないようにするということです。
+    は項にill-formed型を割当てることはないようにするということです。
     このことを後で実際に証明します。
 
-    しかしながら、[has_type]の定義を、[well_formed_ty]
+    しかしながら[has_type]の定義を、[well_formed_ty]
     を不必要に使って取り散らかしたくはありません。
-    その代わり、[well_formed_ty]によるチェックを必要な所だけに配置します。
+    その代わり[well_formed_ty]によるチェックを必要な所だけに配置します。
     ここで、必要な所というのは、[has_type]
-    の帰納的呼び出しによっても未だ型の形の正しさのチェックが行われていない所のことです。
+    の帰納的呼び出しによっても未だ型のwell-formed性のチェックが行われていない所のことです。
 
     例えば、[T_Var]の場合、[well_formed_ty T] をチェックします。
-    なぜなら、[T]の形の正しさを調べる帰納的な[has_type]の呼び出しがないからです。
+    なぜなら、[T]の形がwell-formedであることを調べる帰納的な[has_type]の呼び出しがないからです。
     同様に[T_Abs]の場合、[well_formed_ty T11] の証明を必要とします。
-    なぜなら、[has_type]の帰納的呼び出しは [T12] の形が正しいことだけを保証するからです。
+    なぜなら、[has_type]の帰納的呼び出しは [T12] がwell-formedであることだけを保証するからです。
 
     読者が記述しなければならない規則の中で[well_formed_ty]チェックが必要なのは、
     [tm_nil]の場合だけです。 *)
@@ -575,16 +575,17 @@ Proof.
   (* FILL IN HERE *) Admitted.
 
 (* ###################################################################### *)
-(** ** Properties of Typing *)
+(* ** Properties of Typing *)
+(** ** 型付けの性質 *)
 
 (* The proofs of progress and preservation for this system are
     essentially the same as for the pure simply typed lambda-calculus,
     but we need to add some technical lemmas involving records. *)
-(** The proofs of progress and preservation for this system are
-    essentially the same as for the pure simply typed lambda-calculus,
-    but we need to add some technical lemmas involving records. *)
+(** このシステムの進行と保存の証明は、純粋な単純型付きラムダ計算のものと本質的に同じです。
+    しかし、レコードについての技術的補題を追加する必要があります。 *)
 
 (* ###################################################################### *)
+(* *** Well-Formedness *)
 (** *** Well-Formedness *)
 
 Lemma wf_rcd_lookup : forall i T Ti,
@@ -620,9 +621,10 @@ Proof with eauto.
 Qed.
 
 (* ###################################################################### *)
-(** *** Field Lookup *)
+(* *** Field Lookup *)
+(** *** フィールドのルックアップ *)
 
-(** Lemma: If [empty |- v : T] and [ty_lookup i T] returns [Some Ti],
+(* Lemma: If [empty |- v : T] and [ty_lookup i T] returns [Some Ti],
      then [tm_lookup i v] returns [Some ti] for some term [ti] such
      that [has_type empty ti Ti].
 
@@ -651,6 +653,35 @@ Qed.
         tm_lookup i t = tm_lookup i tr,
 ]]
         so the result follows from the induction hypothesis. [] *)
+(** 補題: もし [empty |- v : T] で、かつ [ty_lookup i T] が [Some Ti] を返すならば,
+     [tm_lookup i v] はある項 [ti] について [Some ti] を返す。
+     ただし、[has_type empty ti Ti] となる。
+
+    証明: 型の導出[Htyp]についての帰納法で証明する。
+      [ty_lookup i T = Some Ti] であることから、
+      [T] はレコード型でなければならない。
+      このことと[v]が値であることから、ほとんどの場合は精査で除去でき、
+      [T_RCons]の場合だけが残る。
+
+      型導出の最後のステップが[T_RCons]によるものであるとき、
+      ある[i0]、[t]、[tr]、[T]、[Tr]について
+      [t = tm_rcons i0 t tr] かつ [T = ty_rcons i0 T Tr] である。
+
+      このとき2つの可能性が残る。[i0 = i] か、そうでないかである。
+
+      - [i = i0] のとき、[ty_lookup i (ty_rcons i0 T Tr) = Some Ti] から
+        [T = Ti] となる。これから [t]自身が定理を満たすことが言える。
+
+      - 一方、[i <> i0] とする。すると
+[[
+        ty_lookup i T = ty_lookup i Tr
+]]
+        かつ
+[[
+        tm_lookup i t = tm_lookup i tr
+]]
+        となる。
+        これから、帰納法の仮定より結果が得られる。*)
 
 Lemma lookup_field_in_value : forall v T i Ti,
   value v ->
@@ -671,7 +702,8 @@ Proof with eauto.
       inversion Hval... Qed.
 
 (* ###################################################################### *)
-(** *** Progress *)
+(* *** Progress *)
+(** *** 進行 *)
 
 Theorem progress : forall t T,
      has_type empty t T ->
@@ -681,6 +713,11 @@ Proof with eauto.
        1. t is a value, or
        2. t ==> t' for some t'.
      Proof: By induction on the given typing derivation. *)
+  (* 定理: empty |- t : T と仮定する。すると
+       1. t は値である、または
+       2. ある t' について t ==> t' 
+     のいずれかが成立する。
+     証明: 与えられた型の導出についての帰納法より。 *)
   intros t T Ht.
   remember (@empty ty) as Gamma.
   generalize dependent HeqGamma.
@@ -689,10 +726,14 @@ Proof with eauto.
     (* The final rule in the given typing derivation cannot be [T_Var],
        since it can never be the case that [empty |- x : T] (since the
        context is empty). *)
+    (* 型導出の最後の規則は[T_Var]ではあり得ない。なぜなら、
+       (コンテキストが empty であることから) [empty |- x : T] になることはないからである。*)
     inversion H.
   Case "T_Abs".
     (* If the [T_Abs] rule was the last used, then [t = tm_abs x T11 t12],
        which is a value. *)
+    (* もし[T_Abs]規則が最後に使われたものならば、[t = tm_abs x T11 t12] となる。
+       これは値である。 *)
     left...
   Case "T_App".
     (* If the last rule applied was T_App, then [t = t1 t2], and we know
@@ -701,6 +742,12 @@ Proof with eauto.
          [empty |- t2 : T1]
        By the induction hypothesis, each of t1 and t2 either is a value
        or can take a step. *)
+    (* もし最後に適用された規則が[T_App]ならば、[t = t1 t2] となる。
+       規則の形から
+         [empty |- t1 : T1 -> T2]
+         [empty |- t2 : T1]
+       となる。
+       帰納法の仮定より、t1 と t2 のそれぞれは、値であるかステップを進むことができる。 *)
     right.
     destruct IHHt1; subst...
     SCase "t1 is a value".
@@ -710,35 +757,53 @@ Proof with eauto.
          [t1 = tm_abs x T11 t12], since abstractions are the only values
          that can have an arrow type.  But
          [(tm_abs x T11 t12) t2 ==> subst x t2 t12] by [ST_AppAbs]. *)
+      (* もし[t1]と[t2]が共に値ならば、[t1 = tm_abs x T11 t12] となる。
+         なぜなら関数型の値は関数抽象だけだからである。
+         しかし[ST_AppAbs]より
+         [(tm_abs x T11 t12) t2 ==> subst x t2 t12] となる。 *)
         inversion H; subst; try (solve by inversion).
         exists (subst x t2 t12)...
       SSCase "t2 steps".
         (* If [t1] is a value and [t2 ==> t2'], then [t1 t2 ==> t1 t2']
            by [ST_App2]. *)
+        (* もし [t1] が値で [t2 ==> t2'] ならば、[ST_App2] より [t1 t2 ==> t1 t2']
+           となる。 *)
         destruct H0 as [t2' Hstp]. exists (tm_app t1 t2')...
     SCase "t1 steps".
       (* Finally, If [t1 ==> t1'], then [t1 t2 ==> t1' t2] by [ST_App1]. *)
+      (* 最後に、もし [t1 ==> t1'] ならば[ST_App1]より [t1 t2 ==> t1' t2] である。 *)
       destruct H as [t1' Hstp]. exists (tm_app t1' t2)...
   Case "T_Proj".
     (* If the last rule in the given derivation is [T_Proj], then
        [t = tm_proj t i] and
            [empty |- t : (ty_rcd Tr)]
        By the IH, [t] either is a value or takes a step. *)
+    (* もし与えられた導出の最後の規則が[T_Proj]ならば、
+       [t = tm_proj t i] かつ
+           [empty |- t : (ty_rcd Tr)] である。
+       帰納仮定より、[t] は値であるかステップを進むことができる。 *)
     right. destruct IHHt...
     SCase "rcd is value".
       (* If [t] is a value, then we may use lemma
          [lookup_field_in_value] to show [tm_lookup i t = Some ti] for
          some [ti] which gives us [tm_proj i t ==> ti] by [ST_ProjRcd]
          *)
+      (* もし [t] が値ならば、補題[lookup_field_in_value]を使うと、
+         ある[ti]について[tm_lookup i t = Some ti]が言える。
+         このとき[ST_ProjRcd]より [tm_proj i t ==> ti] となる。*)
       destruct (lookup_field_in_value _ _ _ _ H0 Ht H) as [ti [Hlkup _]].
       exists ti...
     SCase "rcd_steps".
       (* On the other hand, if [t ==> t'], then [tm_proj t i ==> tm_proj t' i]
          by [ST_Proj1]. *)
+      (* 一方、もし [t ==> t'] ならば、[ST_Proj1]により [tm_proj t i ==> tm_proj t' i]
+         となる。 *)
       destruct H0 as [t' Hstp]. exists (tm_proj t' i)...
   Case "T_RNil".
     (* If the last rule in the given derivation is [T_RNil], then
        [t = tm_rnil], which is a value. *)
+    (* もし与えられた導出の最後の規則が[T_RNil]ならば、
+       [t = tm_rnil] となるが、これは値である。 *)
     left...
   Case "T_RCons".
     (* If the last rule is [T_RCons], then [t = tm_rcons i t tr] and
@@ -746,28 +811,38 @@ Proof with eauto.
          [empty |- tr : Tr]
        By the IH, each of [t] and [tr] either is a value or can take
        a step. *)
+    (* もし最後の規則が[T_RCons]ならば、[t = tm_rcons i t tr] かつ
+         [empty |- t : T]
+         [empty |- tr : Tr]
+       となる。帰納仮定から、[t]と[tr]はそれぞれ値であるか、ステップを進むことができる。 *)
     destruct IHHt1...
     SCase "head is a value".
       destruct IHHt2; try reflexivity.
       SSCase "tail is a value".
       (* If [t] and [tr] are both values, then [tm_rcons i t tr]
          is a value as well. *)
+      (* もし[t]と[tr]が両者とも値ならば、[tm_rcons i t tr] も値である。*)
         left...
       SSCase "tail steps".
         (* If [t] is a value and [tr ==> tr'], then
            [tm_rcons i t tr ==> tm_rcons i t tr'] by
            [ST_Rcd_Tail]. *)
+        (* もし [t] が値で [tr ==> tr'] ならば、[ST_Rcd_Tail]より
+           [tm_rcons i t tr ==> tm_rcons i t tr'] となる。 *)
         right. destruct H2 as [tr' Hstp].
         exists (tm_rcons i t tr')...
     SCase "head steps".
       (* If [t ==> t'], then
          [tm_rcons i t tr ==> tm_rcons i t' tr]
          by [ST_Rcd_Head]. *)
+      (* もし [t ==> t'] ならば、[ST_Rcd_Head]より
+         [tm_rcons i t tr ==> tm_rcons i t' tr] となる。 *)
       right. destruct H1 as [t' Hstp].
       exists (tm_rcons i t' tr)...  Qed.
 
 (* ###################################################################### *)
-(** *** Context Invariance *)
+(* *** Context Invariance *)
+(** *** コンテキスト不変性 *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -825,7 +900,8 @@ Proof with eauto.
 Qed.
 
 (* ###################################################################### *)
-(** *** Preservation *)
+(* *** Preservation *)
+(** *** 保存 *)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      has_type (extend Gamma x U) t S  ->
@@ -834,6 +910,8 @@ Lemma substitution_preserves_typing : forall Gamma x U v t S,
 Proof with eauto.
   (* Theorem: If Gamma,x:U |- t : S and empty |- v : U, then
      Gamma |- (subst x v t) S. *)
+  (* 定理: もし Gamma,x:U |- t : S かつ empty |- v : U ならば
+     Gamma |- (subst x v t) S. である。 *)
   intros Gamma x U v t S Htypt Htypv.
   generalize dependent Gamma. generalize dependent S.
   (* Proof: By induction on the term t.  Most cases follow directly
@@ -842,6 +920,11 @@ Proof with eauto.
      variables interact. In the case of tm_rcons, we must do a little
      extra work to show that substituting into a term doesn't change
      whether it is a record term. *)
+  (* 証明: 項tについての帰納法で証明する。ほとんどの場合は帰納仮定から直接得られる。
+     そうでないのは tm_var、 tm_abs、tm_rcons だけである。
+     最初の2つの場合は、変数の相互作用について推論する必要があるため自動化できない。
+     tm_rconsの場合は、
+     置換によってレコード項であるか否かが変化しないことを示すために多少余分な仕事が必要である。 *)
   tm_cases (induction t) Case;
     intros S Gamma Htypt; simpl; inversion Htypt; subst...
   Case "tm_var".
@@ -853,12 +936,24 @@ Proof with eauto.
        show that [Gamma |- subst x v y : S].
 
        There are two cases to consider: either [x=y] or [x<>y]. *)
+    (* もし t = y ならば
+         [empty |- v : U] かつ
+         [Gamma,x:U |- y : S] となる。
+       inversion より [extend Gamma x U y = Some S] が得られる。
+       示したいことは [Gamma |- subst x v y : S] である。
+
+       2つの場合に分けて考える: [x=y] の場合と [x<>y] の場合である。 *)
     remember (beq_id x y) as e. destruct e.
     SCase "x=y".
     (* If [x = y], then we know that [U = S], and that [subst x v y = v].
        So what we really must show is that if [empty |- v : U] then
        [Gamma |- v : U].  We have already proven a more general version
        of this theorem, called context invariance. *)
+    (* もし [x = y] ならば、[U = S] かつ [subst x v y = v] となる。
+       これから、実際に示さなければならないのは、[empty |- v : U] ならば
+       [Gamma |- v : U] ということである。
+       これについては、より一般性のあるバージョンを既に証明している。
+       それはコンテキスト不変性である。 *)
       apply beq_id_eq in Heqe. subst.
       unfold extend in H0. rewrite <- beq_id_refl in H0.
       inversion H0; subst. clear H0.
@@ -869,6 +964,8 @@ Proof with eauto.
     SCase "x<>y".
     (* If [x <> y], then [Gamma y = Some S] and the substitution has no
        effect.  We can show that [Gamma |- y : S] by [T_Var]. *)
+    (* もし [x <> y] ならば、[Gamma y = Some S] であり置換は何も影響しない。
+       [T_Var]から[Gamma |- y : S]を示すことができる。 *)
       apply T_Var... unfold extend in H0. rewrite <- Heqe in H0...
   Case "tm_abs".
     rename i into y. rename t into T11.
@@ -888,6 +985,22 @@ Proof with eauto.
          [Gamma,y:T11 |- if beq_id x y then t0 else subst x v t0 : T12]
        We consider two cases: [x = y] and [x <> y].
     *)
+    (* もし [t = tm_abs y T11 t0] ならば、
+         [Gamma,x:U |- tm_abs y T11 t0 : T11->T12]
+         [Gamma,x:U,y:T11 |- t0 : T12]
+         [empty |- v : U]
+       である。帰納仮定から、すべての S Gamma について
+         [Gamma,x:U |- t0 : S -> Gamma |- subst x v t0 S] となる。
+
+       次のように計算ができる:
+         subst x v t = tm_abs y T11 (if beq_id x y
+                                      then t0
+                                      else subst x v t0)
+       示さなければならないのは [Gamma |- subst x v t : T11->T12] である。
+       [T_Abs]を使うために、残っているのは次を示すことである:
+         [Gamma,y:T11 |- if beq_id x y then t0 else subst x v t0 : T12]
+       2つの場合に分けて考える: [x = y] の場合と [x <> y] の場合である。
+    *)
     apply T_Abs...
     remember (beq_id x y) as e. destruct e.
     SCase "x=y".
@@ -895,6 +1008,10 @@ Proof with eauto.
        invariance shows that [Gamma,y:U,y:T11] and [Gamma,y:T11] are
        equivalent.  Since the former context shows that [t0 : T12], so
        does the latter. *)
+    (* [x = y] の場合、置換は影響しない。
+       コンテキスト不変性により [Gamma,y:U,y:T11] と [Gamma,y:T11] 
+       が同値であることが示される。
+       前者のコンテキストから [t0 : T12] が言えるので、後者も同様になる。 *)
       eapply context_invariance...
       apply beq_id_eq in Heqe. subst.
       intros x Hafi. unfold extend.
@@ -904,6 +1021,10 @@ Proof with eauto.
          [Gamma,x:U,y:T11 |- t0 : T12]       =>
          [Gamma,y:T11,x:U |- t0 : T12]       =>
          [Gamma,y:T11 |- subst x v t0 : T12] *)
+    (* [x <> y] の場合、帰納仮定とコンテキスト不変性から
+         [Gamma,x:U,y:T11 |- t0 : T12]       =>
+         [Gamma,y:T11,x:U |- t0 : T12]       =>
+         [Gamma,y:T11 |- subst x v t0 : T12] となる。 *)
       apply IHt. eapply context_invariance...
       intros z Hafi. unfold extend.
       remember (beq_id y z) as e0. destruct e0...
@@ -920,11 +1041,15 @@ Theorem preservation : forall t t' T,
 Proof with eauto.
   intros t t' T HT.
   (* Theorem: If [empty |- t : T] and [t ==> t'], then [empty |- t' : T]. *)
+  (* 定理: [empty |- t : T] かつ [t ==> t'] ならば [empty |- t' : T] である。 *)
   remember (@empty ty) as Gamma. generalize dependent HeqGamma.
   generalize dependent t'.
   (* Proof: By induction on the given typing derivation.  Many cases are
      contradictory ([T_Var], [T_Abs]) or follow directly from the IH
      ([T_RCons]).  We show just the interesting ones. *)
+  (* 証明: 型導出についての帰納法を使う。
+     ほとんどの場合は矛盾が得られるか([T_Var]、[T_Abs])、帰納仮定から直接得られる([T_RCons])。
+     興味深いものだけを示す。*)
   has_type_cases (induction HT) Case;
     intros t' HeqGamma HE; subst; inversion HE; subst...
   Case "T_App".
@@ -932,6 +1057,9 @@ Proof with eauto.
        could have been used to show [t ==> t']: [ST_App1], [ST_App2], and
        [ST_AppAbs]. In the first two cases, the result follows directly from
        the IH. *)
+    (* 最後に使われた規則が[T_App]の場合、[t = t1 t2] である。このとき [t ==> t']
+       を示すのに使われた可能性がある規則は3つ:[ST_App1]、[ST_App2]、[ST_AppAbs] である。
+       最初の2つについては、帰納仮定から直接結果が得られる。 *)
     inversion HE; subst...
     SCase "ST_AppAbs".
       (* For the third case, suppose
@@ -945,6 +1073,16 @@ Proof with eauto.
          We have already proven that substitution_preserves_typing and
              [empty |- v2 : T1]
          by assumption, so we are done. *)
+      (* 3つ目の規則の場合、次を仮定する:
+           [t1 = tm_abs x T11 t12]
+         かつ
+           [t2 = v2]。 示すべきことは [empty |- subst x v2 t12 : T2] である。
+         仮定から
+             [empty |- tm_abs x T11 t12 : T1->T2]
+         であり、inversion から
+             [x:T1 |- t12 : T2]
+         である。substitution_preserves_typing を既に証明しており、
+         仮定から [empty |- v2 : T1] であるから、証明は完了する。 *)
       apply substitution_preserves_typing with T1...
       inversion HT1...
   Case "T_Proj".
@@ -958,6 +1096,15 @@ Proof with eauto.
      Ti] for some [i] and [Tr].  We may therefore apply lemma
      [lookup_field_in_value] to find the record element this
      projection steps to. *)
+  (* 最後の規則が[T_Proj]のとき、[t = tm_proj t1 i] である。
+     [t ==> t'] のために2つの規則が使われた可能性がある。
+     [T_Proj1] または [T_ProjRcd] である。前者の場合、帰納仮定から[t']の型付けが得られる。
+     そのため、[T_ProjRcd]の場合だけを考える。
+
+     ここで[t]はレコード値である。規則 T_Proj が使われたことから、ある[i]と[Tr]
+     について、[has_type empty t Tr] かつ [ty_lookup i Tr = Some Ti] となる。
+     したがって、この射影がステップするレコード要素を見つけるため、
+     補題[lookup_field_in_value]を適用することができる。 *)
     destruct (lookup_field_in_value _ _ _ _ H2 HT H)
       as [vi [Hget Htyp]].
     rewrite H4 in Hget. inversion Hget. subst...
@@ -967,6 +1114,11 @@ Proof with eauto.
      by [ST_Rcd_Head], the result is immediate by the IH.  If the step
      is by [ST_Rcd_Tail], [tr ==> tr2'] for some [tr2'] and we must also
      use lemma [step_preserves_record_tm] to show [record_tm tr2']. *)
+  (* 最後の規則が[T_RCons]の場合、ある[i]、[t]、[tr]について [t = tm_rcons i t tr] 
+     で、また[record_tm tr]である。ステップが[ST_Rcd_Head]によるものである場合、
+     帰納仮定から直接結果が得られる。ステップが[ST_Rcd_Tail]によるものである場合、
+     ある[tr2']について [tr ==> tr2'] である。[record_tm tr2']
+     を示すためには同様に補題[step_preserves_record_tm]を使う。*)
     apply T_RCons... eapply step_preserves_record_tm...
 Qed.
 (** [] *)
