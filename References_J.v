@@ -53,7 +53,7 @@ Require Export Smallstep_J.
     ここまで学習してきた計算体系に一つの計算作用「変更可能な参照」を追加する方法を見ます。
     主要な拡張は、記憶状態(_store_、あるいはヒープ(_heap_))を明示的に扱うことです。
     この拡張は直接的に定義できます。
-    一番興味深い部分は、型保存定理の主張のために必要な修正(refinement)です。 *)
+    一番興味深い部分は、型保存定理の主張のために必要なリファインメント(refinement)です。 *)
 
 (* ###################################################################### *)
 (* ** Definitions *)
@@ -107,7 +107,7 @@ Require Export Smallstep_J.
     その代わり、現在の内容を得るために明示的に参照を手繰る
     (_dereference_、逆参照する)ことが必要です。これを[!y]と書きます。
 
-    他のほとんどの言語では、特に、Javaを含むCファミリーのすべてのメンバーでは、
+    他のほとんどの言語、特にJavaを含むCファミリーのメンバーのすべてでは、
     すべての変数名は変更可能なセルを指します。
     そして、現在の値を得るための変数の逆参照操作は暗黙に行われます。
 
@@ -386,12 +386,14 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   end.
 
 (* ###################################################################### *)
-(** * Pragmatics *)
+(* * Pragmatics *)
+(** * プラグマティクス(語用論) *)
 
 (* ################################### *)
-(** ** Side Effects and Sequencing *)
+(* ** Side Effects and Sequencing *)
+(** ** 副作用と逐次実行 *)
 
-(** The fact that the result of an assignment expression is the
+(* The fact that the result of an assignment expression is the
     trivial value [unit] allows us to use a nice abbreviation for
     _sequencing_.  For example, we can write
 <<
@@ -415,17 +417,42 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
        r:=succ(!r); r:=succ(!r); r:=succ(!r); r:=succ(!r); !r
 >>
 *)
+(** 代入式の結果がつまらない値[unit]であるという事実によって、
+    順次処理(_sequencing_)のうまい略記が可能になります。
+    例えば、
+<<
+       (\x:Unit. !r) (r := succ(!r)).
+>>
+    の略記として
+<<
+       r:=succ(!r); !r
+>>
+    と書くことができます。
+    これは2つの式を順番に評価するという作用を持ち、2つ目の式の値を返します。
+    1つ目の式の型を[Unit]に限定することで、
+    1つ目の値を捨てることができるのは本当にそれがつまらない値であることが保証されているときだけになり、
+    型チェッカで馬鹿なエラーをチェックするのに役立ちます。
 
-(** Formally, we introduce sequencing as a "derived form"
+    なお、もし2つ目の式もまた代入ならば、2つの式の列全体の型が[Unit]になります。
+    これから、より長い代入の列を作るために別の[;]の左側に置いても問題ありません:
+<<
+       r:=succ(!r); r:=succ(!r); r:=succ(!r); r:=succ(!r); !r
+>>
+*)
+
+(* Formally, we introduce sequencing as a "derived form"
     [tm_seq] that expands into an abstraction and an application. *)
+(** 形式的には、順次処理を"derived form"として導入します。
+    この"derived form"は、関数抽象と関数適用に展開されます。 *)
 
 Definition tm_seq t1 t2 :=
   tm_app (tm_abs (Id 0) ty_Unit t2) t1.
 
 (* ################################### *)
-(** ** References and Aliasing *)
+(* ** References and Aliasing *)
+(** ** 参照と別名付け *)
 
-(** It is important to bear in mind the difference between the
+(* It is important to bear in mind the difference between the
     _reference_ that is bound to [r] and the _cell_ in the store that
     is pointed to by this reference.
 
@@ -457,11 +484,40 @@ Definition tm_seq t1 t2 :=
 >>
     _unless_ we happen to do it in a context where [r] and [s] are
     aliases for the same cell! *)
+(** [r]に束縛される参照(_reference_)と、
+    この参照によって指されているセル(_cell_)の違いを心に留めておく必要があります。
+
+    例えば[r]を別の変数[s]に束縛することで[r]のコピーを作るとすると、
+    コピーされるのは参照だけで、セルの中身自身ではありません。
+
+    例えば、次の式を評価します:
+<<
+      let r = ref 5 in
+      let s = r in
+      s := 82;
+      (!r)+1
+>>
+    するとその後で[r]によって参照されたセルは値[82]を格納している状態になります。
+    一方、式全体の結果は[83]になります。参照[r]と[s]は同じセルの別名(_aliases_)と言われます。
+
+    別名を付けられる能力があることによって、参照を持つプログラムに関する推論は、
+    きわめてトリッキーになります。例えば、式
+<<
+      r := 5; r := !s
+>>
+    は[r]に[5]を代入し、直ぐにそれを[s]の現在の値で上書きします。
+    これは、単一の代入
+<<
+      r := !s
+>>
+    と完全に同じ作用をします。
+    ただし、「[r]と[s]がたまたま同じセルの別名であるという状況でない限り」、です! *)
 
 (* ################################### *)
-(** ** Shared State *)
+(* ** Shared State *)
+(** ** 共有状態 *)
 
-(** Of course, aliasing is also a large part of what makes references
+(* Of course, aliasing is also a large part of what makes references
     useful.  In particular, it allows us to set up "implicit
     communication channels" -- shared state -- between different parts
     of a program.  For example, suppose we define a reference cell and
@@ -473,8 +529,20 @@ Definition tm_seq t1 t2 :=
     ...
 >>
 *)
+(** もちろん、別名も、参照を便利なものにする大きな部分です。
+    特に参照は、プログラムの異なる部分の間の暗黙の通信チャンネル
+    ("implicit communication channels")、
+    つまり共有状態(shared state)としてはたらきます。
+    例えば、参照セルと、その内容を扱う2つの関数を定義するとします:
+<<
+    let c = ref 0 in
+    let incc = \_:Unit. (c := succ (!c); !c) in
+    let decc = \_:Unit. (c := pred (!c); !c) in
+    ...
+>>
+*)
 
-(** Note that, since their argument types are [Unit], the
+(* Note that, since their argument types are [Unit], the
     abstractions in the definitions of [incc] and [decc] are not
     providing any useful information to the bodies of the
     functions (using the wildcard [_] as the name of the bound
@@ -491,9 +559,23 @@ Definition tm_seq t1 t2 :=
     changes to [c] that can be observed by calling [decc].  For
     example, if we replace the [...] with [(incc unit; incc unit; decc
     unit)], the result of the whole program will be [1]. *)
-(** ** Objects *)
+(** ここで、それぞれ引数の型は[Unit]なので、
+    [incc]と[decc]の定義において関数抽象は関数本体に特に有用な情報を提供しないことに注意します
+    (束縛変数名にワイルドカード[_]を使っているのは、このことを合図したものです)。
+    そうではなく、関数抽象の目的は関数本体の実行を「遅く」するためです。
+    関数抽象は値であることから、2つの[let]は単に2つの関数を名前[incc]と[decc]に束縛するだけで、
+    実際に[c]を増やしたり減らしたりはしません。後に、これらの関数の1つを呼び出すたびに、
+    その本体が1度実行され[c]について対応する変更が行われます。
+    こういった関数はしばしば _thunk_ と呼ばれます。
 
-(** We can go a step further and write a _function_ that creates [c],
+    これらの宣言のコンテキストで、[incc]を呼ぶと[c]が変更されますが、
+    これは[decc]を呼ぶことで確認できます。
+    例えば [...] を [(incc unit; incc unit; decc unit)] に換えると、
+    プログラム全体の結果は[1]になります。 *)
+(* ** Objects *)
+(** ** オブジェクト *)
+
+(* We can go a step further and write a _function_ that creates [c],
     [incc], and [decc], packages [incc] and [decc] together into a
     record, and returns this record:
 <<
@@ -505,7 +587,18 @@ Definition tm_seq t1 t2 :=
            {i=incc, d=decc}
 >>
 *)
-(** Now, each time we call [newcounter], we get a new record of
+(** もう一歩進んで、[c]、[incc]、[decc]を生成し、[incc]と[decc]をレコードにパッケージ化し、
+    このレコードを返す「関数」を記述することもできます:
+<<
+    newcounter =
+        \_:Unit.
+           let c = ref 0 in
+           let incc = \_:Unit. (c := succ (!c); !c) in
+           let decc = \_:Unit. (c := pred (!c); !c) in
+           {i=incc, d=decc}
+>>
+*)
+(* Now, each time we call [newcounter], we get a new record of
     functions that share access to the same storage cell [c].  The
     caller of [newcounter] can't get at this storage cell directly,
     but can affect it indirectly by calling the two functions.  In
@@ -519,10 +612,26 @@ Definition tm_seq t1 t2 :=
     r2  // yields 1, not 2!
 >>
 *)
-(** **** Exercise: 1 star *)
-(** Draw (on paper) the contents of the store at the point in
+(** このとき、[newcounter]を呼ぶたびに、
+    同じ記憶セル[c]のアクセスを共有する2つの関数の新たなレコードが得られます。
+    [newcounter]を呼び出す側はこの記憶セルには直接手が届きませんが、
+    2つの関数を呼ぶことで間接的に影響を及ぼすことができます。
+    言い換えると、簡単な形のオブジェクト(_object_)を作ったのです。
+<<
+    let c1 = newcounter unit in
+    let c2 = newcounter unit in
+    // ここで2つの別個の記憶セルをアロケートしたことに注意!
+    let r1 = c1.i unit in
+    let r2 = c2.i unit in
+    r2  // 1 を返します。2ではありません!
+>>
+*)
+(* **** Exercise: 1 star *)
+(** **** 練習問題: ★ *)
+(* Draw (on paper) the contents of the store at the point in
     execution where the first two [let]s have finished and the third
     one is about to begin. *)
+(** 最初の2つの[let]が完了し3つ目が始まろうとする時点の記憶の中身を(紙の上に)描きなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
