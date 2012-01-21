@@ -391,7 +391,7 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
 
 (* ################################### *)
 (* ** Side Effects and Sequencing *)
-(** ** 副作用と逐次実行 *)
+(** ** 副作用と順次処理 *)
 
 (* The fact that the result of an assignment expression is the
     trivial value [unit] allows us to use a nice abbreviation for
@@ -637,9 +637,10 @@ Definition tm_seq t1 t2 :=
 (** [] *)
 
 (* ################################### *)
-(** ** References to Compound Types *)
+(* ** References to Compound Types *)
+(** ** 参照と合成型 *)
 
-(** A reference cell need not contain just a number: the primitives
+(* A reference cell need not contain just a number: the primitives
     we've defined above allow us to create references to values of any
     type, including functions.  For example, we can use references to
     functions to give a (not very efficient) implementation of arrays
@@ -680,22 +681,67 @@ Definition tm_seq t1 t2 :=
     References to values containing other references can also be very
     useful, allowing us to define data structures such as mutable
     lists and trees. *)
+(** 参照セルの中身は数値でなければならないわけではありません。
+    上で定義したプリミティブによって、任意の型の値への参照を作ることができます。
+    その任意の型の中には関数型も含まれます。
+    例えば、関数への参照を使って、数値の配列の(あまり効率的でない)実装をすることができます。
+    以下の通りです。型 [Ref (Nat->Nat)] を [NatArray] と書きます。
 
-(** **** Exercise: 2 stars *)
-(** If we defined [update] more compactly like this
+    [MoreStlc_J]章での[equal]関数を思い出してください:
+<<
+    equal =
+      fix
+        (\eq:Nat->Nat->Bool.
+           \m:Nat. \n:Nat.
+             if m=0 then iszero n
+             else if n=0 then false
+             else eq (pred m) (pred n))
+>>
+    このとき、新しい配列を作るために、参照セルをアロケートし、そのセルに関数を入れます。
+    その関数はインデックスを与えられると常に[0]を返します。
+<<
+    newarray = \_:Unit. ref (\n:Nat.0)
+>>
+    配列の要素をとりだすためには、その関数を求められたインデックスに適用するだけです。
+<<
+    lookup = \a:NatArray. \n:Nat. (!a) n
+>>
+    このエンコードの興味深いところは[update]関数です。
+    [update]関数は、配列、インデックス、そのインデックスの場所に格納する新しい値をとり、
+    新しい関数を生成し(そしてそれを参照に格納し)ます。
+    その関数は、この特定のインデックスの値を尋かれたときには[update]に与えられた新しい値を返します。
+    他のインデックスについては、以前にその参照に格納されていた関数にまかせます。
+<<
+    update = \a:NatArray. \m:Nat. \v:Nat.
+                 let oldf = !a in
+                 a := (\n:Nat. if equal m n then v else oldf n);
+>>
+    別の参照を含む値への参照もまたとても有用です。
+    これにより、変更可能なリストや木などのデータ構造が定義できるようになります。 *)
+
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
+(* If we defined [update] more compactly like this
 <<
     update = \a:NatArray. \m:Nat. \v:Nat.
                 a := (\n:Nat. if equal m n then v else (!a) n)
 >>
 would it behave the same? *)
+(** もし[update]を次のようによりコンパクトに定義したとします。
+<<
+    update = \a:NatArray. \m:Nat. \v:Nat.
+                a := (\n:Nat. if equal m n then v else (!a) n)
+>>
+これは前の定義と同じように振る舞うでしょうか？ *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ################################### *)
-(** ** Null References *)
+(* ** Null References *)
+(** ** null参照 *)
 
-(** There is one more difference between our references and C-style
+(* There is one more difference between our references and C-style
     mutable variables: in C-like languages, variables holding pointers
     into the heap may sometimes have the value [NULL].  Dereferencing
     such a "null pointer" is an error, and results in an
@@ -716,11 +762,29 @@ would it behave the same? *)
 
     Then a "nullable reference to a [T]" is simply an element of the
     type [Ref (Option T)]. *)
+(** ここで定義した参照と、C言語スタイルの変更可能な変数にはもう一つの違いがあります。
+    Cのような言語では、ヒープへのポインタを持つ変数は値[NULL]を持つことがあります。
+    そのような「nullポインタ」の逆参照はエラーで、
+    例外になったり(Java)、プログラムが停止したり(C)します。
+
+    Cのような言語ではnullポインタは重大な問題を起こします。
+    任意のポインタがnullになる可能性があるという事実は、
+    任意の逆参照操作が潜在的に失敗の可能性を持つということです。
+    しかしMLのような言語でも、
+    時には正しいポインタを持つことを許すことも許さないこともできるようにしたい場合があります。
+    幸い、参照の基本メカニズムを拡張しなくてもこれは実現できます。
+    [MoreStlc_J]章で導入された直和型によってそれが可能になります。
+
+    最初に、直和を使って、[Lists_J]章で導入した[option]型に対応するものを構築します。
+    [Option T] を [Unit + T] の略記法として定義します。
+
+    すると、「nullになり得る[T]への参照」は単に型 [Ref (Option T)] の要素となります。 *)
 
 (* ################################### *)
-(** ** Garbage Collection *)
+(* ** Garbage Collection *)
+(** ** ガベージコレクション *)
 
-(** A last issue that we should mention before we move on with
+(* A last issue that we should mention before we move on with
     formalizing references is storage _de_-allocation.  We have not
     provided any primitives for freeing reference cells when they are
     no longer needed.  Instead, like many modern languages (including
@@ -737,9 +801,26 @@ would it behave the same? *)
     boolean, possibly reusing the same storage.  Now we can have two
     names for the same storage cell -- one with type [Ref Nat] and the
     other with type [Ref Bool]. *)
+(** 参照の形式化に移る前に述べておくべき最後の問題が、
+    記憶のデアロケーション(_de_-allocation)です。
+    参照セルが必要なくなったときにそれを解放する何らかのプリミティブを提供していません。
+    その代わり、多くの近代的な言語(MLとJavaを含む)のように、
+    実行時システムがガベージコレクション(_garbage collection_)を行うことに頼っています。
+    ガベージコレクションはプログラムから到達しなくなったセルを集め再利用するものです。        
 
-(** **** Exercise: 1 star *)
-(** Show how this can lead to a violation of type safety. *)
+    これは言語デザインの上で単なる趣味の問題ではありません。
+    明示的なデアロケーション操作が存在した場合、型安全性を保つのが極度に困難になるのです。
+    その理由はよく知られたダングリング参照(_dangling reference_)問題です。
+    数値を持つセルをアロケートし、何かのデータ構造にそれへの参照を持たせ、それをしばらく利用し、
+    そしてそれをデアロケートし、ブール値を持つ新しいセルをアロケートします。
+    このとき同じ記憶領域が再利用されるかもしれません。
+    すると、同じ記憶セルに2つの名前があることになります。1つは [Ref Nat] 型で、
+    もう1つは [Ref Bool] 型です。 *)
+
+(* **** Exercise: 1 star *)
+(** **** 練習問題: ★ *)
+(* Show how this can lead to a violation of type safety. *)
+(** このことがどのように型安全性の破壊につながるのか示しなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
