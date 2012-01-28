@@ -40,7 +40,7 @@ Require Export Basics_J.
 
          [coqc Basics_J.v] を実行する。
 
-    このファイルでも [Module] 機能を使って数のリストやペアの定義をラップしておきます。こうしておくことで、同じ操作を改良した（一般化した）ものに同じ名前をつけることができます。
+    このファイルでも [Module] 機能を使って数のリストやペアの定義を囲んでおきます。こうしておくことで、同じ操作を改良した（一般化した）ものに同じ名前をつけることができます。
 *)
 
 Module NatList.
@@ -118,7 +118,7 @@ Definition swap_pair (p : natprod) : natprod :=
     can prove them with just reflexivity (and its built-in
     simplification): *)
 (**
-   それでは、数のペアに関する簡単な事実をいくつか証明してみましょう。補題を一定の（一種独特な）形式で書いておけば、反射律（と組み込みの簡約）だけで証明することができます。
+   それでは、数のペアに関する簡単な事実をいくつか証明してみましょう。補題を一定の（一種独特な）形式で書いておけば、単に reflexivity（と組み込みの簡約）だけで証明することができます。
    *)
 
 Theorem surjective_pairing' : forall (n m : nat),
