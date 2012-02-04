@@ -51,7 +51,7 @@ Require Export Smallstep_J.
 
     この章では、
     ここまで学習してきた計算体系に一つの計算作用「変更可能な参照」を追加する方法を見ます。
-    主要な拡張は、記憶状態(_store_、あるいはヒープ(_heap_))を明示的に扱うことです。
+    主要な拡張は、記憶(_store_、あるいはヒープ(_heap_))を明示的に扱うことです。
     この拡張は直接的に定義できます。
     一番興味深い部分は、型保存定理の主張のために必要なリファインメント(refinement)です。 *)
 
@@ -92,7 +92,7 @@ Require Export Smallstep_J.
     In this chapter, we study adding mutable references to the
     simply-typed lambda calculus with natural numbers. *)
 (** ほとんどすべてのプログラミング言語が、
-    記憶領域に以前に置かれた内容を変更する何らかの代入操作を持っています
+    記憶に以前に置かれた内容を変更する何らかの代入操作を持っています
     (Coqの内部言語は稀な例外です!)。
 
     いくつかの言語(特にMLやその親戚)では、
@@ -813,7 +813,7 @@ would it behave the same? *)
     その理由はよく知られたダングリング参照(_dangling reference_)問題です。
     数値を持つセルをアロケートし、何かのデータ構造にそれへの参照を持たせ、それをしばらく利用し、
     そしてそれをデアロケートし、ブール値を持つ新しいセルをアロケートします。
-    このとき同じ記憶領域が再利用されるかもしれません。
+    このとき同じ記憶が再利用されるかもしれません。
     すると、同じ記憶セルに2つの名前があることになります。1つは [Ref Nat] 型で、
     もう1つは [Ref Bool] 型です。 *)
 
@@ -875,24 +875,24 @@ would it behave the same? *)
 (** 参照の扱いについての一番些細な面は、
     操作的振る舞いをどのように形式化するかを考えるときに現れます。
     それが何故かを見る1つの方法は、「何が型 [Ref T] の値であるべきか？」と問うことです。
-    考慮すべき重要な点は、[ref]演算子の評価は何かを(つまり記憶領域のアロケートを)
+    考慮すべき重要な点は、[ref]演算子の評価は何かを(つまり記憶のアロケートを)
     「行わ」なければならず、    
-    操作の結果はこの記憶領域への参照とならなければならないということです。
+    操作の結果はこの記憶への参照とならなければならないということです。
 
     それでは、参照とは何でしょうか？
 
-    ほとんどのプログラミング言語の実装では、実行時の記憶領域は本質的にはバイト(byte)
+    ほとんどのプログラミング言語の実装では、実行時の記憶は本質的にはバイト(byte)
     の(大きな)配列です。
     実行時システムは、この配列のどの部分が現在使用されているかを常に監視しています。
     新しい参照セルをアロケートしなければならないとき、
-    記憶領域の自由範囲から十分な大きさのセグメント
+    記憶の自由範囲から十分な大きさのセグメント
     (整数セルには4バイト、[Float]のセルには8バイト、等)をアロケートします。
     このセグメントに「使用中」のマークをして、新しくアロケートされた領域のインデックス
     (典型的には32ビットまたは64ビットの整数)を返却します。
     参照とはこのインデックスのことです。
 
     現在の目的のためには、これほど具体的である必要はありません。
-    記憶領域を、バイトではなく「値」の配列と考え、異なる値の実行時表現のサイズの違いは捨象します。
+    記憶を、バイトではなく「値」の配列と考え、異なる値の実行時表現のサイズの違いは捨象します。
     すると参照は、単に記憶へのインデックスになります。
     (望むならば、これらのインデックスが数値であるという事実さえも捨象することができます。
     しかし、Coqで形式化する目的のためには、数値を使った方が若干便利です。)
@@ -904,14 +904,15 @@ would it behave the same? *)
     この制約は意図的なものです。ポインタ算術は時には非常に便利です。
     特にガベージコレクタのような低レベルのサービスを実装するときなどです。
     しかし、ほとんどの型システムではポインタ算術を追跡することができません。
-    記憶領域の場所[n]に[float]が格納されていることを知っても、
+    記憶の場所[n]に[float]が格納されていることを知っても、
     場所[n+4]の型について何も意味のあることはわかりません。
-    Cにおいては、ポインタ算術は型安全性破壊の悪名高き源泉です。 *)
+    Cにおいては、ポインタ算術は型安全性破壊の悪名高き温床です。 *)
 
 (* ################################### *)
-(** ** Stores *)
+(* ** Stores *)
+(** ** 記憶(Stores) *)
 
-(** Recall that, in the small-step operational semantics for
+(* Recall that, in the small-step operational semantics for
     IMP, the step relation needed to carry along an auxiliary state in
     addition to the program being executed.  In the same way, once we
     have added reference cells to the STLC, our step relation must
@@ -930,19 +931,40 @@ would it behave the same? *)
     created reference cell. When evaluating such an expression, we can
     just add a new reference cell to the end of the list representing
     the store.) *)
+(** IMPのスモールステップ操作的意味論では、ステップ関係は、
+    実行されるプログラムに加えて補助的な状態を持ちまわる必要があったことを思い出して下さい。
+    同様に、STLCに参照セルを追加すると、
+    参照セルの内容を追跡するために記憶を持ち回る必要が出てきます。
+
+    IMPの状態で使ったのと同じ関数表現を再利用することもできます。
+    しかし、この章での証明をするためには、記憶を単に値の「リスト」として表現した方が実際は便利です。
+    (この表現を以前には使えなかった理由は、
+    IMPでは、プログラムはいつでも任意の場所を変更することができるので、
+    状態はいつでも任意の変数を値に写像することができるようになっていないといけなかったからです。
+    しかし、STLCに参照を追加したものでは、参照セルを作る唯一の方法は [tm_ref t1] を使うことです。
+    ここで [tm_ref t1] は[t1]の値を新しい参照セルに置き、
+    評価結果として新しく生成された参照セルの場所を返します。
+    この式を評価するときには、記憶を表現するリストの最後に新しい参照セルを追加すればよいのです。)
+    *) 
 
 Definition store := list tm.
 
-(** We use [store_lookup n st] to retrieve the value of the reference
+(* We use [store_lookup n st] to retrieve the value of the reference
     cell at location [n] in the store [st].  Note that we must give a
     default value to [nth] in case we try looking up an index which is
     too large. (In fact, we will never actually do this, but proving
     it will of course require some work!) *)
+(** 記憶[st]の場所[n]のセルの値をとりだすために、
+    [store_lookup n st] を使います。
+    インデックスが大きすぎるときには[nth]にデフォルト値を与えなければならないことに注意します。
+    (実際には大きすぎるインデックスを与えることは行いません。
+    ただ、そうであることを証明することはもちろんちょっと作業をしなければなりません!。) *)
 
 Definition store_lookup (n:nat) (st:store) :=
   nth n st tm_unit.
 
-(** To add a new reference cell to the store, we use [snoc]. *)
+(* To add a new reference cell to the store, we use [snoc]. *)
+(** 記憶に新しい参照セルを追加するために、[snoc]を使います。 *)
 
 Fixpoint snoc {A:Type} (l:list A) (x:A) : list A :=
   match l with
@@ -950,8 +972,9 @@ Fixpoint snoc {A:Type} (l:list A) (x:A) : list A :=
   | h :: t => h :: snoc t x
   end.
 
-(** We will need some boring lemmas about [snoc].  The proofs are
+(* We will need some boring lemmas about [snoc].  The proofs are
     routine inductions. *)
+(** [snoc]についていくつか退屈な補題が必要です。証明は決まりきった帰納法です。 *)
 
 Lemma length_snoc : forall A (l:list A) x,
   length (snoc l x) = S (length l).
@@ -959,6 +982,7 @@ Proof.
   induction l; intros; [ auto | simpl; rewrite IHl; auto ]. Qed.
 
 (* The "solve by inversion" tactic is explained in Stlc.v. *)
+(* "solve by inversion" タクティックは Stlc_J.v で説明されています。 *)
 Lemma nth_lt_snoc : forall A (l:list A) x d n,
   n < length l ->
   nth n l d = nth n (snoc l x) d.
@@ -976,8 +1000,10 @@ Proof.
   induction l; intros; [ auto | simpl; rewrite IHl; auto ].
 Qed.
 
-(** To update the store, we use the [replace] function, which replaces
+(* To update the store, we use the [replace] function, which replaces
     the contents of a cell at a particular index. *)
+(** 記憶を更新するために、[replace]関数を使います。
+    この関数は特定のインデックスのセルの中身を置き換えます。 *)
 
 Fixpoint replace {A:Type} (n:nat) (x:A) (l:list A) : list A :=
   match l with
@@ -989,8 +1015,10 @@ Fixpoint replace {A:Type} (n:nat) (x:A) (l:list A) : list A :=
     end
   end.
 
-(** Of course, we also need some boring lemmas about [replace], which
+(* Of course, we also need some boring lemmas about [replace], which
     are also fairly straightforward to prove. *)
+(** もちろん、[replace]についてもいくつか退屈な補題が必要です。
+    証明は、また、かなりそのままです。 *)
 
 Lemma replace_nil : forall A n (x:A),
   replace n x [] = [].
@@ -1042,9 +1070,10 @@ Proof with auto.
 Qed.
 
 (* ################################### *)
-(** ** Reduction *)
+(* ** Reduction *)
+(** ** 簡約 *)
 
-(** Next, we need to extend our operational semantics to take stores
+(* Next, we need to extend our operational semantics to take stores
     into account.  Since the result of evaluating an expression will
     in general depend on the contents of the store in which it is
     evaluated, the evaluation rules should take not just a term but
@@ -1167,6 +1196,112 @@ Qed.
     locations whose contents have become garbage.
 
     Formally... *)
+(** 次に、操作的意味を記憶を考慮した形に拡張します。
+    式を評価した結果は一般には評価したときの記憶の中身に依存するので、
+    評価規則は項だけでなく記憶も引数としてとらなければなりません。
+    さらに、項の評価は記憶に副作用を起こし、それが後の別の項の評価に影響を及ぼすので、
+    評価規則は新しい値を返す必要があります。
+    これから、1ステップ評価関係の形は [t ==> t'] から [t / st ==> t' / st'] 
+    に変わります。ここで[st]と[st']は記憶の開始状態と終了状態です。
+
+    この変更を達成するため、最初に、既存のすべての評価規則に記憶を拡張する必要があります:
+[[
+                               value v2
+                -------------------------------------               (ST_AppAbs)
+                (\a:T.t12) v2 / st ==> [v2/a]t12 / st
+
+                        t1 / st ==> t1' / st'
+                     ---------------------------                      (ST_App1)
+                     t1 t2 / st ==> t1' t2 / st'
+
+                  value v1     t2 / st ==> t2' / st'
+                  ----------------------------------                  (ST_App2)
+                     v1 t2 / st ==> v1 t2' / st'
+]]
+    ここで最初の規則は記憶を変えずに返すことに注意します。
+    関数適用はそれ自体は副作用を持ちません。
+    残りの2つの規則は単に副作用を前提から結論に伝播します。
+
+    さて、[ref]式の評価結果は新しい場所です。これが項の構文と値の集合に場所を含めた理由です。
+
+    これは重要なことですが、項の構文のこの拡張は、
+    「プログラマ」が明示的に具体的場所を含む項を書くことを意図したものではありません。
+    そのような項は評価の中間結果だけに現れます。
+    これは最初は奇妙に見えるかもしれません。
+    しかしこれは、評価のすべてのステップの結果を変形された項で表現するという設計判断に、
+    実に自然に馴染むのです。
+    もし評価に対して、より「機械に近い」("machine-like")モデル、
+    例えば束縛された識別子の値を格納する明示的なスタックを選んだならば、
+    許される値の集合に場所を追加したアイデアはおそらくより明確になるでしょう。
+
+    この拡張構文に関して、場所と記憶を扱う新しい言語要素についての評価規則を述べることができます。
+    最初に、逆参照式[!t1]の評価のため、[t1]を値になるまで簡約しなければなりません:
+[[
+                        t1 / st ==> t1' / st'
+                       -----------------------                       (ST_Deref)
+                       !t1 / st ==> !t1' / st'
+]]
+    [t1]の簡約が終わったならば、[!l]という形の式が得られるはずです。ここで[l]は何らかの場所です。
+    (関数や[unit]などの他の種類の値を逆参照しようとする項は、エラーです。
+    現在アロケートされた記憶のサイズ[|st|]より大きな場所を逆参照しようとする項も同様です。
+    この場合、評価規則は単に行き詰まります。
+    後に確立する型安全性は、
+    型付けがされた項がこの方法で間違った振る舞いをすることがないことを保証します。)
+[[
+                               l < |st|
+                     ----------------------------------           (ST_DerefLoc)
+                     !(loc l) / st ==> lookup l st / st
+]]
+
+    次に、代入式 [t1:=t2] を評価するため、
+    最初に[t1]が値(場所)になるまで評価し、次に[t2]が(任意の種類の)
+    値になるまで評価します:
+[[
+                        t1 / st ==> t1' / st'
+                 -----------------------------------               (ST_Assign1)
+                 t1 := t2 / st ==> t1' := t2 / st'
+
+                        t2 / st ==> t2' / st'
+                  ---------------------------------                (ST_Assign2)
+                  v1 := t2 / st ==> v1 := t2' / st'
+]]
+    [t1]と[t2]が終わったならば、[l:=v2] という形の式が得られます。
+    この式の実行として、記憶を、場所[l]に[v2]が格納されるように更新します:
+[[
+                               l < |st|
+                -------------------------------------               (ST_Assign)
+                loc l := v2 / st ==> unit / [v2/l]st
+]]
+    記法 [[v2/l]st] は「[l]を[v2]に写像し、他の場所は[st]と同じものに写像する記憶」
+    を意味します。
+    (この評価ステップの結果の項は単に[unit]であることに注意します。
+    興味深い結果は更新された記憶です。)
+
+    最後に、[ref t1] という形の式を評価するために、最初に[t1]が値になるまで評価します:
+[[
+                        t1 / st ==> t1' / st'
+                    -----------------------------                      (ST_Ref)
+                    ref t1 / st ==> ref t1' / st'
+]]
+    次に[ref]自体を評価するため、現在の記憶の最後の新しい場所を選びます。
+    つまり、場所[|st|]です。そして新しい値[v1]について[st]を拡張した新しい記憶を与えます。
+[[
+                   --------------------------------               (ST_RefValue)
+                   ref v1 / st ==> loc |st| / st,v1
+]]
+    このステップの結果の値は新しくアロケートされた場所自身です。
+    (形式的には [st,v1] は [snoc st v1] を意味します。)
+
+    これらの評価規則はどのようなガベージコレクションも行わないことに注意します。
+    単に評価が進むにつれて記憶が限りなく大きくなることとします。
+    これは評価結果の正しさには影響しません
+    (とにかく「ガベージ」の定義は、まさに記憶のもはや到達できない部分なので、
+    評価の上で以降何の役割も演じられません)。
+    しかしこれは、
+    洗練された評価器ならばガベージとなったものの場所を再利用して実行を続けることができる場面で、
+    素朴な実装はメモリを使い果たす可能性があることを意味します。
+
+    形式的には... *)
 
 Reserved Notation "t1 '/' st1 '==>' t2 '/' st2"
   (at level 40, st1 at level 39, t2 at level 39).
@@ -1254,18 +1389,21 @@ Notation "t1 '/' st '==>*' t2 '/' st'" := (stepmany (t1,st) (t2,st'))
   (at level 40, st at level 39, t2 at level 39).
 
 (* ################################### *)
-(** * Typing *)
+(* * Typing *)
+(** * 型付け *)
 
-(** Our contexts for free variables will be exactly the same as for
+(* Our contexts for free variables will be exactly the same as for
     the STLC, partial maps from identifiers to types. *)
+(** 自由変数のコンテキストはSTLCのものと完全に同じで、識別子から型への部分関数です。 *)
 
 Definition context := partial_map ty.
 
 (* ################################### *)
 
-(** ** Store typings *)
+(* ** Store typings *)
+(** ** 記憶の型付け *)
 
-(** Having extended our syntax and evaluation rules to accommodate
+(* Having extended our syntax and evaluation rules to accommodate
     references, our last job is to write down typing rules for the new
     constructs -- and, of course, to check that they are sound.
     Naturally, the key question is, "What is the type of a location?"
@@ -1334,13 +1472,79 @@ Definition context := partial_map ty.
    [\x:Nat. (!(loc 1)) x, \x:Nat. (!(loc 0)) x]
 >>
 *)
-(** **** Exercise: 2 stars *)
-(** Can you find a term whose evaluation will create this particular
-    cyclic store? *)
+(** 参照に適用するように構文と評価規則を拡張したので、
+    最後の仕事は新しい言語要素に対する型付け規則を書き下すこと、そして、
+    もちろん、それが健全であることをチェックすることです。
+    自然と、キーとなる問題は「場所の型は何か？」になります。
 
+    何よりもまず、プログラマが実際に書く項の型チェックの目的のためには、
+    この問題に答える必要は「ない」ことに注意しましょう。
+    具体的な場所定数は評価の中間結果の項にのみ現れます。
+    プログラマが書く言語の中には含まれません。
+    すると、場所の型を決める必要があるのは、評価列の途中にある時だけです。
+    例えば、進行補題や保存補題を適用しようとする時です。
+    これから、通常、型付けはプログラムの「静的」性質と考えますが、
+    場所の型付けについてはプログラムの「動的」
+    進行にも依存するとして、意味があります。
+
+    まず、具体的場所を含む項を評価するとき、
+    結果の型は開始時の記憶の中身に依存することに注意します。
+    例えば、
+    記憶が [[unit, unit]] のとき項 [!(loc 1)] を評価するならば、
+    結果は[unit]です。
+    記憶が [[unit, \x:Unit.x]] のとき同じ項を評価すると、結果は [\x:Unit.x] です。
+    前者の記憶に関して、場所[1]は型[Unit]を持ち、
+    後者の記憶に関しては型[Unit->Unit]を持ちます。
+    これらのことから、場所の型付け規則の最初の試みとして、直ぐに次のものが考えられます:
+[[
+                             Gamma |- lookup  l st : T1
+                            ----------------------------
+                             Gamma |- loc l : Ref T1
+]]
+    つまり、場所[l]の型を見付けるために、記憶内の[l]の現在の中身を探索し、
+    その中身の型を計算するものです。
+    するとこの場所の型は [Ref T1] になります。
+
+    この方法から始めましたが、整合的な状態に逹するまでもうちょっと進んでみる必要があります。
+    事実上、記憶に依存した項の型を作ることで、型付け関係を、(コンテキスト、項、型の間の)
+    3項関係から(コンテキスト、記憶、項、型の間の)4項関係に変更したことになります。
+    記憶は、直観的には、項の型を計算するコンテキストの一部であることから、
+    この4項関係を書くとき、記憶を[|-]記号の左側に書くことにしましょう:
+    [Gamma; st |- t : T].
+    すると、参照に型付けする規則は次の形になります:
+[[
+                     Gamma; st |- lookup l st : T1
+                   --------------------------------
+                     Gamma; st |- loc l : Ref T1
+]]
+    そして残りの型付け規則のすべては記憶について同様の拡張がされます。
+    他の規則は記憶に対して何も特別なことをする必要はありません。
+    単に前提から結論に渡すだけです。
+
+    しかしながら、この規則について2つの問題があります。
+    1つは、型チェックはかなり非効率的です。
+    なぜなら場所[l]の型の計算には[l]の現在の中身[v]の型の計算が含まれています。
+    もし[l]が項[t]に何回も現れるときには、[t]の型導出を構成する過程の中で[v]
+    の型を何回も再計算することになります。
+    下手をすると[v]自体が場所を含んでいるかもしれません。
+    すると毎回その型を計算しなければなりません。
+
+    2つ目は、上記の場所についての型付け規則では、
+    記憶が循環(_cycle_)を含んでいるとき何も導出できません。
+    例えば、記憶：
+<<
+   [\x:Nat. (!(loc 1)) x, \x:Nat. (!(loc 0)) x]
+>>
+    について、場所[0]の有限な型導出は存在しません。
+*)
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
+(* Can you find a term whose evaluation will create this particular
+    cyclic store? *)
+(** 評価するとこの特定の循環記憶を生成する項を見つけられますか？ *)
 (** [] *)
 
-(** Both of these problems arise from the fact that our proposed
+(* Both of these problems arise from the fact that our proposed
     typing rule for locations requires us to recalculate the type of a
     location every time we mention it in a term.  But this,
     intuitively, should not be necessary.  After all, when a location
@@ -1359,20 +1563,39 @@ Definition context := partial_map ty.
     updates means that we will rule out as ill-typed some programs
     that could evaluate perfectly well without getting stuck.
 *)
+(** 2つの問題はどちらも、上記の場所についての型付け規則が、
+    項の中に記述があるたびに場所の型を再計算することが必要であるという事実から生じます。
+    しかしこれは、直観的に、必要であるべきではありません。
+    とにかく、場所が最初に生成されたとき、そこに格納された初期値の型はわかっています。
+    特定の場所に格納される値の型は「決して変化しない」
+    という不変条件が定められていると仮定しましょう。
+    つまり、この場所に後に別の値を格納することがあったとしても、
+    その値は常に初期値と同じ型を持つ、ということです。
+    言い換えると、記憶のすべての場所に対して、
+    それがアロケートされたときに決まる1つの確定した型を常に記憶しているということです。
+    すると、これらの意図した型を記憶型付け(_store typing_)としてまとめることができます。
+    これは、場所を型に写像する有限関数です。
 
-(** Just like we did for stores, we will represent a store type simply
+    通常通り、更新についてのこの「保守的」型付け制約は、
+    行き詰まることなく完全に評価できるいくつかのプログラムを ill-typed として除外します。
+*)
+
+(* Just like we did for stores, we will represent a store type simply
     as a list of types: the type at index [i] records the type of the
     value stored in cell [i]. *)
+(** 記憶について行ったのと同様に、記憶型を単に型のリストで表現します。
+    インデックス[i]の型はセル[i]に格納された値の型を記録したものです。 *)
 
 Definition store_ty := list ty.
 
-(** The [store_ty_lookup] function retrieves the type at a particular
+(* The [store_ty_lookup] function retrieves the type at a particular
     index. *)
+(** [store_ty_lookup] 関数は、特定のインデックスの型をとりだします。 *)
 
 Definition store_ty_lookup (n:nat) (ST:store_ty) :=
   nth n ST ty_Unit.
 
-(** Suppose we are _given_ a store typing [ST] describing the store
+(* Suppose we are _given_ a store typing [ST] describing the store
     [st] in which some term [t] will be evaluated.  Then we can use
     [ST] to calculate the type of the result of [t] without ever
     looking directly at [st].  For example, if [ST] is [[Unit,
@@ -1391,15 +1614,34 @@ Definition store_ty_lookup (n:nat) (ST:store_ty) :=
     parameterized on a store _typing_ rather than a concrete store.
     The rest of the typing rules are analogously augmented with store
     typings.  *)
+(** 記憶[st]を記述する記憶型付け[ST]が与えられ、そこである項[t]が評価されると仮定します。
+    すると、[t]の結果の型を[st]を直接見ることなく計算するのに[ST]を使うことができます。
+    例えば、もし[ST]が [[Unit, Unit->Unit]] ならば、
+    [!(loc 1)] が型 [Unit->Unit] を持つとすぐに推論できるでしょう。
+    より一般に、場所の型付け規則は記憶型付けの点から再構成され、次のようになります:
+[[
+                                 l < |ST|
+                   -------------------------------------
+                   Gamma; ST |- loc l : Ref (lookup l ST)
+]]
+
+    つまり、[l]が正しい場所である限りは(つまり[ST]の長さ未満の場合は)、
+    [l]の型を[ST]から調べ上げるだけで計算することができます。
+    型付けはやはり4項関係ですが、それは具体的記憶ではなく、
+    記憶型付けがパラメータになります。
+    型付け規則の残りも、同様に記憶型付けを引数とします。 *)
 
 (* ################################### *)
-(** ** The Typing Relation *)
+(* ** The Typing Relation *)
+(** ** 型付け関係 *)
 
-(** We can now give the typing relation for the STLC with
+(* We can now give the typing relation for the STLC with
     references.  Here, again, are the rules we're adding to the base
     STLC (with numbers and [Unit]): *)
+(** ついに参照を持つSTLCについての型付け関係を与えることができます。
+    また、基本の(数値と[Unit]を持つ)STLCに追加する規則を与えます。 *)
 
-(**
+(*
 [[[
                                l < |ST|
                   --------------------------------------              (T_Loc)
@@ -1418,6 +1660,26 @@ Definition store_ty_lookup (n:nat) (ST:store_ty) :=
                     -----------------------------                    (T_Assign)
                     Gamma; ST |- t1 := t2 : Unit
 ]]]
+*)
+(**
+[[
+                               l < |ST|
+                  --------------------------------------              (T_Loc)
+                  Gamma; ST |- loc l : Ref (lookup l ST)
+
+                         Gamma; ST |- t1 : T1
+                     ----------------------------                     (T_Ref)
+                     Gamma; ST |- ref t1 : Ref T1
+
+                      Gamma; ST |- t1 : Ref T11
+                      -------------------------                       (T_Deref)
+                        Gamma; ST |- !t1 : T11
+
+                      Gamma; ST |- t1 : Ref T11
+                        Gamma; ST |- t2 : T11
+                    -----------------------------                    (T_Assign)
+                    Gamma; ST |- t1 := t2 : Unit
+]]
 *)
 
 Inductive has_type : context -> store_ty -> tm -> ty -> Prop :=
@@ -1475,7 +1737,7 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   | Case_aux c "T_Ref" | Case_aux c "T_Deref"
   | Case_aux c "T_Assign" ].
 
-(** Of course, these typing rules will accurately predict the results
+(* Of course, these typing rules will accurately predict the results
     of evaluation only if the concrete store used during evaluation
     actually conforms to the store typing that we assume for purposes
     of typechecking.  This proviso exactly parallels the situation
@@ -1499,6 +1761,24 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
     being placed in newly allocated cells; this intuition is
     formalized in the statement of the type preservation theorem
     below.  *)
+(** もちろん、これらの型付け規則が評価結果を正確に予言できるのは、
+    評価の間使われる具体的な記憶が、
+    型チェックの目的で仮定する記憶型付けに整合しているときだけです。
+    このただし書きは、STLCにおける自由変数と丁度同じ状況です。
+    STLCでは、置換補題から、[Gamma |- t : T] のとき、[t]内の自由変数を[Gamma]
+    内にリストアップされた型の値で置換することで型[T]の閉じた項を得ることができます。
+    そして、型保存定理より、この閉じた項は、もし必要なら型[T]の最終結果に評価されます。
+    (後に、記憶と記憶型付けについての同様の直観をどのように形式化するかを見ます。)
+
+    しかしながら、プログラムが実際に書く項の型チェックをする目的からは、
+    どのような記憶型付けを使うべきかを推測するには、何もトリッキーなことは必要ありません。
+    具体的場所定数は、評価の中間結果の項にのみ現れることを思い出してください。
+    それはプログラマが書く言語ではありません。
+    これから、プログラマが書く項は、ただ「空の」記憶型付けによって型チェックできます。
+    評価が進み新しい場所が生成されるにつれ、
+    新しくアロケートされたセルに置かれた初期値の型を見ることで、
+    記憶型付けをどのように拡張したら良いかを常に見ることができるようになります。
+    この直観は以下で型保存定理の主張として形式化されます。 *)
 
 (* ################################### *)
 (** * Properties *)
