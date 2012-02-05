@@ -872,7 +872,7 @@ would it behave the same? *)
     in the store contains a [float] doesn't tell us anything useful
     about the type of location [n+4].  In C, pointer arithmetic is a
     notorious source of type safety violations. *)
-(** 参照の扱いについての一番些細な面は、
+(** 参照の扱いについての一番巧妙な面は、
     操作的振る舞いをどのように形式化するかを考えるときに現れます。
     それが何故かを見る1つの方法は、「何が型 [Ref T] の値であるべきか？」と問うことです。
     考慮すべき重要な点は、[ref]演算子の評価は何かを(つまり記憶のアロケートを)
@@ -1781,24 +1781,35 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
     この直観は以下で型保存定理の主張として形式化されます。 *)
 
 (* ################################### *)
-(** * Properties *)
+(* * Properties *)
+(** * 性質 *)
 
-(** Our final task is to check that standard type safety properties
+(* Our final task is to check that standard type safety properties
     continue to hold for the STLC with references.  The progress
     theorem ("well-typed terms are not stuck") can be stated and
     proved almost as for the STLC; we just need to add a few
     straightforward cases to the proof, dealing with the new
     constructs.  The preservation theorem is a bit more interesting,
     so let's look at it first.  *)
+(** 最後の仕事は、標準的な型安全性が参照を追加したSTLCでも成立することをチェックすることです。
+    進行定理(「型付けできる項は行き詰まらない」)が主張でき、ほとんどSTLCと同じように証明できます。
+    証明に、新しい言語要素を扱ういくつかの場合を単に追加すれば良いのです。
+    保存定理はもうちょっとやりがいがあります。それでは早速、見てみましょう。 *)
 
 (* ################################### *)
-(** ** Well-Typed Stores *)
+(* ** Well-Typed Stores *)
+(** ** 型付けできる記憶 *)
 
-(** Since we have extended both the evaluation relation (with initial
+(* Since we have extended both the evaluation relation (with initial
     and final stores) and the typing relation (with a store typing),
     we need to change the statement of preservation to include these
     parameters.  Clearly, though, we cannot just add stores and store
     typings without saying anything about how they are related: *)
+(** 評価関係と型付け関係の両者を拡張した(評価関係については初期記憶と最終記憶を、
+    型付け関係については記憶型付けを)ことから、保存定理の主張は、
+    これらのパラメータを含むように変えなければなりません。
+    しかしながら明らかに、記憶と記憶型付けを、
+    その両者の関係について何も言わずにただ追加することはできません: *)
 
 Theorem preservation_wrong1 : forall ST T t st t' st',
   has_type empty ST t T ->
@@ -1806,7 +1817,7 @@ Theorem preservation_wrong1 : forall ST T t st t' st',
   has_type empty ST t' T.
 Admitted.
 
-(** If we typecheck with respect to some set of assumptions about the
+(* If we typecheck with respect to some set of assumptions about the
     types of the values in the store and then evaluate with respect to
     a store that violates these assumptions, the result will be
     disaster.  We say that a store [st] is _well typed_ with respect a
@@ -1815,31 +1826,48 @@ Admitted.
     stored in locations (why?), it suffices to type them in the empty
     context. The following definition of [store_well_typed] formalizes
     this.  *)
+(** もし記憶内の値の型についてのいくつかの仮定の上で型チェックを行い、
+    その後、その仮定をやぶる記憶のもとで評価をしたならば、結果は悲惨なものになるでしょう。
+    記憶[st]が記憶型付け[ST]のもとで「型付けできる」(_well typed_)とは、
+    [st]のそれぞれの場所[l]の項が[ST]の場所[l]の型を持つことです。
+    閉じた項だけが場所に格納されていることから(なぜでしょう？)、
+    それらは空コンテキストで型付けすれば十分です。
+    以下の [store_well_typed] の定義はそれを形式化したものです。 *)
 
 Definition store_well_typed (ST:store_ty) (st:store) :=
   length ST = length st /\
   (forall l, l < length st ->
      has_type empty ST (store_lookup l st) (store_ty_lookup l ST)).
 
-(** Informally, we will write [ST |- st] for [store_well_typed ST st]. *)
+(* Informally, we will write [ST |- st] for [store_well_typed ST st]. *)
+(** 非形式的には、[store_well_typed ST st] を [ST |- st] と書きます。 *)
 
-(** Intuitively, a store [st] is consistent with a store typing
+(* Intuitively, a store [st] is consistent with a store typing
     [ST] if every value in the store has the type predicted by the
     store typing.  (The only subtle point is the fact that, when
     typing the values in the store, we supply the very same store
     typing to the typing relation!  This allows us to type circular
     stores.) *)
+(** 直観的に、記憶[st]が記憶型付け[ST]と整合的であるのは、
+    記憶内のすべての値が記憶型付けに定められた型を持っていることです。
+    (唯一の巧妙な点は、記憶内の値を型付けするとき、
+    ほとんど同じ記憶型付けを型付け関係に提供することです!
+    このことは、循環を持つ記憶に型付けすることを可能にします。) *)
 
-(** **** Exercise: 2 stars *)
-(** Can you find a store [st], and two
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
+(* Can you find a store [st], and two
     different store typings [ST1] and [ST2] such that both
     [ST1 |- st] and [ST2 |- st]? *)
+(** [ST1 |- st] と [ST2 |- st] の両者を成立させる
+    記憶[st]および相異なる記憶型付け[ST1]と[ST2]を見つけられますか？ *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** We can now state something closer to the desired preservation
+(* We can now state something closer to the desired preservation
     property: *)
+(** ここまで来ると求められる保存性に近いものを主張することができます： *)
 
 Theorem preservation_wrong2 : forall ST T t st t' st',
   has_type empty ST t T ->
@@ -1848,22 +1876,34 @@ Theorem preservation_wrong2 : forall ST T t st t' st',
   has_type empty ST t' T.
 Admitted.
 
-(** This statement is fine for all of the evaluation rules except the
+(* This statement is fine for all of the evaluation rules except the
     allocation rule [ST_RefValue].  The problem is that this rule
     yields a store with a larger domain than the initial store, which
     falsifies the conclusion of the above statement: if [st']
     includes a binding for a fresh location [l], then [l] cannot be in
     the domain of [ST], and it will not be the case that [t']
     (which definitely mentions [l]) is typable under [ST]. *)
+(** この主張は、アロケーション規則[ST_RefValue]を除くすべての評価規則について成立します。
+    問題は、この規則は初期記憶より大きな領域の記憶を必要とすることから、
+    上記主張の結論が成立しなくなることです。
+    もし[st']が新しい場所[l]についての束縛を含むなら、
+    [l]は[ST]の領域に含まれないことから、(間違いなく[l]に言及している)
+    [t']は[ST]のもとで型付けできなくなります。 *)
 
 (* ############################################ *)
-(** ** Extending Store Typings *)
+(* ** Extending Store Typings *)
+(** ** 記憶型付けを拡張する *)
 
-(** Evidently, since the store can increase in size during evaluation,
+(* Evidently, since the store can increase in size during evaluation,
     we need to allow the store typing to grow as well.  This motivates
     the following definition.  We say that the store type [ST']
     _extends_ [ST] if [ST'] is just [ST] with some new types added to
     the end. *)
+(** 明らかに、記憶は評価が進むにつれてサイズを増大させる可能性があることから、
+    記憶型付けも同様にサイズを増大できるようにする必要があります。
+    これから以下の定義が導かれます。
+    記憶型付け[ST']が[ST]を拡張する(_extends_)とは、
+    [ST']が単に[ST]の最後にいくつかの新しい型を追加したものであることです。 *)
 
 Inductive extends : store_ty -> store_ty -> Prop :=
   | extends_nil  : forall ST',
@@ -1874,10 +1914,13 @@ Inductive extends : store_ty -> store_ty -> Prop :=
 
 Hint Constructors extends.
 
-(** We'll need a few technical lemmas about extended contexts.
+(* We'll need a few technical lemmas about extended contexts.
 
     First, looking up a type in an extended store typing yields the
     same result as in the original: *)
+(** 拡張されたコンテキストについてのいくつかの技術的補題が必要です。
+
+    最初に、拡張された記憶型付けから型を探索すると、オリジナルと同じ結果を返します: *)
 
 Lemma extends_lookup : forall l ST ST',
   l < length ST ->
@@ -1899,8 +1942,9 @@ Proof with auto.
         simpl in Hlen; omega.
 Qed.
 
-(** Next, if [ST'] extends [ST], the length of [ST'] is at least that
+(* Next, if [ST'] extends [ST], the length of [ST'] is at least that
     of [ST]. *)
+(** 次に、[ST']が[ST]を拡張するなら、[ST']の長さは[ST]以上です。 *)
 
 Lemma length_extends : forall l ST ST',
   l < length ST ->
@@ -1914,7 +1958,8 @@ Proof with eauto.
       apply lt_n_S. apply IHextends. omega.
 Qed.
 
-(** Finally, [snoc ST T] extends [ST], and [extends] is reflexive. *)
+(* Finally, [snoc ST T] extends [ST], and [extends] is reflexive. *)
+(** 最後に、[snoc ST T] は[ST]を拡張し、また拡張関係([extends])は反射的です。 *)
 
 Lemma extends_snoc : forall ST T,
   extends (snoc ST T) ST.
@@ -1930,10 +1975,12 @@ Proof.
 Qed.
 
 (* ################################### *)
-(** ** Preservation, Finally *)
+(* ** Preservation, Finally *)
+(** ** 保存、最終的に *)
 
-(** We can now give the final, correct statement of the type
+(* We can now give the final, correct statement of the type
     preservation property: *)
+(** ついに、型保存性の最後の正しい主張ができます: *)
 
 Definition preservation_theorem := forall ST t t' T st st',
   has_type empty ST t T ->
@@ -1944,7 +1991,7 @@ Definition preservation_theorem := forall ST t t' T st st',
      has_type empty ST' t' T /\
      store_well_typed ST' st').
 
-(** Note that the preservation theorem merely asserts that there is
+(* Note that the preservation theorem merely asserts that there is
     _some_ store typing [ST'] extending [ST] (i.e., agreeing with [ST]
     on the values of all the old locations) such that the new term
     [t'] is well typed with respect to [ST']; it does not tell us
@@ -1961,6 +2008,21 @@ Definition preservation_theorem := forall ST t t' T st st',
     wrong."
 
     In order to prove this, we'll need a few lemmas, as usual. *)
+(** 保存定理は、新しい項[t']の型付けができる、
+    [ST]を拡張する(つまり、すべての古い場所の値について[ST]と一致する)
+    「何らかの」記憶型付け[ST']が存在することを主張するだけであることに注意します。
+    この定理は具体的に[ST']が何であるかは示しません。
+    もちろん直観的には[ST']は、[ST]であるか、そうでなければ拡張された記憶 [snoc st v1]
+    の値[V1]の型[T1]についての [snoc ST T1] であることは明らかです。
+    しかしこれを明示的に述べようとすると、定理の主張がいたずらに複雑になります
+    (これによってより有用になることは何もありません)。
+    上記のより弱いバージョンでも繰り返し「クランクを回す」のに適切な形をしており
+    (なぜなら結論が仮定を含意するため)、
+    すべての評価ステップの「列」が型付け可能性を保存することが導かれます。
+    この定理と進行性を組み合わせることで、「型付けできるプログラムはエラーにならない」
+    という通常の保証が得られます。
+
+    これを証明するために、いつもの通りいくつかの補題が必要になります。 *)
 
 (* ################################### *)
 (** ** Substitution lemma *)
