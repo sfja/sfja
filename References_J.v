@@ -2025,11 +2025,14 @@ Definition preservation_theorem := forall ST t t' T st st',
     これを証明するために、いつもの通りいくつかの補題が必要になります。 *)
 
 (* ################################### *)
-(** ** Substitution lemma *)
+(* ** Substitution lemma *)
+(** ** 置換補題 *)
 
-(** First, we need an easy extension of the standard substitution
+(* First, we need an easy extension of the standard substitution
     lemma, along with the same machinery about context invariance that
     we used in the proof of the substitution lemma for the STLC. *)
+(** 最初に、標準的な置換補題の簡単な拡張が必要です。
+    これはSTLCの置換補題の証明で使ったコンテキスト不変条件と同じ機構にさらに追加するものです。 *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -2173,12 +2176,16 @@ Proof with eauto.
 Qed.
 
 (* ################################### *)
-(** ** Assignment Preserves Store Typing *)
+(* ** Assignment Preserves Store Typing *)
+(** ** 代入は記憶型付けを保存する *)
 
-(** Next, we must show that replacing the contents of a cell in the
+(* Next, we must show that replacing the contents of a cell in the
     store with a new value of appropriate type does not change the
     overall type of the store.  (This is needed for the [ST_Assign]
     rule.) *)
+(** 次に、記憶中のセルの中身を適切な型を持つ新しい値で置き換えたときに、
+    記憶の全体的な型を変えないことを示す必要があります。
+    (これは、[ST_Assign]規則に必要になります。) *)
 
 Lemma assign_pres_store_typing : forall ST st l t,
   l < length st ->
@@ -2202,9 +2209,10 @@ Proof with auto.
 Qed.
 
 (* ######################################## *)
-(** ** Weakening for Stores *)
+(* ** Weakening for Stores *)
+(** ** 記憶についての弱化 *)
 
-(** Finally, we need a lemma on store typings, stating that, if a
+(* Finally, we need a lemma on store typings, stating that, if a
     store typing is extended with a new location, the extended one
     still allows us to assign the same types to the same terms as the
     original.
@@ -2213,6 +2221,14 @@ Qed.
     "weakening" lemmas found in proof theory, which show that adding a
     new assumption to some logical theory does not decrease the set of
     provable theorems.) *)
+(** 最後に、記憶型付けについての補題が必要です。
+    その補題とは、記憶型付けが新しい場所について拡張されたときに、
+    拡張された記憶型付けがオリジナルと同じ項に同じ型をつけることを主張するものです。
+
+    (この補題は [store_weakening](記憶弱化)と呼ばれます。
+    なぜなら、証明論で見られる弱化("weakening")補題と似ているからです。
+    証明論の弱化補題は、
+    ある理論に新しい仮定を追加することが証明可能な定理を減らさないことを言うものです。) *)
 
 Lemma store_weakening : forall Gamma ST ST' t T,
   extends ST' ST ->
@@ -2226,10 +2242,13 @@ Proof with eauto.
     eapply length_extends...
 Qed.
 
-(** We can use the [store_weakening] lemma to prove that if a store is
+(* We can use the [store_weakening] lemma to prove that if a store is
     well-typed with respect to a store typing, then the store extended
     with a new term [t] will still be well-typed with respect to the
     store typing extended with [t]'s type. *)
+(** 記憶がある記憶型付けのもとで型付けできるとき、
+    新しい項[t]を拡張した記憶も、記憶型付けを項[t]の型について拡張したもののもとで型付けできることを、
+    [store_weakening]補題を使って示すことができます。 *)
 
 Lemma store_well_typed_snoc : forall ST st t1 T1,
   store_well_typed ST st ->
@@ -2259,10 +2278,13 @@ Proof with auto.
 Qed.
 
 (* ################################### *)
-(** ** Preservation! *)
+(* ** Preservation! *)
+(** ** 保存! *)
 
-(** Now that we've got everything set up right, the proof of
+(* Now that we've got everything set up right, the proof of
     preservation is actually quite straightforward. *)
+(** さて、準備が整いました。
+    保存の証明は実際本当に簡単です。*)
 
 Theorem preservation : forall ST t t' T st st',
   has_type empty ST t T ->
@@ -2358,21 +2380,31 @@ Proof with eauto using store_weakening, extends_refl.
       exists ST'...
 Qed.
 
-(** **** Exercise: 3 stars (preservation_informal) *)
-(** Write a careful informal proof of the preservation theorem,
+(* **** Exercise: 3 stars (preservation_informal) *)
+(** **** 練習問題: ★★★ (preservation_informal) *)
+(* Write a careful informal proof of the preservation theorem,
     concentrating on the [T_App], [T_Deref], [T_Assign], and [T_Ref]
     cases.
 
 (* FILL IN HERE *)
 [] *)
+(** 保存補題の非形式的証明を注意深く記述しなさい。
+    [T_App]、[T_Deref]、[T_Assign]、[T_Ref]の場合に特に集中しなさい。
+
+(* ここを埋めなさい。 *)
+[] *)
 
 
 (* ################################### *)
-(** ** Progress *)
+(* ** Progress *)
+(** ** 前進 *)
 
-(** Fortunately, progress for this system is pretty easy to prove; the
+(* Fortunately, progress for this system is pretty easy to prove; the
     proof is very similar to the proof of progress for the STLC, with
     a few new cases for the new syntactic constructs. *)
+(** 幸いにも、このシステムの前進はかなり簡単に証明できます。
+    証明は、STLCの前進の証明とほとんど同じです。
+    いくつかの新しい構文要素について新しい場合を追加するだけです。 *)
 
 Theorem progress : forall ST t T st,
   has_type empty ST t T ->
@@ -2467,12 +2499,13 @@ Proof with eauto.
 Qed.
 
 (* ################################### *)
-(** * References and Nontermination *)
+(* * References and Nontermination *)
+(** * 参照と非停止性 *)
 
 Section RefsAndNontermination.
 Import ExampleVariables.
 
-(** We know that the simply typed lambda calculus is _normalizing_,
+(* We know that the simply typed lambda calculus is _normalizing_,
     that is, every well-typed term can be reduced to a value in a
     finite number of steps.  What about STLC + references?
     Surprisingly, adding references causes us to lose the
@@ -2499,6 +2532,33 @@ Import ExampleVariables.
    the ball rolling we finally execute this function with [(!r)
    unit].
 *)
+(** 単純型付きラムダ計算が正規化性を持つことを見ました。
+    つまり、型付けされるすべての項は有限回のステップで値に簡約されるということです。
+    参照を加えたSTLCではどうでしょうか？
+    驚くべきことに、参照を追加したことで、正規化性は成立しなくなります。
+    参照を持つSTLCの型付けされる項で、正規形に逹することなく永遠に簡約を続けられる項が存在します!
+
+    そのような項をどのように構成したらよいでしょうか？
+    一番のアイデアは、自分自身を呼ぶ関数を作る、ということです。
+    最初に参照セルに格納された別の関数を呼ぶ関数を作ります。
+    トリックは、その後で自分自身への参照を持ち込むことです!
+<<
+   (\r:Ref (Unit -> Unit).
+        r := (\x:Unit.(!r) unit); (!r) unit)
+   (ref (\x:Unit.unit))
+>>
+
+   最初に、[ref (\x:Unit.unit)] が型 [Unit -> Unit] 
+   のセルへの参照を作ります。
+   次にこの参照を、ある関数に引数として渡します。
+   その関数は、引数を名前[r]に束縛し、そして引数に関数 (\x:Unit.(!r)
+   unit) を代入するものです。
+   ここで関数 (\x:Unit.(!r) unit) は、
+   引数を無視して[r]に格納された関数を引数[unit]に適用するものです。
+   しかしもちろん、[r]に格納された関数とは自分自身です!
+   玉が転がり出すために、最後にこの関数を [(! r) unit] 
+   に適用することで実行を開始します。
+*)
 
 Definition loop_fun :=
   tm_abs x ty_Unit (tm_app (tm_deref (tm_var r)) tm_unit).
@@ -2510,7 +2570,8 @@ Definition loop :=
             (tm_app (tm_deref (tm_var r)) tm_unit)))
   (tm_ref (tm_abs x ty_Unit tm_unit)).
 
-(** This term is well-typed: *)
+(* This term is well-typed: *)
+(** この項は型付けされます: *)
 
 Lemma loop_typeable : exists T, has_type empty [] loop T.
 Proof with eauto.
@@ -2527,12 +2588,17 @@ Proof with eauto.
       eapply T_Deref. eapply T_Var. reflexivity.
 Qed.
 
-(** To show formally that the term diverges, we first define the
+(* To show formally that the term diverges, we first define the
     [step_closure] of the single-step reduction relation, written
     [==>+].  This is just like the reflexive step closure of
     single-step reduction (which we're been writing [==>*]), except
     that it is not reflexive: [t ==>+ t'] means that [t] can reach
     [t'] by _one or more_ steps of reduction. *)
+(** 項が発散することを形式的に示すために、最初に1ステップ簡約関係の[step_closure]
+    (ステップ閉包)[==>+]を定義します。
+    これは1ステップ簡約の反射的なステップ閉包([==>*]と書いてきたもの)とほとんど同じですが、
+    反射的ではないという点が違います。つまり、[t ==>+ t'] は[t]から[t']
+    へ1以上のステップの簡約で到達できることを意味します。 *)
 
 Inductive step_closure {X:Type} (R: relation X) : X -> X -> Prop :=
   | sc_one  : forall (x y : X),
@@ -2546,16 +2612,24 @@ Definition stepmany1 := (step_closure step).
 Notation "t1 '/' st '==>+' t2 '/' st'" := (stepmany1 (t1,st) (t2,st'))
   (at level 40, st at level 39, t2 at level 39).
 
-(** Now, we can show that the expression [loop] reduces to the
+(* Now, we can show that the expression [loop] reduces to the
     expression [!(loc 0) unit] and the size-one store [ [(loc 0) / r]
     loop_fun]. *)
+(** さて、式[loop]が式[!(loc 0) unit]と
+    サイズ1の記憶 [ [(loc 0) / r] loop_fun] に簡約されることを示すことができます。
+    *)
 
-(** As a convenience, we introduce a slight variant of the [normalize]
+(* As a convenience, we introduce a slight variant of the [normalize]
     tactic, called [reduce], which tries solving the goal with
     [rsc_refl] at each step, instead of waiting until the goal can't
     be reduced any more. Of course, the whole point is that [loop]
     doesn't normalize, so the old [normalize] tactic would just go
     into an infinite loop reducing it forever! *)
+(** 便宜上、[normalize]タクティックの若干の変種である[reduce]を導入します。
+    これは、ゴールがそれ以上簡約できなくなるまで待つのではなく、
+    各ステップでゴールを[rsc_refl]を使って解こうとします。
+    もちろん、全体としてのポイントは[loop]が正規化されないことです。
+    このため、前の[normalize]タクティックでは簡約を永遠に続ける無限ループに陥るだけです! *)
 
 Ltac print_goal := match goal with |- ?x => idtac x end.
 Ltac reduce :=
@@ -2571,7 +2645,8 @@ Proof with eauto.
   reduce.
 Qed.
 
-(** Finally, the latter expression reduces in two steps to itself! *)
+(* Finally, the latter expression reduces in two steps to itself! *)
+(** 最後に、後者の式は2ステップで自分自身に簡約されます! *)
 
 Lemma loop_fun_step_self :
   tm_app (tm_deref (tm_loc 0)) tm_unit / [subst r (tm_loc 0) loop_fun] ==>+
@@ -2582,12 +2657,17 @@ Proof with eauto.
   eapply sc_one. compute. apply ST_AppAbs...
 Qed.
 
-(** **** Exercise: 4 stars *)
-(** Use the above ideas to implement a factorial function in STLC with
+(* **** Exercise: 4 stars *)
+(** **** 練習問題: ★★★★ *)
+(* Use the above ideas to implement a factorial function in STLC with
     references.  (There is no need to prove formally that it really
     behaves like the factorial.  Just use the example below to make
     sure it gives the correct result when applied to the argument
     [4].) *)
+(** 上述のアイデアを使って、参照を持つSTLCで階乗関数を実装しなさい。
+    (それが階乗として振る舞うことを形式的に証明する必要はありません。
+    ただ、以下の例を使って、実装したものを引数[4]に適用したときに正しい結果を返すことを確認しなさい。
+    ) *)
 
 Definition factorial : tm :=
   (* FILL IN HERE *) admit.
@@ -2596,9 +2676,12 @@ Lemma factorial_type : has_type empty [] factorial (ty_arrow ty_Nat ty_Nat).
 Proof with eauto.
   (* FILL IN HERE *) Admitted.
 
-(** If your definition is correct, you should be able to just
+(* If your definition is correct, you should be able to just
     uncomment the example below; the proof should be fully
     automatic using the [reduce] tactic. *)
+(** もし定義が正しいのならば、
+    以下の例のコメントを外してみなさい。
+    証明は[reduce]タクティックを使って完全自動で行われるはずです。 *)
 
 (*
 Lemma factorial_4 : exists st,
@@ -2610,12 +2693,16 @@ Qed.
 (** [] *)
 
 (* ################################### *)
-(** * Additional Exercises *)
+(* * Additional Exercises *)
+(** * さらなる練習問題 *)
 
-(** **** Exercise: 5 stars, optional *)
-(** Challenge problem: modify our formalization to include an account
+(* **** Exercise: 5 stars, optional *)
+(** **** 練習問題: ★★★★★, optional *)
+(* Challenge problem: modify our formalization to include an account
     of garbage collection, and prove that it satisfies whatever nice
     properties you can think to prove about it. *)
+(** チャレンジ問題: 上述の形式化を修正して、ガベージコレクションを考慮したものにしなさい。
+    そして、それについて、自分が証明すべきと思う何らかの良い性質を持つことを証明しなさい。 *)
 
 (** [] *)
 
