@@ -1,20 +1,26 @@
-(** * Subtyping *)
+(** * Subtyping_J :サブタイプ *)
+(* * Subtyping *)
 
 (* $Date: 2011-05-07 21:28:52 -0400 (Sat, 07 May 2011) $ *)
 
 Require Export MoreStlc_J.
 
 (* ###################################################### *)
-(** * Concepts *)
+(* * Concepts *)
+(** * 概念 *)
 
-(** We now turn to the study of _subtyping_, perhaps the most
+(* We now turn to the study of _subtyping_, perhaps the most
     characteristic feature of the static type systems used by many
     recently designed programming languages. *)
+(** さて、サブタイプ(_subtyping_)の学習に入ります。
+    サブタイプはおそらく、近年設計されたプログラミング言語で使われる静的型システムの最も特徴的な機能です。
+    *)
 
 (* ###################################################### *)
-(** ** A Motivating Example *)
+(* ** A Motivating Example *)
+(** ** 動機付けのための例 *)
 
-(** In the simply typed lamdba-calculus with records, the term
+(* In the simply typed lamdba-calculus with records, the term
 <<
     (\r:{y:Nat}. (r.y)+1) {x=10,y=11}
 >>
@@ -47,10 +53,40 @@ Require Export MoreStlc_J.
    of type [T] is expected.  The idea of subtyping applies not only to
    records, but to all of the type constructors in the language --
    functions, pairs, etc. *)
+(** レコードを持つ単純型付きラムダ計算では、項
+<<
+    (\r:{y:Nat}. (r.y)+1) {x=10,y=11}
+>>
+   は型付けできません。なぜなら、
+   これはフィールドが1つのレコードを引数としてとる関数に2つのフィールドを持つレコードが与えられている部分を含んでいて、
+   一方、[T_App]規則は関数の定義域の型は引数の型に完全に一致することを要求するからです。
 
-(** ** Subtyping and Object-Oriented Languages *)
+   しかしこれは馬鹿らしいことです。
+   実際には関数に、必要とされるものより良い引数を与えているのです!
+   この関数の本体がレコード引数[r]に対して行うことができることはおそらく、
+   そのフィールド[y]を射影することだけです。型から許されることは他にはありません。
+   すると、他に[x]フィールドが存在するか否かは何の違いもないはずです。
+   これから、直観的に、
+   この関数は少なくとも[y]フィールドは持つ任意のレコード値に適用可能であるべきと思われます。
 
-(** Subtyping plays a fundamental role in many programming
+   同じことを別の観点から見ると、より豊かなフィールドを持つレコードは、
+   そのサブセットのフィールドだけを持つレコードと
+   「任意のコンテキストで少なくとも同等の良さである」と言えるでしょう。
+   より長い(多いフィールドを持つ)レコード型の任意の値は、
+   より短かいレコード型が求められるコンテキストで「安全に」(_safely_)使えるという意味においてです。
+   コンテキストがより短かい型のものを求めているときに、より長い型のものを与えた場合、
+   何も悪いことは起こらないでしょう(形式的には、プログラムは行き詰まることはないでしょう)。
+
+   ここではたらいている一般原理はサブタイプ(付け)(_subtyping_)と呼ばれます。
+   型[T]の値が求められている任意のコンテキストで型[S]の値が安全に使えるとき、
+   「[S]は[T]のサブタイプである」と言い、非形式的に [S <: T] と書きます。
+   サブタイプの概念はレコードだけではなく、関数、対、など言語のすべての型コンストラクタに適用されます。
+   *)
+
+(* ** Subtyping and Object-Oriented Languages *)
+(** ** サブタイプとオブジェクト指向言語 *)
+
+(* Subtyping plays a fundamental role in many programming
     languages -- in particular, it is closely related to the notion of
     _subclassing_ in object-oriented languages.
 
@@ -97,6 +133,47 @@ Require Export MoreStlc_J.
     Languages, if you are interested.)  Instead, we'll study the core
     concepts behind the subclass / subinterface relation in the
     simplified setting of the STLC. *)
+(** サブタイプは多くのプログラミング言語で重要な役割を演じます。
+    特に、オブジェクト指向言語のサブクラス(_subclassing_)の概念と近い関係にあります。
+
+    (JavaやC[#]等の)オブジェクトはレコードと考えることができます。
+    いくつかのフィールドは関数(「メソッド」)で、いくつかのフィールドはデータ値
+    (「フィールド」または「インスタンス変数」)です。
+    オブジェクト[o]のメソッド[m]を引数[a1..an]のもとで呼ぶことは、
+    [o]から[m]フィールドを射影として抽出して、それを[a1..an]に適用することです。
+
+    オブジェクトの型はクラス(_class_)またはインターフェース(_interface_)
+    として与えることができます。
+    この両者はどちらも、どのメソッドとどのデータフィールドをオブジェクトが提供するかを記述します。
+
+    クラスやインターフェースは、サブクラス(_subclass_)関係やサブインターフェース
+    (_subinterface_)関係で関係づけられます。
+    サブクラス(またはサブインターフェース)に属するオブジェクトには、スーパークラス
+    (またはスーパーインターフェース)
+    に属するオブジェクトのメソッドとフィールドのすべての提供することが求められ、
+    おそらくそれに加えてさらにいくつかのものを提供します。
+
+    サブクラス(またはサブインターフェース)のオブジェクトをスーパークラス(またはスーパーインターフェース)
+    のオブジェクトの場所で使えるという事実は、
+    複雑なライブラリの構築にきわめて便利なほどの柔軟性を提供します。
+    例えば、Javaの Swing
+    フレームワークのようなグラフィカルユーザーインターフェースツールキットは、
+    スクリーンに表示できユーザとインタラクションできるグラフィカルな表現を持つすべてのオブジェクトに共通のフィールドとメソッドを集めた、抽象インターフェース[Component]を定義するでしょう。
+    そのようなオブジェクトの例としては、典型的なGUIのボタン、チェックボックス、スクロールバーなどがあります。
+    この共通インターフェースのみに依存するメソッドは任意のそれらのオブジェクトに適用できます。
+
+    もちろん、実際のオブジェクト指向言語はこれらに加えてたくさんの他の機能を持っています。
+    フィールドは更新できます。フィールドとメソッドは[private]と宣言できます。
+    クラスはまた、
+    オブジェクトを構成しそのメソッドをインプリメントするのに使われる「コード」を与えます。
+    そしてサブクラスのコードは「継承」を通じてスーパークラスのコードと協調します。
+    クラスは、静的なメソッドやフィールド、イニシャライザ、等々を持つことができます。
+
+    ものごとを単純なまま進めるために、これらの問題を扱うことはしません。
+    実際、これ以上オブジェクトやクラスについて話すことはありません。
+    (もし興味があるなら、 Types and Programming Languages にたくさんの議論があります。)
+    その代わり、STLCの単純化された設定のもとで、
+    サブクラス/サブインターフェース関係の背後にある核となる概念について学習します。 *)
 
 (** ** The Subsumption Rule *)
 
