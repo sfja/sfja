@@ -71,7 +71,7 @@ Definition strange_prop1 : Prop :=
 
 (* Also, given a proposition [P] with a free variable [n], we can
     form the proposition [forall n, P]. *)
-(** また、自由変数[n]を含む命題[P]が与えられれば、[foral n, P]という形の命題を作れます。 *)
+(** また、自由変数[n]を含む命題[P]が与えられれば、[forall n, P]という形の命題を作れます。 *)
 
 Definition strange_prop2 :=
   forall n, (ble_nat n 17 = true) -> (ble_nat n 99 = true).
@@ -1024,7 +1024,7 @@ Proof.
 
 (** この名前をつける手順は通常の証明では不要です。
     しかし、1つか2つの例で試してみると、帰納法の仮定がどのようなものなのかが分かりやすくなります。
-    [forall n, P_m0r n]を[n]による帰納法([induction]か[apply nat_ind]を使う)によって証明しようとすると、最初のサブゴールでは[P_m0r 0]("[P]が0に対して成り立つ")を証明しなければならず、2つめのサブゴールでは[forall n', P_m0r n' -> P_m0r n' (S n')]("[P]が[n']について成り立つならば,[P]が[S n']につても成り立つ"あるいは"[Pが[S]によって保存される")を証明しなければなりません。
+    [forall n, P_m0r n]を[n]による帰納法([induction]か[apply nat_ind]を使う)によって証明しようとすると、最初のサブゴールでは[P_m0r 0]("[P]が0に対して成り立つ")を証明しなければならず、2つめのサブゴールでは[forall n', P_m0r n' -> P_m0r n' (S n')]("[P]が[n']について成り立つならば,[P]が[S n']につても成り立つ"あるいは"[P]が[S]によって保存される")を証明しなければなりません。
     帰納法の過程は、2つめの推論の基礎になっています -- [P]が[n']について成り立つことを仮定することにより、それによって[P]が[S n']について成り立つことを示すことができます。
 *)
 
