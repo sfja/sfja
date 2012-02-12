@@ -225,7 +225,7 @@ Definition equivalence {X:Type} (R: relation X) :=
   (reflexive R) /\ (symmetric R) /\ (transitive R).
 
 (** 関係が半順序(_partial order_)であるとは、その関係が、
-    推移的、反対称的、かつ推移的であることです。
+    反射的、反対称的、かつ推移的であることです。
     Coq 標準ライブラリでは、半順序のことを単に"順序(order)"と呼びます。*)
 
 Definition order {X:Type} (R: relation X) :=
