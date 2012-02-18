@@ -333,7 +333,7 @@ Inductive day_before : day -> day -> Prop :=
 Inductive fine_day_for_singing : day -> Prop :=
   | fdfs_any : forall d:day, fine_day_for_singing d.
 
-(** The line above declares that, if [d] is a day, then [fdfs_any d]
+(*  The line above declares that, if [d] is a day, then [fdfs_any d]
     can be taken as evidence for [fine_day_for_singing d].  That is,
     we can construct evidence that [d] is a [fine_day_for_singing]
     by applying the constructor [fdfs_any] to [d].
@@ -391,7 +391,7 @@ Check fdfs_wed'.
     型 [forall d:day, fine_day_for_singing d] はこの機能を表しています。
     これは、前章で登場した多相型 [forall X, list X] において [nil] コンストラクタが型からその型を持つ空リストを返す関数であったことと同様です。 *)
 
-(** Let's take a slightly more interesting example.  Let's say
+(*  Let's take a slightly more interesting example.  Let's say
     that a day of the week is "ok" if either (1) it is a good day or
     else (2) it falls the day before an ok day. *)
 
@@ -1119,7 +1119,7 @@ Definition four_ev : ev 4 :=
 
 (* **** Exercise: 2 stars (ev_plus4) *)
 (** **** 練習問題: ★★ (ev_plus4) *)
-(** Give a tactic proof and a proof object showing that, if [n] is
+(*  Give a tactic proof and a proof object showing that, if [n] is
     even, then so is [4+n]. *)
 (** [n]が偶数ならば[4+n]も偶数であることをタクティックによる証明と証明オブジェクトによる証明で示しなさい。 *)
 Definition ev_plus4 : forall n, ev n -> ev (4 + n) :=
@@ -1301,7 +1301,7 @@ Proof.
 (** **** 練習問題: ★★ (ev_sum) *)
 (* **** Exercise: 2 stars (ev_sum) *)
 
-(** Here's another exercise requiring induction. *)
+(*  Here's another exercise requiring induction. *)
 (** 帰納法が必要な別の練習問題をやってみましょう。 *)
 
 Theorem ev_sum : forall n m,
@@ -1446,7 +1446,7 @@ Proof.
 (* ** Why Define Propositions Inductively? *)
 (** ** なぜ命題を帰納的に定義するのか? *)
 
-(** We have seen that the proposition "some number is even" can
+(*  We have seen that the proposition "some number is even" can
     be phrased in two different ways -- indirectly, via a testing
     function [evenb], or directly, by inductively describing what
     constitutes evidence for evenness.  These two ways of
@@ -1721,7 +1721,7 @@ Proof.
    [Prop]の値を返す関数は、全量子化された根拠と呼ばれます。 すなわち、ある命題に対する根拠を作るのに入力も用います。
    (作られる命題も入力を使うかもしれません。)
  *)
-(** ** Inductive Definitions *)
+(*  ** Inductive Definitions *)
 (** ** 帰納的定義 *)
 
 (*  [Inductive] declarations give names to subsets of the set of all
@@ -1803,7 +1803,7 @@ Proof.
 
 (** ざっくり言うと、Coqにおける「型」は、「式の分類に使われる式」です。例えば、 [bool], [nat], [list bool], [list nat], [nat->nat] などは全て「型」です。[bool] という型は、 [true] や [false] を他の値と区別しますし、[nat] 型は [O], [S O], [S (S O)] など、[nat->nat] 型は [fun n => S n] のように数を引数にとって数を返す関数値を他の値と区別します。
 
-    [Type] や [Prop] 、そしてそれらの複合式（ [Type->Type] など）には、「ひとつ上位の」分類 -- それは, 「型（もしくは命題）の型を表す式」のようなものと考えてもらっていいですが -- が可能です。それを、単なる「型」と混同しないために「種類 (_kinds_)」と呼ぶことにします。例えば、[nat] や [nat->nat] 、[list nat] などは全て [Type] という「種類」ですし、 [list] は [Type->Type]、 [ev] は [nat->Prop] という種類です。 *)
+    [Type] や [Prop] 、そしてそれらの複合式（ [Type -> Type] など）には、「ひとつ上位の」分類 -- それは, 「型（もしくは命題）の型を表す式」のようなものと考えてもらっていいですが -- が可能です。それを、単なる「型」と混同しないために「種類 (_kinds_)」と呼ぶことにします。例えば、[nat] や [nat->nat] 、[list nat] などは全て [Type] という「種類」ですし、 [list] は [Type -> Type]、 [ev] は [nat -> Prop] という種類です。 *)
 
 (** ** 命題 vs. ブール値 *)
 
@@ -1857,8 +1857,8 @@ Proof.
 
        - 関数 [fun x:nat => x + x] は型 [nat->nat] を持っていますが、このことは任意の数 [n] を別の数に対応させるもの、ということです。
 
-       - 対して、関数 [fun X:Type => nil (list X)] は [forall
-         X:Type, list (list X)] という型になります。これは、任意の集合 [X] を、 [X] 型のリストのリストに対応させるもの、ということになります。（もちろん、[nil] は通常 [nil X] と書く代わりに [[]] と書くのが普通ですが。）
+       - 対して、関数 [fun X : Type => nil (list X)] は [forall
+         X : Type, list (list X)] という型になります。これは、任意の集合 [X] を、 [X] 型のリストのリストに対応させるもの、ということになります。（もちろん、[nil] は通常 [nil X] と書く代わりに [[]] と書くのが普通ですが。）
 
     実際、関数を記述するためのこれら二つの書き方はほぼ同じですが、 Coqでは [A->B] の書き方は、[x] が[B] の定義の中に変数として現れない限り、[fun x:nat => x + x] のただの省略形と考えていいでしょう。例えば、好みならばこれを [forall x:nat, nat] と書いてもいいのです。 *)
 
