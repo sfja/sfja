@@ -175,9 +175,10 @@ Require Export MoreStlc_J.
     その代わり、STLCの単純化された設定のもとで、
     サブクラス/サブインターフェース関係の背後にある核となる概念について学習します。 *)
 
-(** ** The Subsumption Rule *)
+(* ** The Subsumption Rule *)
+(** ** 包摂規則 *)
 
-(** Our goal for this chapter is to add subtyping to the simply typed
+(* Our goal for this chapter is to add subtyping to the simply typed
     lambda-calculus (with products).  This involves two steps:
 
       - Defining a binary _subtype relation_ between types.
@@ -193,31 +194,54 @@ Require Export MoreStlc_J.
 ]]]
     This rule says, intuitively, that we can "forget" some of the
     information that we know about a term. *)
-(** For example, we may know that [t] is a record with two
+(** この章のゴールは(直積を持つ)単純型付きラムダ計算にサブタイプを追加することです。
+    これは2つのステップから成ります:
+
+      - 型の間の二項サブタイプ関係(_subtype relation_)を定義します。
+
+      - 型付け関係をサブタイプを考慮した形に拡張します。
+
+    2つ目のステップは実際はとても単純です。型付け関係にただ1つの規則だけを追加します。
+    その規則は、包摂規則(_rule of subsumption_)と呼ばれます:
+[[
+                         Gamma |- t : S     S <: T
+                         -------------------------                      (T_Sub)
+                               Gamma |- t : T
+]]
+    この規則は、直観的には、項について知っている情報のいくらかを「忘れる」ことができると言っています。 *)
+(* For example, we may know that [t] is a record with two
     fields (e.g., [S = {x:A->A, y:B->B}]], but choose to forget about
     one of the fields ([T = {y:B->B}]) so that we can pass [t] to a
     function that expects just a single-field record. *)
+(** 例えば、[t]が2つのフィールドを持つレコード(例えば、[S = {x:A->A, y:B->B}])で、
+    フィールドの1つを忘れることにした([T = {y:B->B}])とします。
+    すると[t]を、1フィールドのレコードを引数としてとる関数に渡すことができるようになります。 *)
 
-(** ** The Subtype Relation *)
+(* ** The Subtype Relation *)
+(** ** サブタイプ関係 *)
 
-(** The first step -- the definition of the relation [S <: T] -- is
+(* The first step -- the definition of the relation [S <: T] -- is
     where all the action is.  Let's look at each of the clauses of its
     definition.  *)
+(** 最初のステップ、関係 [S <: T] の定義にすべてのアクションがあります。
+    定義のそれぞれを見てみましょう。 *)
 
-(** *** Products *)
+(* *** Products *)
+(** *** 直積型 *)
 
-(** First, product types.  We consider one pair to be "better than"
-    another if each of its components is.
-[[[
+(** 最初に、直積型です。ある一つの対が他の対より「良い」とは、
+    それぞれの成分が他の対の対応するものより良いことです。
+[[
                             S1 <: T1    S2 <: T2
                             --------------------                        (S_Prod)
                                S1*S2 <: T1*T2
-]]]
+]]
 *)
 
-(** *** Arrows *)
+(* *** Arrows *)
+(** *** 関数型 *)
 
-(** Suppose we have two functions [f] and [g] with these types:
+(* Suppose we have two functions [f] and [g] with these types:
 <<
        f : C -> {x:A,y:B}
        g : (C->{y:B}) -> D
@@ -263,10 +287,53 @@ Require Export MoreStlc_J.
     also view these results belonging to any supertype [T2] of
     [S2]. That is, any function [f] of type [S1->S2] can also be viewed
     as having type [T1->T2]. *)
+(** 次の型を持つ2つの関数[f]と[g]があるとします：
+<<
+       f : C -> {x:A,y:B}
+       g : (C->{y:B}) -> D
+>>
+    つまり、[f]は型[{x:A,y:B}]のレコードを引数とする関数であり、
+    [g]は引数として、型[{y:B}]のレコードを引数とする関数をとる高階関数です。
+    (そして、レコードのサブタイプについてはまだ議論していませんが、
+    [{x:A,y:B}] は [{y:B}] のサブタイプであるとします。)
+    すると、関数適用 [g f] は、両者の型が正確に一致しないにもかかわらず安全です。
+    なぜなら、[g]が[f]について行うことができるのは、
+    [f]を(型[C]の)ある引数に適用することだけだからです。
+    その結果は実際には2フィールドのレコードになります。
+    ここで[g]が期待するのは1つのフィールドを持つレコードだけです。
+    しかしこれは安全です。なぜなら[g]がすることができるのは、
+    わかっている1つのフィールドを射影することだけで、
+    それは存在する2つのフィールドの1つだからです。
 
-(** *** Top *)
+    この例から、関数型のサブタイプ規則が以下のようになるべきということが導かれます。
+    2つの関数型がサブタイプ関係にあるのは、その結果が次の条件のときです:
+[[
+                                  S2 <: T2
+                              ----------------                        (S_Arrow2)
+                              S1->S2 <: S1->T2
+]]
+    これを一般化して、2つの関数型のサブタイプ関係を、引数の条件を含めた形にすることが、同様にできます:
+[[
+                            T1 <: S1    S2 <: T2
+                            --------------------                      (S_Arrow)
+                              S1->S2 <: T1->T2
+]]
+    ここで注意するのは、引数の型はサブタイプ関係が逆向きになることです。
+    [S1->S2] が [T1->T2] のサブタイプであると結論するためには、
+    [T1]が[S1]のサブタイプでなければなりません。
+    関数型のコンストラクタは最初の引数について反変(_contravariant_)であり、
+    二番目の引数について共変(_covariant_)であると言います。
 
-(** It is natural to give the subtype relation a maximal element -- a
+    直観的には、型[S1->S2]の関数[f]があるとき、[f]は型[S1]の要素を引数にとることがわかります。
+    明らかに[f]は[S1]の任意のサブタイプ[T1]の要素をとることもできます。
+    [f]の型は同時に[f]が型[S2]の要素を返すことも示しています。
+    この値が[S2]の任意のスーパータイプ[T2]に属することも見ることができます。
+    つまり、型[S1->S2]の任意の関数[f]は、型[T1->T2]を持つと見ることもできるということです。 *)
+
+(* *** Top *)
+(** *** トップ *)
+
+(* It is natural to give the subtype relation a maximal element -- a
     type that lies above every other type and is inhabited by
     all (well-typed) values.  We do this by adding to the language one
     new type constant, called [Top], together with a subtyping rule
@@ -276,10 +343,19 @@ Require Export MoreStlc_J.
                                    S <: Top
 ]]]
     The [Top] type is an analog of the [Object] type in Java and C[#]. *)
+(** サブタイプ関係の最大要素を定めることは自然です。他のすべての型のスーパータイプであり、
+    すべての(型付けできる)値が属する型です。このために言語に新しい一つの型定数[Top]を追加し、
+    [Top]をサブタイプ関係の他のすべての型のスーパータイプとするサブタイプ規則を定めます:
+[[
+                                   --------                             (S_Top)
+                                   S <: Top
+]]
+    [Top]型はJavaやC[#]における[Object]型に対応するものです。 *)
 
-(** *** Structural Rules *)
+(* *** Structural Rules *)
+(** *** 構造規則 *)
 
-(** To finish off the subtype relation, we add two "structural rules"
+(* To finish off the subtype relation, we add two "structural rules"
     that are independent of any particular type constructor: a rule of
     _transitivity_, which says intuitively that, if [S] is better than
     [U] and [U] is better than [T], then [S] is better than [T]...
@@ -294,6 +370,22 @@ Require Export MoreStlc_J.
                                    ------                              (S_Refl)
                                    T <: T
 ]]]
+*)
+(** サブタイプ関係の最後に、2つの「構造規則」("structural rules")を追加します。
+    これらは特定の型コンストラクタからは独立したものです。
+    推移律(rule of _transitivity_)は、直観的には、
+    [S]が[U]よりも良く、[U]が[T]よりも良ければ、[S]は[T]よりも良いというものです...
+[[
+                              S <: U    U <: T
+                              ----------------                        (S_Trans)
+                                   S <: T
+]]
+    ... そして反射律(rule of _reflexivity_)は、
+    任意の型はそれ自身と同じ良さを持つというものです。
+[[
+                                   ------                              (S_Refl)
+                                   T <: T
+]]
 *)
 
 (** *** Records *)
