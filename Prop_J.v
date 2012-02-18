@@ -10,18 +10,38 @@ Require Export Poly_J.
 (* ##################################################### *)
 (** * 命題によるプログラミング *)
 
-(** 読者への注意: この章で紹介するコンセプトは最初に見たときは、抽象的すぎるように思えるかもしれません。
-    たくさんの練習問題が用意してあり、テキストの詳細を理解してる途中であっても大部分は解けるはずです。
-    できるかぎり多くの問題を、特に★の問題は解くようにしてください。 *)
+(*  _Note to readers_: Some of the concepts in this chapter may
+    seem quite abstract on a first encounter.  We've included a _lot_
+    of exercises, most of which should be quite approachable even if
+    you're still working on understanding the details of the text.
+    Try to work as many of them as you can, especially the one-starred
+    exercises. *)
 
-(** ここまでは宣言したり証明した文は等価性の形をしたものだけでした。
-    しかし、数学で用いられる文や証明はもっとリッチです。
-    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類とその証明を根拠(_evidence_)を与えることでどのように行なうかをもっと近くでもっと根本的な部分を見ていきましょう。
+(** 読者への注意: この章で紹介するコンセプトは、初めて見た時には抽象的すぎるように感じられるかもしれません。
+    たくさんの練習問題を用意しておいたので、テキストの詳細を理解する途中であっても大部分は解けるはずです。
+    できるかぎり多くの問題、特に★の問題には重点的に挑戦するようにしてください。 *)
+
+(*  So far, the only statements we have been able to state and
+    prove have been in the form of _equalities_.  However, the
+    language of mathematical statements and proofs is much richer than
+    this!  In this chapter we will take a much closer and more
+    fundamental look at the sorts of mathematical statements
+    (_propositions_) we can make in Coq, and how we go about proving
+    them by providing logical _evidence_. *)
+
+(** これまで宣言したり証明した文は等式の形をしたものだけでした。
+    しかし、数学で用いられる文や証明にはもっと豊かな表現力があります。
+    この章ではCoqで作れる数学的な文(命題; _proposition_ )の種類と、その証明を「根拠(_evidence_)を与えること」でどのように進めていくか、もう少し詳しく、基本的な部分から見ていきましょう。
 *)
 
-(** 命題( _proposition_ )は"2足す2は4と等しい"のような事実に基づく主張を表現するための文です。
+(*  A _proposition_ is a statement expressing a factual claim,
+    like "two plus two equals four."  In Coq, propositions are written
+    as expressions of type [Prop].  Although we haven't mentioned it
+    explicitly, we have already seen numerous examples. *)
+
+(** 命題( _proposition_ )は、"2足す2は4と等しい"のような事実に基づく主張を表現するための文です。
     Coqにおいて命題は[Prop]型の式として書かれます。
-    これまでそれについて明確にしたことはありませんが、すでに多くの例を見ています。 *)
+    これまであまりそれについて明示的に触れてはきませんでしたが、皆さんはすでに多くの例を見てきています。 *)
 
 Check (2 + 2 = 4).
 (* ===> 2 + 2 = 4 : Prop *)
@@ -29,19 +49,31 @@ Check (2 + 2 = 4).
 Check (ble_nat 3 2 = false).
 (* ===> ble_nat 3 2 = false : Prop *)
 
-(** 証明可能な主張も証明不能な主張も、どちらも完全な命題です。
-    単に命題であるということと、証明可能であるということは別ものです! *)
+(*  Both provable and unprovable claims are perfectly good
+    propositions.  Simply _being_ a proposition is one thing; being
+    _provable_ is something else! *)
+
+(** 証明可能な主張も証明不能な主張も、どちらも完全な命題であると言えます。
+    しかし単に命題であるということと、証明可能であるということは別ものです! *)
 
 Check (2 + 2 = 5).
 (* ===> 2 + 2 = 5 : Prop *)
 
 (** [2 + 2 = 4] も [2 + 2 = 5] も [Prop] の型をもった妥当な式です。 *)
 
+(*  We've seen one way that propositions can be used in Coq: in
+    [Theorem] (and [Lemma] and [Example]) declarations. *)
+
 (** これまでCoqの中で命題を使う方法は1つしか見てません。 [Theorem](あるいは[Lemma]、[Example])の宣言の中でだけです。 *)
 
 Theorem plus_2_2_is_4 :
   2 + 2 = 4.
 Proof. reflexivity.  Qed.
+
+(*  But they can be used in many other ways.  For example, we
+    can give a name to a proposition using a [Definition], just as we
+    have given names to expressions of other sorts (numbers,
+    functions, types, type functions, ...). *)
 
 (** しかし命題にはもっといろいろな使い方があります。
     例えば、他の種類の式(数字、関数、型、型関数など)と同様に、[Definition] を使うことで命題に名前を与えることができます。 *)
@@ -50,8 +82,11 @@ Definition plus_fact : Prop  :=  2 + 2 = 4.
 Check plus_fact.
 (* ===> plus_fact : Prop *)
 
-(** これで、命題が使える場所ならどこでも、この名前を使うことできます。
-    例えば、[Theorem]宣言内の主張として使うことができます。 *)
+(*  Now we can use this name in any situation where a proposition is
+    expected -- for example, as the claim in a [Theorem]
+    declaration. *)
+
+(** こうすることで、命題が使える場所ならどこでも、例えば、[Theorem]宣言内の主張などとして使うことができます。 *)
 
 Theorem plus_fact_is_true :
   plus_fact.
@@ -61,8 +96,9 @@ Proof. reflexivity.  Qed.
     propositions.  We can also form new propositions out of old
     ones.  For example, given propositions [P] and [Q], we can form
     the proposition "[P] implies [Q]." *)
-(** ここまでで、登場したすべての命題は等号の命題だけです。
-    これまでに登場した命題から新しい命題を作ることができます。
+
+(** ここまでに登場したすべての命題は等式の形をした命題でした。
+    それ以外にも新しい命題の形を作ることができます。
     例えば、命題[P]と[Q]が与えられば、"[P]ならば[Q]"という命題を作れます。
 *)
 
@@ -81,6 +117,7 @@ Definition strange_prop2 :=
     have written a function that tests evenness, so one possible
     definition of what it means to be even is "[n] is even iff [evenb
     n = true]." *)
+
 (** 最後に、パラメータ化された命題(_parameterized proposition_)の定義を紹介します。
     例えば、"数nが偶数である"という主張はどのようになるでしょうか？
     偶数を判定する関数は書いてあるので、偶数であるという定義は"[n]が偶数であることと[evenb n = true]は同値である"が考えられます。 *)
@@ -91,7 +128,7 @@ Definition even (n:nat) : Prop :=
 (* This defines [even] as a _function_ that, when applied to a number
     [n], _yields a proposition_ asserting that [n] is even.  *)
 (** これは[even]を関数として定義します。
-    その関数は数[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
+    この関数は数[n]を適用されると、[n]が偶数であることを示す命題を返します。 *)
 
 Check even.
 (* ===> even : nat -> Prop *)
@@ -112,8 +149,8 @@ Check (even 3).
 (* Propositions -- including parameterized propositions -- are
     first-class citizens in Coq.  We can use them in other
     definitions: *)
-(** 命題(パラーメータ化された命題も含む)はCoqにおける第一級市民です。
-    ほかの定義の中で命題使うことができます。 *)
+(** 命題(パラーメータ化された命題も含む)はCoqにおける第一級（_first-class_）市民です。
+    このため、ほかの定義の中でこれらの命題を使うことができます。 *)
 
 Definition even_n__even_SSn (n:nat) : Prop :=
   (even n) -> (even (S (S n))).
@@ -131,7 +168,7 @@ Definition teen : nat->Prop := between 13 19.
 
 (* We can even pass propositions -- including parameterized
     propositions -- as arguments to functions: *)
-(** 他の関数の引数として命題(パラーメータ化された命題も含む)を渡すことすらできます。 *)
+(** 他の関数に、引数として命題(パラーメータ化された命題も含む)を渡すことすらできます。 *)
 
 Definition true_for_zero (P:nat->Prop) : Prop :=
   P 0.
@@ -148,7 +185,7 @@ Definition true_for_n__true_for_Sn (P:nat->Prop) (n:nat) : Prop :=
     claim that a whenever a proposition [P] is true for some natural
     number [n'], it is also true by the successor of [n']: *)
 (** パラメータ化された命題を引数として渡す関数をさらに2つ紹介します。
-    1つ目は、ある自然数[n']について[P]が真ならば常に[n']の次の数でも[P]が真であることを述べています。
+    1つ目の関数は、ある自然数[n']について[P]が真ならば常に[n']の次の数でも[P]が真であることを述べています。
 *)
 
 Definition preserved_by_S (P:nat->Prop) : Prop :=
@@ -156,7 +193,7 @@ Definition preserved_by_S (P:nat->Prop) : Prop :=
 
 (* And this one simply claims that a proposition is true for
     all natural numbers: *)
-(** そして次のは、すべての自然数について命題が真であることを述べています。 *)
+(** そして次の関数は、すべての自然数について与えられた命題が真であることを述べています。 *)
 
 Definition true_for_all_numbers (P:nat->Prop) : Prop :=
   forall n, P n.
@@ -167,7 +204,7 @@ Definition true_for_all_numbers (P:nat->Prop) : Prop :=
     whenever [P n'] is, then [P] is true for all natural numbers. *)
 
 (** これらを一つにまとめることで、自然数に関する帰納法の原理を自分で再宣言できます。
-    パラメータ化された命題[P]が与えられた場合、[0]についてPが真であり、[P n']が真のとき[P (S n')]が真であるならば、すべての自然数について[P]は真である。
+    パラメータ化された命題[P]が与えられた場合、[0]について[P]が真であり、[P n']が真のとき[P (S n')]が真であるならば、すべての自然数について[P]は真である。
 *)
 
 Definition our_nat_induction (P:nat->Prop) : Prop :=
@@ -187,11 +224,11 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     that there is a fundamental and fruitful analogy between data
     values inhabiting types and evidence "inhabiting" propositions. *)
 
-(** [Prop]型として妥当な式には証明可能な命題も証明不能な命題もあることを見てきました。
-    当然、証明可能なものには強い興味があります。
-    [P]が命題であり[e]が[P]の証明である場合、すなわち[e]がPが真であるという根拠である場合、"[e : P]"と書きます。
+(** [Prop]型として妥当な式には証明可能な命題と証明不能な命題の両方があることは既にお話ししました。
+    当然、証明可能なものの方に興味が向かいます。
+    [P]が命題であり[e]が[P]の証明である場合、すなわち[e]が「[P]が真である」ということの根拠となっている場合、それを"[e : P]"と書くことができます。
     "型を持っている"や"属してる"を表わす記法とかぶっているのはたまたまではありません。
-     型に属する値と命題に"属する"根拠の間には根本的で有益な類似性があることを見ていきます。 *)
+     型に属する値と命題に"属する"根拠の間には根本的で有益な類似性があるのです。 *)
 
 (* The next question is "what are proofs?" -- i.e., what sorts of
     things would we be willing to accept as evidence that particular
@@ -222,14 +259,14 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
 
 (** もちろん、その答は命題の形に依存します。
     例えば、含意の命題[P->Q]に対する根拠と連言の命題[P/\Q]に対する根拠は異なります。
-    この章では次に、たくさんの具体的な例を示します。
+    この章では以後、たくさんの具体的な例を示します。
 
     まずは、不可分( _atomic_ )な命題を考えましょう。
-    それは私達が使っている論理には組み込むのではなく、特定のドメインに有用な概念を導入するものです。
-    例えば、Basic_J.v で [day] 型を定義したので、[saturday] と [sunday] は"良い"日であるといったような、特定の日に対して何らかの概念を思い浮かべるかもしれません。
-    良い日に関する定理を宣言し証明したい場合は、"良い"とはどういう意味かをCoqに教えなければなりません。
+    それは私達が使っている論理にあらかじめ組み込まれているものはなく、特定のドメイン(領域）に有用な概念を導入するものです。
+    例えば、Basic_J.v で [day] 型を定義したので、[saturday] と [sunday] は"良い"日であるといったような、特定の日に対して何らかの概念を考えてみましょう。
+    良い日に関する定理を宣言し証明したい場合はまず、"良い"とはどういう意味かをCoqに教えなければなりません。
     ある日[d]が良い(すなわち[d]が[saturday]か[sunday]である)とする根拠として何を使うかを決める必要があります。
-    これをするためには次のように宣言します。 *)
+    このためには次のように宣言します。 *)
 
 Inductive good_day : day -> Prop :=
   | gd_sat : good_day saturday
@@ -248,22 +285,22 @@ Inductive good_day : day -> Prop :=
 
     - The third line declares that the constructor [gd_sun] can be
       taken as evidence for the assertion [good_day sunday]. *)
-(** [Inductive] キーワードは、データ値を集合を定義する場合([Type]の世界)であっても根拠の集合を定義する場合([Prop]の世界)であってもまったく同じ意味です。
-    上記の定義の意味はそれぞれ次のような意味になっています:
+(** [Inductive] キーワードは、「データ値の集合を定義する場合([Type]の世界)」であっても「根拠の集合を定義する場合([Prop]の世界)」であってもまったく同じ意味で使われます。
+    上記の定義の意味はそれぞれ次のようになっています:
 
-    - 最初の行は[good_day]は日によってインデックスされた命題であることを宣言しています。
+    - 最初の行は「[good_day]は日によってインデックスされた命題であること」を宣言しています。
 
-    - 二行目は[gd_sat]コンストラクタを宣言してます。このコンストラクタは[good_day saturday]という主張の根拠として使えます。
+    - 二行目は[gd_sat]コンストラクタを宣言しています。このコンストラクタは[good_day saturday]という主張の根拠として使えます。
 
-    - 三行目は[gd_sun]コンストラクタを宣言したす。このコンストラクタは[good_day sunday]という主張の根拠として使えます。
+    - 三行目は[gd_sun]コンストラクタを宣言しています。このコンストラクタは[good_day sunday]という主張の根拠として使えます。
 *)
 
 (* That is, we're _defining_ what we mean by days being good by
     saying "Saturday is good, sunday is good, and that's all."  Then
     someone can _prove_ that Sunday is good simply by observing that
     we said it was when we defined what [good_day] meant. *)
-(** 言い換えると、ある日が良いとは"土曜日は良い、日曜日は良い、それだけだ"と言うことで定義しています。
-    なので、日曜日が良いということを証明したいときは、[good_day]の意味を定義したときにそう言っていたかを調べるだけで済みます。 *)
+(** 言い換えると、ある日が良いということを"土曜日は良い、日曜日は良い、それだけだ"と言うことで定義しています。
+    これによって、日曜日が良いということを証明したいときは、[good_day]の意味を定義したときにそう言っていたかを調べるだけで済みます。 *)
 
 Theorem gds : good_day sunday.
 Proof. apply gd_sun. Qed.
@@ -291,7 +328,7 @@ Inductive day_before : day -> day -> Prop :=
     defined proposition can also involve universal quantifiers.  For
     example, it is well known that every day is a fine day forsinging a song: *)
 (** 帰納的な定義による命題で導入される公理では全称記号を使うこともできます。
-    例えば、歌うためには毎日がすばらしい日であるということは有名です。 *)
+    例えば、「どの日だって歌いだしたくなるほど素敵な日だ」は自明と言っていいでしょう *)
 
 Inductive fine_day_for_singing : day -> Prop :=
   | fdfs_any : forall d:day, fine_day_for_singing d.
@@ -306,7 +343,7 @@ Inductive fine_day_for_singing : day -> Prop :=
 (** この行は、もし[d]が日ならば、[fdfs_any d]は[fine_day_for_singing d]の根拠として使えるということを宣言してます。
     言い換えると、[d]が[fine_day_for_singing]であるという根拠を[fdfs_any]を[d]に適用することで作ることができます。
 
-    具体的には、水曜日は歌うにはすばらしい日です。
+    要するに、水曜日は「歌いだしたくなるほど素敵な日」だということです。
 *)
 
 Theorem fdfs_wed : fine_day_for_singing wednesday.
@@ -318,8 +355,8 @@ Proof. apply fdfs_any. Qed.
     to that evidence later on."  The second line then instructs Coq
     how to assemble the evidence. *)
 
-(** いつもどおり、最初の行は"私は命題[fine_day_for_singing wednesday]に対する根拠を示し、その根拠をあとで参照するために[fdfs_wed]という名前を導入したいと思います"と読みます。
-    二行目は、Coqにその根拠をどのように組み立てるかを指示しています。 *)
+(** これも同じように、最初の行は"私は命題[fine_day_for_singing wednesday]に対する根拠を示し、その根拠をあとで参照するために[fdfs_wed]という名前を導入しようと思っている"と解釈できます。
+    二行目は、Coqにその根拠をどのように組み立てるかを示しています。 *)
 
 (* ##################################################### *)
 (* ** Proof Objects *)
@@ -329,8 +366,8 @@ Proof. apply fdfs_any. Qed.
     same thing: we can use a [Definition] whose left-hand side is the
     name we're introducing and whose right-hand side is the evidence
     _itself_, rather than a script for how to build it.  *)
-(** 同じことをやる、もっと素朴な別の方法があります。
-    [Definiton]の左辺を導入しようとしている名前にし、右辺を根拠の構築方法ではなく、根拠そのものにします。 *)
+(** 同じことができる、もっと原始的な方法もあります。
+    [Definiton]の左辺を導入しようとしている名前にし、右辺を根拠の構築方法ではなく、根拠そのものにすればいいのです。 *)
 
 Definition fdfs_wed' : fine_day_for_singing wednesday :=
   fdfs_any wednesday.
@@ -350,7 +387,7 @@ Check fdfs_wed'.
     types to empty lists with elements of that type. *)
 
 (** 式[fdfs_any wednesday]は、パラメータを受け取る公理[fdfs_any]を特定の引数[wednesday]によって具体化したものととらえることができます。
-    別の見方として、[fdfs_any]を素朴な"根拠コンストラクタ"として捉えることもできます。この根拠コンストラクタは、特定の日を適用されると、その日が歌うのがよい日である根拠を表します。
+    別の見方をすれば、[fdfs_any]を原始的な"根拠コンストラクタ"として捉えることもできます。この根拠コンストラクタは、特定の日を適用されると、その日が「歌わずにはいられないほどよい日」である根拠を表します。
     型 [forall d:day, fine_day_for_singing d] はこの機能を表しています。
     これは、前章で登場した多相型 [forall X, list X] において [nil] コンストラクタが型からその型を持つ空リストを返す関数であったことと同様です。 *)
 
@@ -375,8 +412,8 @@ Inductive ok_day : day -> Prop :=
     can be read, "Another way to show that a day [d1] is ok is to
     present evidence that it is the day before some other day [d2]
     together with evidence that [d2] is ok." *)
-(** 最初のコンストラクタは"[d]がOKな日であることを示す一つ目の方法は、[d]が良い日であるという根拠を示すことである"と読みます。
-    二番目のは"[d1]がOKであることを示す別の方法は、その日が別の日 [d2] の前日であり、[d2]がOKであるという根拠を示すことである"と読みます。 *)
+(** 最初のコンストラクタは"[d]がOKな日であることを示す一つ目の方法は、[d]が良い日であるという根拠を示すことである"と読めます。
+    二番目のは"[d1]がOKであることを示す別の方法は、その日が別の日 [d2] の前日であり、[d2]がOKであるという根拠を示すことである"と読めます。 *)
 
 (* Now suppose that we want to prove that [wednesday] is ok.
     There are two ways to do it.  First, we have the primitive way,
@@ -384,7 +421,7 @@ Inductive ok_day : day -> Prop :=
     type -- a big nested application of constructors: *)
 (** ここで[wednesday]がOKであることを証明したいとしましょう。
     証明するには2つの方法があります
-    1つめは素朴な方法であり、コンストラクタの適用を何度もネストすることで、
+    1つめは原始的な方法であり、コンストラクタの適用を何度もネストすることで、
     正しい型を持つ式を書き下します。 *)
 
 Definition okdw : ok_day wednesday :=
@@ -425,8 +462,8 @@ Proof.
    same, in the sense that what Coq is actually doing when it's
    following the commands in a [Proof] script is _literally_
    attempting to construct an expression with the desired type. *)
-(** しかし、根本的にはこの2つの証明方法は同じです。
-    証明スクリプト内のコマンドを実行するときにCoqが実際にやっていることは、目的の型を持つ式を構築しようとしてるときとまったく同じ意味です。
+(** しかし、根本的なところでこの2つの証明方法は同じです。
+    証明スクリプト内のコマンドを実行するときにCoqが実際にやっていることは、目的の型を持つ式を構築することと全く同じです。
 *)
 
 Print okdw'.
@@ -439,7 +476,7 @@ Print okdw'.
               : ok_day wednesday *)
 
 (* These expressions are often called _proof objects_. *)
-(** この式は証明オブエジェクト(Proof object)と呼ばれることが多いです。  *)
+(** この式は一般的に証明オブジェクト(Proof object)と呼ばれます。  *)
 
 (* Proof objects are the bedrock of Coq.  Tactic proofs are
     essentially _programs_ that instruct Coq how to construct proof
@@ -450,11 +487,11 @@ Print okdw'.
     painful.  Moreover, we'll see later on in the course that Coq has
     a number of automation tactics that can construct quite complex
     proof objects without our needing to specify every step. *)
-(** 証明オジェクトはCoqの基本的な部分です。
+(** 証明オジェクトはCoqの根本を支えています。
     タクティックによる証明は、自分で証明オブジェクトを書く代わりに、証明オブジェクトを構築する方法をCoqに指示する基本的なプログラムです。
     もちろん、この例では証明オブジェクトはタクティックによる証明よりも短くなっています。
-    しかし、もっと興味深い証明では証明オブジェクトは手で構築することが苦痛に思えるほど大きく複雑になります。
-    さらに、あとの章では、各ステップを書くことなく複雑な証明オブジェクトを構築できる自動化されたタクティックをたくさん紹介します。 *)
+    しかし、もっと興味深い証明では証明オブジェクトを手で構築することが苦痛に思えるほど大きく複雑になります。
+    この後の章では、各ステップを書くことなく複雑な証明オブジェクトを構築できる自動化されたタクティックをたくさん紹介します。 *)
 
 (* ##################################################### *)
 (* ** The Curry-Howard Correspondence *)
@@ -469,8 +506,8 @@ Print okdw'.
     isomorphism_).  Many wonderful things follow from it. *)
 (** この
 <<
-                 propositions  ~  sets / types
-                 proofs        ~  data values
+                 命題          ~  集合 / 型
+                 証明          ~  元、要素 / データ値
 >>
     という類似性は、カリー・ハワード対応(もしくはカリー・ハワード同型, Curry-Howard correspondence, Curry-Howard isomorphism)と呼ばれます。
     これにより多くのおもしろい性質が導けます。
@@ -485,7 +522,7 @@ Print okdw'.
 (** 集合に空集合、単集合、有限集合、無限集合があり、それぞれが0個、個1、多数の元を持っているように、命題も0個、1個、多数、無限の証明を持ちえます。
     命題[P]の各要素は、それぞれ異なる[P]の根拠です。
     もし要素がないならば、[P]は証明不能です。
-    もしたくさんの要素あるならば、[P]には多数の異なった証明があります。 *)
+    もしたくさんの要素があるならば、[P]には多数の異なった証明があります。 *)
 
 (* ##################################################### *)
 (* ** Implication *)
@@ -511,7 +548,7 @@ Definition okd_before2 := forall d1 d2 d3,
     It should be easy to see how we'd construct a tactic proof of
     [okd_before2]... *)
 
-(** 日本語にすると、 もし3つの日があるとして、[d1]が[d2]の前日であり、[d2]が[d3]の前日であり、かつ[d3]がOKであるということがわかっているならば、[d1]もOKである、という意味になります。
+(** これを日本語で書くと、もし3つの日があるとして、[d1]が[d2]の前日であり、[d2]が[d3]の前日であり、かつ[d3]がOKであるということがわかっているならば、[d1]もOKである、という意味になります。
 
     [okd_before2]をタクティッックを使って証明するのは簡単なはずです... *)
 
@@ -532,11 +569,11 @@ Proof.
     arguments (three days and three pieces of evidence) and returns a
     piece of evidence!  Here it is: *)
 
-(** ところで、対応する証明オブエジェクトはどんな感じでしょうか?
+(** ところで、これに対応する証明オブジェクトはどんな感じでしょうか?
 
     答: 含意としての[->]と、関数の型の[->]の記法はそっくりです。
-    これをまじめに捉えると、[forall d1 d2 d3, ok_day d3 -> day_before d2 d1 -> day_before d3 d2 -> ok_day d1]という型をもった式を見付ける必要があります。
-    なので探すものは6個の引数(3つの日と、3個の根拠)を受け取り、1個の根拠を返す関数です!
+    これをそのまま解釈すると、[forall d1 d2 d3, ok_day d3 -> day_before d2 d1 -> day_before d3 d2 -> ok_day d1]という型をもった式を見付ける必要があります。
+    なので探すものは6個の引数(3個の日と、3個の根拠)を受け取り、1個の根拠を返す関数です!
     それはこんな感じです。
 *)
 
@@ -625,18 +662,18 @@ Proof.
     realize that, modulo this little bit of bookkeeping, applying
     [nat_ind] is what we are really doing. *)
 (** この証明は基本的には前述のものと同じですが、細かい点で特筆すべき違いがあります。
-    1つめは、帰納段階の証明(["S"]の場合)において、[induction]が自動でやってくれること([intros])を手作業で行なう必要があります。
+    1つめは、帰納段階の証明(["S"]の場合)において、[induction]が自動でやってくれること([intros])を手作業で行なう必要があることです。
 
-    2つめは、[nat_ind]を適用する前にコンテキストに[n]を導入していません。
+    2つめは、[nat_ind]を適用する前にコンテキストに[n]を導入していないことです。
     [nat_ind]の結論は限量子を含む式であり、[apply]で使うためにはこの結論と限量子を含んだゴールの形とぴったりと一致する必要があります。
     [induction]タクティックはコンテキストにある変数にもゴール内の量子化された変数のどちらにでも使えます。
 
-    3つめは、[appl]タクティックは変数名(この場合はサブゴール内で使われる変数名)を自動で選びますが、[induction]は([as ...]節によって)使う名前を指定できます。
+    3つめは、[apply]タクティックは変数名(この場合はサブゴール内で使われる変数名)を自動で選びますが、[induction]は([as ...]節によって)使う名前を指定できることです。
     実際には、この自動選択にはちょっと不都合な点があります。元の定理の[n]とは別の変数として[n]を再利用してしまいます。
     これは[Case]注釈がただの[S]だからです。
-    ほかの証明で使ってきたように省略しない形で書くと、これは[n = S n]という意味のなさない形になります。
-    このような便利な点があるため、実際には[nat_ind]のような帰納法の原理を直接適用するよりも[induction]を使ったほうがよいでしょう。
-    しかし、ちょっとした例外を除けば実際にやりたいのは[nat_ind]の適用であるということを知っておくのは重要です。 *)
+    ほかの証明で使ってきたように省略しない形で書くと、これは[n = S n]という意味のなさない形になってしまいます。
+    このようなことがあるため、実際には[nat_ind]のような帰納法の原理を直接適用するよりも、素直に[induction]を使ったほうがよいでしょう。
+    しかし、ちょっとした例外を除けば実際にやりたいのは[nat_ind]の適用であるということを知っておくことは重要です。 *)
 
 (* **** Exercise: 2 stars (plus_one_r') *)
 (** **** 練習問題: ★★  (plus_one_r') *)
@@ -834,7 +871,7 @@ Inductive ExSet : Type :=
           forall l : list X, P l
 ]]
    この言い回し(と[list_ind]の形)に注意してください。
-   言い換えると、[list_ind]は多相関数を考えることができます。この関数は、型[X]が適用されると、[list X]に特化した帰納法の原理が返ります。 *)
+   言い換えると、[list_ind]は多相関数と考えることができます。この関数は、型[X]が適用されると、[list X]に特化した帰納法の原理を返します。 *)
 
 (* **** Exercise: 1 star (tree) *)
 (** **** 練習問題: ★ (tree) *)
@@ -966,7 +1003,7 @@ Inductive foo' (X:Type) : Type :=
    "[forall n, n * 0 = 0]," we can write it as "[forall n, P_m0r
    n]", where [P_m0r] is defined as... *)
 
-(** この概念において"帰納法の過程"はどこにあてはまるでしょうか?
+(** この概念において"帰納法の仮定"はどこにあてはまるでしょうか?
 
     数に関する帰納法の原理
 [[
@@ -1025,7 +1062,7 @@ Proof.
 (** この名前をつける手順は通常の証明では不要です。
     しかし、1つか2つの例で試してみると、帰納法の仮定がどのようなものなのかが分かりやすくなります。
     [forall n, P_m0r n]を[n]による帰納法([induction]か[apply nat_ind]を使う)によって証明しようとすると、最初のサブゴールでは[P_m0r 0]("[P]が0に対して成り立つ")を証明しなければならず、2つめのサブゴールでは[forall n', P_m0r n' -> P_m0r n' (S n')]("[P]が[n']について成り立つならば,[P]が[S n']につても成り立つ"あるいは"[P]が[S]によって保存される")を証明しなければなりません。
-    帰納法の過程は、2つめの推論の基礎になっています -- [P]が[n']について成り立つことを仮定することにより、それによって[P]が[S n']について成り立つことを示すことができます。
+    帰納法の仮定は、2つめの推論の基礎になっています -- [P]が[n']について成り立つことを仮定することにより、それによって[P]が[S n']について成り立つことを示すことができます。
 *)
 
 (* ####################################################### *)
@@ -1051,7 +1088,7 @@ Proof.
     つまり、"[n]が偶数である"を"[evenb]が[n]を適用されたときに[n]を返す"と定義していました。
 
     偶数性の概念をそのまま定義する別の方法があります。
-    [evenb]関数("ある計算が[true]を返すなら、その数は偶数である")を使って間接的に定義するのではなく、偶数とは何を意味するかを根拠を使うことで直接定義できます。
+    [evenb]関数("ある計算が[true]を返すなら、その数は偶数である")を使って間接的に定義するのではなく、「偶数とは何を意味するか」を根拠を使って直接定義することができます。
 *)
 
 Inductive ev : nat -> Prop :=
@@ -1110,7 +1147,7 @@ Proof.
     tactic proof.  (Before checking your answer, you'll want to
     strip out any uses of [Case], as these will make the proof
     object look a bit cluttered.) *)
-(** 上記のタクティックによる証明で構築されるどのような証明オブジェクトが構築されるかを予想しなさい。
+(** 上記のタクティックによる証明でどのような証明オブジェクトが構築されるかを予想しなさい。
     (答を確かめる前に、[Case]を除去しましょう。 これがあると証明オブジェクトが少し見づらくなります。)
 *)
 (** [] *)
@@ -1119,10 +1156,6 @@ Proof.
 (* ** Reasoning by Induction Over Evidence *)
 (** ** 根拠に対する帰納法の推論 *)
 
-(** Coqの設計は非常に直交しているので、 素朴な命題を根拠と共に定義するために [Inductive] キーワードを使った場合、その定義と関連した帰納法の原理が使えるはずです。
-    実際に関連した帰納法の原理は存在しており、この節ではそれをどう使うかについて見ていきます。
-    ウォーミングアップとして、単純な [destruct] が帰納的に定義された根拠に対してどのように働くかを見てみましょう。
-*)
 (* The highly "orthogonal" organization of Coq's design might
     suggest that, since we use the keyword [Induction] to define
     primitive propositions together with their evidence, there must be
@@ -1132,15 +1165,10 @@ Proof.
     the simpler [destruct] tactic works with inductively defined
     evidence. *)
 
-(** 偶数であるという根拠を作るだけでなく、偶数であるという根拠に対して推論を行います。
-    帰納的な宣言によって [ev] を導入したことにより、 [ev_0] と [ev_SS] が偶数であるという根拠を作る唯一の方法ということが分かるだけでなく、この2つのコンストラクタによってのみ偶数であるという根拠が構築されるということが分かります。
-
-   言い換えると、 [ev n] という根拠 [E] があった場合、 [E] は2つの形式のどちらか片方であることが分かります : [E] が [ev_0] (かつ [n] が [0] )であるか、 [E] が [ev_SS n' E'](かつ [n] が [S (S n')]) かつ  [E'] が [n'] が偶数であるということの根拠であるかのどちらかです。
-
-   なので、これまで見てきたように帰納的に定義されたデータに対してだけでなく、帰納的に定義された根拠に対しても、 [destruct] タクティックを使うことは有用です。
-
-   例えば、[ev n] ならば [ev (n-2)] を示すために、 [n] が偶数であるという根拠に対して [destruct] タクティックを使ってみます。
- *)
+(** Coqの設計は非常に直交しているので、素朴な命題を根拠と共に定義するために [Inductive] キーワードを使った場合、その定義と関連する帰納法の原理が使えるはずです。
+    実際、関連する帰納法の原理は存在しており、この節ではそれをどう使うかについて見ていきます。
+    ウォーミングアップとして、単純な [destruct] が帰納的に定義された根拠に対してどのように働くかを見てみましょう。
+*)
 
 (* Besides _constructing_ evidence of evenness, we can also _reason
     about_ evidence of evenness.  The fact that we introduced [ev]
@@ -1162,6 +1190,17 @@ Proof.
     For example, here we use a [destruct] on evidence that [n] is even
     in order to show that [ev n] implies [ev (n-2)]. *)
 
+(** 偶数であるという根拠を作るだけでなく、偶数であるという根拠に対して推論を行います。
+    帰納的な宣言によって [ev] を導入したことにより、「 [ev_0] と [ev_SS] が、偶数であるという根拠を作る唯一の方法である」ということが分かるだけでなく、「この2つのコンストラクタによってのみ偶数であるという根拠が構築される」ということが分かります。
+
+   言い換えると、 [ev n] という根拠 [E] があった場合、 [E] は2つの形式のどちらか片方であることが分かります : 「[E] が [ev_0] (かつ [n] が [0] )である」か、「 [E] が [ev_SS n' E'](かつ [n] が [S (S n')]) かつ  [E'] が [n'] が偶数であるということの根拠である」かのどちらかです。
+
+   なので、これまで見てきたように帰納的に定義されたデータに対してだけでなく、帰納的に定義された根拠に対しても、 [destruct] タクティックを使うことは有用です。
+
+   一例として、[ev n] ならば [ev (n-2)] を示すために、 [n] が偶数であるという根拠に対して [destruct] タクティックを使ってみましょう。
+ *)
+
+
 Theorem ev_minus2: forall n,
   ev n -> ev (pred (pred n)).
 Proof.
@@ -1173,19 +1212,19 @@ Proof.
 (** **** Exercise: 1 star (ev_minus2_n) *)
 (** **** 練習問題: ★ (ev_minus2_n) *)
 
-(** [E] の代わりに [n] に対して [destruct] するとどうなるでしょうか? *)
 (* What happens if we try to [destruct] on [n] instead of [E]? *)
+(** [E] の代わりに [n] に対して [destruct] するとどうなるでしょうか? *)
 
 (** [] *)
 (* [] *)
 
-(** [n] が偶数であるという根拠に対して [induction] を実行することもできます。
-    [ev] を満たす [n] に対して、先に定義した [evenb] 関数が [true] を返すことを示すために使ってみましょう。
- *)
-
 (* We can also perform _induction_ on evidence that [n] is
     even. Here we use it to show that the old [evenb] function
     returns [true] on [n] when [n] is even according to [ev]. *)
+
+(** [n] が偶数であるという根拠に対して [induction] を実行することもできます。
+    [ev] を満たす [n] に対して、先に定義した [evenb] 関数が [true] を返すことを示すために使ってみましょう。
+ *)
 
 Theorem ev_even : forall n,
   ev n -> even n.
@@ -1196,9 +1235,9 @@ Proof.
   Case "E = ev_SS n' E'".
     unfold even. apply IHE'.  Qed.
 
-(** (もちろん、 [even n -> ev n] も成り立つはずです。 どのように証明するかは次の章で説明します。) *)
 (* (Of course, we'd expect that [even n -> ev n] also holds.  We'll
     see how to prove it in the next chapter.) *)
+(** (もちろん、 [even n -> ev n] も成り立つはずです。 どのように証明するかは次の章で説明します。) *)
 
 (** **** 練習問題: ★ (ev_even_n) *)
 (* **** Exercise: 1 star (ev_even_n) *)
@@ -1210,22 +1249,37 @@ Proof.
 (** [] *)
 (* [] *)
 
-(** 帰納的に定義された命題に対する帰納法の原理は、帰納的に定義された集合のものとまったく同じ形をしているわけではありません。 
-    今の段階では、根拠 [ev n] に対する帰納法は [n] に対する帰納法に似ているが、 [ev n] が成立する数についてのみ着目することができると直感的に理解しておいて問題ありません。
-    [ev] の帰納法の原理をもっと深く見て行き、実際に何を起こっているかを説明します。*)
-(** The induction principle for inductively defined propositions does
+(*  The induction principle for inductively defined propositions does
     not follow quite the same form as that of inductively defined
     sets.  For now, you can take the intuitive view that induction on
     evidence [ev n] is similar to induction on [n], but restricts our
     attention to only those numbers for which evidence [ev n] could be
     generated.  We'll look at the induction principle of [ev] in more
     depth below, to explain what's really going on. *)
+(** 帰納的に定義された命題に対する帰納法の原理は、帰納的に定義された集合のそれとまったく同じ形をしているわけではありません。 
+    今の段階では、根拠 [ev n] に対する帰納法は [n] に対する帰納法に似ているが、 [ev n] が成立する数についてのみ着目することができると直感的に理解しておいて問題ありません。
+    [ev] の帰納法の原理をもっと深く見て行き、実際に何を起こっているかを説明します。*)
 
 (** **** 練習問題: ★ (l_fails) *)
 (** **** Exercise: 1 star (l_fails) *)
 
 (** **** 練習問題: ★ (l_fails) *)
 (* **** Exercise: 1 star (l_fails) *)
+(* The following proof attempt will not succeed.[[
+
+     Theorem l : forall n,
+       ev n.
+     Proof.
+       intros n. induction n.
+         Case "O". simpl. apply ev_0.
+         Case "S".
+           ...
+]]
+   Briefly explain why.
+
+(* FILL IN HERE *)
+*)
+
 (** 次の証明はうまくいきません。
 
      Theorem l : forall n,
@@ -1241,28 +1295,14 @@ Proof.
 (* FILL IN HERE *)
 *)
 
-(* The following proof attempt will not succeed.[[
-
-     Theorem l : forall n,
-       ev n.
-     Proof.
-       intros n. induction n.
-         Case "O". simpl. apply ev_0.
-         Case "S".
-           ...
-]]
-   Briefly explain why.
-
-(* FILL IN HERE *)
-*)
 (** [] *)
 (* [] *)
 
 (** **** 練習問題: ★★ (ev_sum) *)
 (* **** Exercise: 2 stars (ev_sum) *)
 
-(** 帰納法が必要な別の練習問題をやってみましょう。 *)
 (** Here's another exercise requiring induction. *)
+(** 帰納法が必要な別の練習問題をやってみましょう。 *)
 
 Theorem ev_sum : forall n m,
    ev n -> ev m -> ev (n+m).
@@ -1271,11 +1311,11 @@ Proof.
 (** [] *)
 
 
-(** [n+2] が偶数ならば [n] も偶数であるという偶数に関する根拠を分析したいとします。
-    この種の場合分けに [destruct] を使おうとするかもしれません。 *)
 (* Here's another situation where we want to analyze evidence for
     evenness: proving that if [n+2] is even, then [n] is.  Our first
     idea might be to use [destruct] for this kind of case analysis: *)
+(** 「[n+2] が偶数ならば [n] も偶数である」という偶数に関する根拠を分析したいとします。
+    この種の場合分けに [destruct] を使ってみたくなるかもしれません。 *)
 
 Theorem SSev_ev_firsttry : forall n,
   ev (S (S n)) -> ev n.
@@ -1286,11 +1326,11 @@ Proof.
 Admitted.
 
 
-(** しかし、これはうまくいきません。 例えば、最初のサブゴールにおいて、 [n] が [0] であるという情報が失われてしまいます。 
-    ここで使うべきは、 [inversion] です。 *)
 (* But this doesn't work.  For example, in the first sub-goal, we've
     lost the information that [n] is [0].  The right thing to use
     here, it turns out, is [inversion]: *)
+(** しかし、これはうまくいきません。 例えば、最初のサブゴールにおいて、 [n] が [0] であるという情報が失われてしまいます。 
+    ここで使うべきは、 [inversion] です。 *)
 
 Theorem SSev_even : forall n,
   ev (S (S n)) -> ev n.
@@ -1299,19 +1339,6 @@ Proof.
 
 (* Print SSev_even. *)
 
-(** [inversion] の使い方は最初はちょっと謎めいて思えるかもしれません。
-    これまでのところ、 [inversino] は等号に関する命題に対して使い、コンストラクタから元のデータを取り出すためか、別のコンストラクタを区別するためににしか使っていません。
-    しかし、ここでは [inversion] が 帰納的に定義された命題に対する根拠を分析するために使えることを紹介しました。
-
-    ここで、[inversion]が一般にはどのように動作するかを説明します。 
-    [I] が現在のコンテキストにおいて帰納的に宣言された仮定[P]を参照しているとします。
-    ここで、[inversion I]は、[P]のコンストラクタごとにサブゴールを生成します。 各サブゴールにおいて、 コンストラクタが [P] を証明するのに必要な条件によって [I] が置き換えられます。
-    サブゴールのうちいくつかは矛盾が存在するので、 [inversion] はそれらを除外します。 
-    残ったサブゴールは、元のゴールが成り立つことを示すのに必要な場合分けです。
-
-    先ほどの例で、 [inversion] は [ev (S (S n))] の分析に用いられ、 これはコンストラクタ [ev_SS] を使って構築されていることを判定し、そのコンストラクタの引数を仮定に追加した新しいサブゴールを生成しました。(今回hは使いませんでしたが、補助的な等式も生成しています。)
-    このあとの例では、inversionのより一般的な振る舞いについて調べていきましょう。
-*)
 (* This use of [inversion] may seem a bit mysterious at first.
     Until now, we've only used [inversion] on equality
     propositions, to utilize injectivity of constructors or to
@@ -1337,18 +1364,31 @@ Proof.
     produced an auxiliary equality, which happens to be useless here.)
     We'll begin exploring this more general behavior of inversion in
     what follows. *)
+(** このような[inversion] の使い方は最初はちょっと謎めいて思えるかもしれません。
+    これまでのところ、 [inversion] は等号に関する命題に対して使い、コンストラクタから元のデータを取り出すためか、別のコンストラクタを区別するためににしか使っていません。
+    しかし、ここでは [inversion] が 帰納的に定義された命題に対する根拠を分析するために使えることを紹介しました。
 
-(** **** 練習問題: ★ (inversion_practice) *)
+    ここで、[inversion]が一般にはどのように動作するかを説明します。 
+    [I] が現在のコンテキストにおいて帰納的に宣言された仮定[P]を参照しているとします。
+    ここで、[inversion I]は、[P]のコンストラクタごとにサブゴールを生成します。 各サブゴールにおいて、 コンストラクタが [P] を証明するのに必要な条件によって [I] が置き換えられます。
+    サブゴールのうちいくつかは矛盾が存在するので、 [inversion] はそれらを除外します。 
+    残ったサブゴールは、元のゴールが成り立つことを示すのに必要な場合分けです。
+
+    先ほどの例で、 [inversion] は [ev (S (S n))] の分析に用いられ、 これはコンストラクタ [ev_SS] を使って構築されていることを判定し、そのコンストラクタの引数を仮定に追加した新しいサブゴールを生成しました。(今回は使いませんでしたが、補助的な等式も生成しています。)
+    このあとの例では、inversionのより一般的な振る舞いについて調べていきましょう。
+*)
+
 (* **** Exercise: 1 star (inversion_practice) *)
+(** **** 練習問題: ★ (inversion_practice) *)
 Theorem SSSSev_even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** [inversion] タクティックは、仮定が矛盾していることを示し、ゴールを達成するためにも使えます。
- *)
 (* The [inversion] tactic can also be used to derive goals by showing
     the absurdity of a hypothesis. *)
+(** [inversion] タクティックは、仮定が矛盾していることを示し、ゴールを達成するためにも使えます。
+ *)
 
 Theorem even5_nonsense :
   ev 5 -> 2 + 2 = 9.
@@ -1356,16 +1396,16 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** 一般に、帰納的な命題には [destruct] の代わりに [inversion] を使えます。
-    つまり、一般的にありうるコンストラクタごとに場合分けができます。
-    さらに、いくつかの補助的な等式も得ることができます。
-    なお、ゴールはその等式によって書き換えられていますが、その他の仮定は書き換えられていません。
-*)
 (* We can generally use [inversion] instead of [destruct] on
     inductive propositions.  This illustrates that in general, we
     get one case for each possible constructor.  Again, we also
     get some auxiliary equalities that are rewritten in the goal
     but not in the other hypotheses. *)
+(** 一般に、帰納的な命題には [destruct] の代わりに [inversion] を使えます。
+    このことは一般的に、コンストラクタごとに場合分けができることを示しています。
+    加えて、いくつかの補助的な等式も得ることができます。
+    なお、ゴールはその等式によって書き換えられていますが、その他の仮定は書き換えられていません。
+*)
 
 Theorem ev_minus2': forall n,
   ev n -> ev (pred (pred n)).
@@ -1374,11 +1414,11 @@ Proof.
   Case "E = ev_0". simpl. apply ev_0.
   Case "E = ev_SS n' E'". simpl. apply E'.  Qed.
 
-(** **** 練習問題: ★★★ (ev_ev_even) *)
 (* **** Exercise: 3 stars (ev_ev_even) *)
-(** 何に対して帰納法を行えばいいかを探しなさい。(ちょっとトリッキーですが) *)
+(** **** 練習問題: ★★★ (ev_ev_even) *)
 (* Finding the appropriate thing to do induction on is a
     bit tricky here: *)
+(** 何に対して帰納法を行えばいいかを探しなさい。(ちょっとトリッキーですが) *)
 
 Theorem ev_ev_even : forall n m,
   ev (n+m) -> ev n -> ev m.
@@ -1386,15 +1426,15 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: ★★★, optional (ev_plus_plus) *)
 (* **** Exercise: 3 stars, optional (ev_plus_plus) *)
-(** 既存の補題を適用する必要のある練習問題です。
-    帰納法も場合分けも不要ですが、書き換えのうちいくつかはちょっと大変です。
-    Basics_J.v の [plus_swap'] で使った [replace] タクティックを使うとよいかもしれません。 *)
+(** **** 練習問題: ★★★, optional (ev_plus_plus) *)
 (* Here's an exercise that just requires applying existing lemmas.  No
     induction or even case analysis is needed, but some of the rewriting
     may be tedious.  You'll want the [replace] tactic used for [plus_swap']
     in Basics.v *)
+(** 既存の補題を適用する必要のある練習問題です。
+    帰納法も場合分けも不要ですが、書き換えのうちいくつかはちょっと大変です。
+    Basics_J.v の [plus_swap'] で使った [replace] タクティックを使うとよいかもしれません。 *)
 
 Theorem ev_plus_plus : forall n m p,
   ev (n+m) -> ev (n+p) -> ev (m+p).
@@ -1403,32 +1443,9 @@ Proof.
 (** [] *)
 
 (* ##################################################### *)
-(** ** なぜ命題を帰納的に定義するのか? *)
 (* ** Why Define Propositions Inductively? *)
+(** ** なぜ命題を帰納的に定義するのか? *)
 
-(** ここまで見てきたように "ある数が偶数である" というのは2通りの方法で解釈されます。
-    間接的にはテスト用の [evenb] 関数によって解釈され、直接的には偶数であることの根拠の構築方法を帰納的に記述されます。
-    これら2つの偶数の定義は、ほぼ同程度に宣言も使うことも楽です。
-    どちらを選ぶかは基本的に好みの問題です。
-
-    しかし、興味深いほかの性質については、テスト用の関数を書くのが難しかったり不可能だったりするので、
-    直接的な帰納的な定義のほうが好ましいです。
-    例えば以下のように定義される [MyProp] という性質について考えてみましょう。
-
-       - [4] は性質 [MyProp] を満たす
-       - [n] が性質 [MyProp] を満たすならば、 [4+n] も満たす
-       - もし[2+n]が性質 [MyProp] を満たすならば、 [n] も満たす
-       - その他の数は、性質 [MyProp] を満たさない
-
-    これは数の集合の定義としてはなんの問題もありませんが、この定義をそのままCoqのFixPointに変換することはできません。
-    (それだけでなく他の言語の再帰関数に変換することもできません。)
-    [Fixpoint]を用いてこの性質をテストする賢い方法を見つけれるかもしれません。(実際のところ、この場合はそれほど難しいことではありません)
-    しかし、一般にこれは難しいです。
-    実際、Coqの [Fixpoint] は停止する計算しか定義できないので、
-    定義しようとする性質が計算不能なものだった場合、どれだけがんばっても [Fixpoint] では定義できません。
-
-    一方、性質 [MyProp] がどのようなものかの根拠を与える帰納的な定義を書くことは、非常に簡単です。
-*)
 (** We have seen that the proposition "some number is even" can
     be phrased in two different ways -- indirectly, via a testing
     function [evenb], or directly, by inductively describing what
@@ -1460,20 +1477,42 @@ Proof.
     On the other hand, writing an inductive definition of what it
     means to give evidence for the property [MyProp] is
     straightforward: *)
+(** ここまで見てきたように "ある数が偶数である" というのは次の2通りの方法で解釈されます。
+    間接的には「テスト用の [evenb] 関数」によって、直接的には「偶数であることの根拠の構築方法を帰納的に記述すること」によってです。
+    これら2つの偶数の定義は、ほぼ同じくらい楽に宣言できますし、同じように動きます。
+    どちらを選ぶかは基本的に好みの問題です。
+
+    しかし、興味深いほかの性質、例えば「テスト用の関数を書くのが難しかったり不可能だったりする」ようなことがあることを考えると、直接的な帰納的な定義のほうが好ましいと言えます。
+    例えば以下のように定義される [MyProp] という性質について考えてみましょう。
+
+       - [4] は性質 [MyProp] を満たす
+       - [n] が性質 [MyProp] を満たすならば、 [4+n] も満たす
+       - もし[2+n]が性質 [MyProp] を満たすならば、 [n] も満たす
+       - その他の数は、性質 [MyProp] を満たさない
+
+    これは数の集合の定義としてはなんの問題もありませんが、この定義をそのままCoqのFixPointに変換することはできません。
+    (それだけでなく他の言語の再帰関数に変換することもできません。)
+    [Fixpoint]を用いてこの性質をテストするうまい方法を見つけられるかもしれません。(実際のところ、この場合はそれほど難しいことではありません)
+    しかし、一般的にこういうことをしようとすると、かなりあれこれ考える必要があるでしょう。
+    実際、Coqの [Fixpoint] は停止する計算しか定義できないので、
+    定義しようとする性質が計算不能なものだった場合、どれだけがんばっても [Fixpoint] では定義できません。
+
+    一方、性質 [MyProp] がどのようなものかの根拠を与える帰納的な定義を書くことは、非常に簡単です。
+*)
 
 Inductive MyProp : nat -> Prop :=
   | MyProp1 : MyProp 4
   | MyProp2 : forall n:nat, MyProp n -> MyProp (4 + n)
   | MyProp3 : forall n:nat, MyProp (2 + n) -> MyProp n.
 
-(** [MyProp]の非形式な定義の最初の3つの節は、帰納的な定義の最初の3つの節に反映されています。
-    4つ目の節は、[Inductive]キーワドによって強制されます。
-*)
 (* The first three clauses in the informal definition of [MyProp]
     above are reflected in the first three clauses of the inductive
     definition.  The fourth clause is the precise force of the keyword
     [Inductive]. *)
 
+(** [MyProp]の非形式的な定義の最初の3つの節は、帰納的な定義の最初の3つの節に反映されています。
+    4つ目の節は、[Inductive]キーワードによって強制されます。
+*)
 (** これで、偶数のときにやったように、ある数が [MyProp] を満たすことの根拠を作ることができます。  *)
 
 (** As we did with evenness, we can now construct evidence that
@@ -1494,10 +1533,10 @@ Proof.
 
 (** **** 練習問題: ★★ (MyProp) *)
 (* **** Exercise: 2 stars (MyProp) *)
-(** MyPropに関する便利な2つの事実があります。 
-    証明はあなたのために残してあります。  *)
 (* Here are two useful facts about MyProp.  The proofs are left
     to you. *)
+(** MyPropに関する便利な2つの事実があります。 
+    証明はあなたのために残してあります。  *)
 
 Theorem MyProp_0 : MyProp 0.
 Proof.
@@ -1508,9 +1547,9 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** これらをつかって、 [MyProp]は全ての奇数について成り立つことと、その逆も成り立つをことを示せます。 *)
 (** With these, we can show that [MyProp] holds of all even numbers,
     and vice versa. *)
+(** これらをつかって、 [MyProp]は全ての奇数について成り立つことと、その逆も成り立つをことを示せます。 *)
 
 Theorem MyProp_ev : forall n:nat,
   ev n -> MyProp n.
@@ -1521,22 +1560,6 @@ Proof.
     apply MyProp_0.
   Case "E = ev_SS n' E'".
     apply MyProp_plustwo. apply IHE'.  Qed.
-
-(** この定理の非形式的な証明は次のようになります。
-
-    _Proof_: [n] を [nat] とし、[ev n] の導出を [E] とします。
-    [MyProp n] の導出を示さなければなりません。 
-    [E] の帰納法について証明を行うので、以下の2つノ場合について考えなければなりません。
-
-    - [E]の最後のステップが[ev_0]だった場合、 [n] は [0] となる。
-      その場合、[MyProp 0]が成り立つをことを示さなければならない; 
-      補題 [MyProp_0] よりこれは真である。
-
-    -  [E]の最後のステップが[ev_SS]だった場合、 [n = S (S n')] となる [n']  が存在し、 [ev n'] の導出が存在する。 
-       [MyProp n'] が成り立つという帰納法の仮定を用いて、[MyProp (S (S n'))]を示さなければなりません。
-       しかし、補題 [MyProp_plustwo] により、[MyProp n']を示せば十分であることがわかり、さらにそれは帰納法の仮定そのものです。
-
-*)
 
 (* Here's an informal proof of this theorem:
 
@@ -1556,23 +1579,35 @@ Proof.
       [MyProp n'] holds.  But by lemma [MyProp_plustwo], it's enough
       to show [MyProp n'], which is exactly the induction
       hypothesis. [] *)
+(** この定理の非形式的な証明は次のようになります。
 
-(** **** 練習問題: ★★★ (ev_MyProp) *)
+    _Theorem_: 任意の自然数 [n] において、もし [ev n] ならば [MyProp n] が成り立つ。
+
+    _Proof_: [n] を [nat] とし、[ev n] の導出を [E] とします。
+    [MyProp n] の導出を示さなければなりません。 
+    [E] の帰納法について証明を行うので、以下の2つの場合について考えなければなりません。
+
+    - [E]の最後のステップが[ev_0]だった場合、 [n] は [0] となる。
+      その場合、[MyProp 0]が成り立つをことを示さなければならない; 
+      補題 [MyProp_0] よりこれは真である。
+
+    -  [E]の最後のステップが[ev_SS]だった場合、 [n = S (S n')] となる [n']  が存在し、 [ev n'] の導出が存在する。 
+       [MyProp n'] が成り立つという帰納法の仮定を用いて、[MyProp (S (S n'))]を示さなければなりません。
+       しかし、補題 [MyProp_plustwo] により、[MyProp n']を示せば十分であることがわかり、さらにそれは帰納法の仮定そのものです。
+
+*)
+
 (* **** Exercise: 3 stars (ev_MyProp) *)
+(** **** 練習問題: ★★★ (ev_MyProp) *)
+
 Theorem ev_MyProp : forall n:nat,
   MyProp n -> ev n.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** 練習問題: ★★★, optional (ev_MyProp_informal) *)
 (* **** Exercise: 3 stars, optional (ev_MyProp_informal) *)
-(** [ev_MyProp] の 形式的な証明に対応する非形式的な証明を書きなさい。
-
-    定理: すべての自然数 [n] に対して、 [MyProp n] ならば [ev n]。
-
-    証明: (ここを埋める)
- *)
+(** **** 練習問題: ★★★, optional (ev_MyProp_informal) *)
 
 (* Write an informal proof corresponding to your
     formal proof of [ev_MyProp]:
@@ -1582,26 +1617,23 @@ Proof.
     Proof:
     (* FILL IN HERE *)
 [] *)
+(** [ev_MyProp] の 形式的な証明に対応する非形式的な証明を書きなさい。
+
+    定理: すべての自然数 [n] に対して、 [MyProp n] ならば [ev n]。
+
+    証明: (ここを埋める)
+[] *)
 
 
 (* ##################################################### *)
-(** * 全体像: Coqの2つの宇宙 *)
 (* * The Big Picture: Coq's Two Universes *)
-
-(** これまでCoqの基本的な構造についていくつか触れてきたので、
-    ここでは一歩引いてそれらがどのように組み合わさっているか少しだけ見てみましょう。
-*)
+(** * 全体像: Coqの2つの空間 *)
 
 (* Now that we've touched on several of Coq's basic structures,
     it may be useful to take a step back and talk a little about how
     it all fits together. *)
-
-(** Coqの式は2つの異なる宇宙のどちらかに住んでいます。
-      - [Type] は計算とデータの宇宙です。
-      - [Prop] は論理的表明と根拠の宇宙です。
-
-    2つの宇宙は深い類似性があり、それぞれについて値、帰納的な定義、限量子などについて説明していきます。
-    しかし、数学的構造の定義や推論において、これらはまったく異なる役割を果たします。
+(** これまでCoqの基本的な構造についていくつか触れてきたので、
+    ここでは一歩引いてそれらがどのように組み合わさっているか少しだけ見てみましょう。
 *)
 
 (* Expressions in Coq live in two distinct universes:
@@ -1613,38 +1645,17 @@ Proof.
    but they play quite different roles in defining and reasoning about
    mathematical structures. *)
 
-(** ** 値 *)
+(** Coqの式は2つの異なる空間のどちらかに属しています。
+      - [Type] は計算とデータの空間です。
+      - [Prop] は論理的表明と根拠の空間です。
+
+    2つの空間には深い類似性がありますが（それぞれについて値、帰納的な定義、限量子などについて言及できます）、
+    数学的構造の定義や推論において、これらはまったく異なる役割を果たします。
+*)
+
+
 (* ** Values *)
-(** 両方の宇宙はコンストラクタの無限集合とととに始まります。
-    コンストラクタは内部構造を全く持っておらず、ただのアトミックなシンボルです。 
-    例えば、[true], [false], [O], [S], [nil], [cons],
-    [ev_0], [ev_SS], ... などです。
-
-    最も単純な値は、コンストラクタの適用だけによって構成されます。
-    例えば:
-     - [true]
-     - [O]
-     - [S (S (S O))]
-     - [ev_0]
-     - [ev_SS (S (S O)) ev_0]
-     - [ev_SS (S (S (S (S O)))) (ev_SS (S (S O)) ev_0)]
-
-    そのような式は木として考えることもできます。
-    葉は0引数のコンストラクタ(引数なしで適用された)であり、内部ノードは1個以上の値に対して適用されたコンストラクタです。
-    [Type]の宇宙において、値はデータとして捉えます。
-    [Prop]において、値を根拠として捉えます。
-    [Prop]における値は、導出木と呼ばれることもあります。
-
-    関数もまた値です。例えば、
-     - [fun x => true]
-     - [fun b => negb b]
-     - [fun n => S (S (S n))]
-     - [fun n => fun (P : ev n) => ev_SS (S (S n)) P]
-
-   [Type]宇宙の値を返す関数は、計算を表します: 入力値を受け取り、入力から計算した出力値を返します。
-   [Prop]の値を返す関数は、全量子化された根拠と呼ばれます。 すなわち、ある命題に対する根拠を作るのに入力も用います。
-   (作られる命題も入力を使うかもしれません。)
- *)
+(** ** 値 *)
 
 (* Both universes start with an infinite set of _constructors_.
     Constructors have no internal structure: they are just atomic
@@ -1680,10 +1691,40 @@ Proof.
     their inputs to build evidence for some proposition (whose
     statement may also involve these inputs). *)
 
-(** ** 帰納的定義 *)
-(** ** Inductive Definitions *)
+(** どちらのの空間もコンストラクタの無限集合をスタート地点とします。
+    コンストラクタは内部構造を全く持っておらず、ただのアトミックなシンボルです。 
+    例えば、[true], [false], [O], [S], [nil], [cons],
+    [ev_0], [ev_SS], ... などです。
 
-(** [Inductive] declarations give names to subsets of the set of all
+    最も単純な値は、コンストラクタの適用だけによって構成されます。
+    例えば:
+     - [true]
+     - [O]
+     - [S (S (S O))]
+     - [ev_0]
+     - [ev_SS (S (S O)) ev_0]
+     - [ev_SS (S (S (S (S O)))) (ev_SS (S (S O)) ev_0)]
+
+    そのような式は木として考えることもできます。
+    葉は0引数のコンストラクタ(引数なしで適用された)であり、内部ノードは1個以上の値に対して適用されたコンストラクタです。
+    [Type]空間において、値はデータとして捉えます。
+    [Prop]において、値を根拠として捉えます。
+    [Prop]における値は、導出木と呼ばれることもあります。
+
+    関数もまた値です。例えば、
+     - [fun x => true]
+     - [fun b => negb b]
+     - [fun n => S (S (S n))]
+     - [fun n => fun (P : ev n) => ev_SS (S (S n)) P]
+
+   [Type]空間の値を返す関数は、計算を表します: 入力値を受け取り、入力から計算した出力値を返します。
+   [Prop]の値を返す関数は、全量子化された根拠と呼ばれます。 すなわち、ある命題に対する根拠を作るのに入力も用います。
+   (作られる命題も入力を使うかもしれません。)
+ *)
+(** ** Inductive Definitions *)
+(** ** 帰納的定義 *)
+
+(*  [Inductive] declarations give names to subsets of the set of all
     values.  For example, the declaration of the inductive type [nat]
     defines a _set_ whose _elements_ are values representing natural
     numbers.  That is, it picks out a subset [nat] of the set of all
@@ -1720,9 +1761,30 @@ Proof.
         ones that _must_ be, according to the previous two conditions;
         there is no other junk). *)
 
-(** ** Types and Kinds *)
+(** 帰納的（[Inductive]）な定義をするということは、全ての値の集合の「特定の部分集合に名前を与える」ということです。
+    例えば、帰納的な型 [nat] の定義は、要素の全てが自然数を表しているような集合を表します。つまり、 帰納的な定義が「全ての値の集合」から以下のような属性を持つ要素だけを抜き出して部分集合 [nat] を作っていると考えられます。
+      - 値 [O] はこの集合の要素である。
+      - この集合は、 [S] の適用に対し閉じている（つまり、値 [n] がこの集合の要素なら [S n] もまたこの集合の要素である）。
+      - これらの条件を満たす最小の集合がこの集合である。 (つまり集合 [nat] の要素だけが上の二つの条件を満たしていて、それ以外のものはこの集合に入っていない）。
 
-(** Informally, a _type_ in Coq is an expression that is used to
+    帰納的に定義された集合は、それ自身が複合的な値のコンストラクタの引数となることもあります。例えば、以下のようなものです。
+      - [nat]
+      - [nil nat]
+      - [cons nat O (cons nat (S O) (nil nat))]
+
+    また、引数や戻り値が集合となっているような関数を書くこともできます。例えば、 [list] は集合 [X] を引数にとり、 [list X] の集合を返す関数です（この集合の要素は、集合 [X] の要素を持つリストです）。
+
+    同様に、帰納的な型 [ev] の定義は、その数字が偶数であるという根拠となる命題を集めたものの定義です。このことは、全ての [n] について、この定義が全ての値の集合から以下の条件を満たす値を全て集めて部分集合 [ev n] を抜き出してくるような定義、ということです。
+      - 値 [ev_0] は集合 [ev O] の要素である。
+      - この集合は [ev_SS]の型が正しい（well-typed な）適用に関して閉じている。
+         -- つまり、もし値 [e] が集合 [ev n] の要素なら、
+        値[ev_SS n e] は集合 [ev (S (S n))] の要素である。;
+      - これらの条件を満たす最小の集合がこの集合である。 (つまり集合 [ev n] の要素だけが上の二つの条件を満たしていて、それ以外のものはこの集合に入っていない）。 *)
+
+(* ** Types and Kinds *)
+(** ** 型と種類 (_kinds_) *)
+
+(*  Informally, a _type_ in Coq is an expression that is used to
     classify other expressions.  For example, [bool], [nat], [list
     bool], [list nat], [nat->nat], and so on are all types.  The type
     [bool] classifies [true] and [false]; the type [nat] classifies
@@ -1739,9 +1801,13 @@ Proof.
     while [list] itself has kind [Type->Type] and [ev] has kind
     [nat->Prop].  *)
 
-(** ** Propositions vs. Booleans *)
+(** ざっくり言うと、Coqにおける「型」は、「式の分類に使われる式」です。例えば、 [bool], [nat], [list bool], [list nat], [nat->nat] などは全て「型」です。[bool] という型は、 [true] や [false] を他の値と区別しますし、[nat] 型は [O], [S O], [S (S O)] など、[nat->nat] 型は [fun n => S n] のように数を引数にとって数を返す関数値を他の値と区別します。
 
-(** Propositions and booleans are superficially similar, but they are
+    [Type] や [Prop] 、そしてそれらの複合式（ [Type->Type] など）には、「ひとつ上位の」分類 -- それは, 「型（もしくは命題）の型を表す式」のようなものと考えてもらっていいですが -- が可能です。それを、単なる「型」と混同しないために「種類 (_kinds_)」と呼ぶことにします。例えば、[nat] や [nat->nat] 、[list nat] などは全て [Type] という「種類」ですし、 [list] は [Type->Type]、 [ev] は [nat->Prop] という種類です。 *)
+
+(** ** 命題 vs. ブール値 *)
+
+(*  Propositions and booleans are superficially similar, but they are
     really quite different things!
 
     - Booleans are _values_ in the _computational_ world.  Every
@@ -1751,15 +1817,24 @@ Proof.
     - Propositions are _types_ in the _logical_ world.  They are
       either _provable_ (i.e., there is some expression that has this
       type) or not (there is no such expression).  It doesn't make
-      sense to say that a proposition is "equivalent to [true]."
+      sense to say that a proposition is "equivalent to [true]." 
 
       We sometimes use the words "true" and "false" informally when
       referring to propositions.  Strictly speaking, this is wrong: a
       proposition is either provable or it is not. *)
 
-(** ** Functions vs. Quantifiers *)
+(** 命題とブール値は、一見とてもよく似ているように見えます。しかしこの二つは根本的に違うものです！
 
-(** The types [A->B] and [forall x:A, B] both describe functions from
+    - ブール値は、「計算の世界における値」です。 [bool] 型の式は全て、（自由変数を持っていない限り）必ず[true] か [false] のどちらかに簡約することができます。
+
+    - 命題は「論理の世界にいおける型」です。これらは「証明可能（この型の式を書くことができる）」か、「証明不能（そのような式は存在しない）」かのいずれかです。従って「命題が [true] である」というような言い方は意味を持ちません。
+
+      我々は時折、命題に対してそれが "true" か "false" というようなことを言ってしまいがちですが、厳格に言えばこれは間違っています。命題は「証明可能かそうでないか」のどちらかです。 *)
+
+(*  ** Functions vs. Quantifiers *)
+(** ** 関数 vs. 限量子 *)
+
+(*  The types [A->B] and [forall x:A, B] both describe functions from
     [A] to [B].  The only difference is that, in the second case, the
     expression [B] -- the type of the result -- can mention the
     argument [x] by name.  For example:
@@ -1778,9 +1853,18 @@ Proof.
     example, the type of [fun x:nat => x + x] can be written, if we
     like, as [forall x:nat, nat]. *)
 
-(** ** Functions vs. Implications *)
+(** [A->B] という型も [forall x:A, B] という型も、どちらも型[A] から型[B] への関数である、という点については同じです。この二つの唯一の違いは、後者の場合戻り値の型 「B] が引数 [x] を参照できるということです。たとえば、
 
-(** In both [Type] and [Prop], we can write functions that transform
+       - 関数 [fun x:nat => x + x] は型 [nat->nat] を持っていますが、このことは任意の数 [n] を別の数に対応させるもの、ということです。
+
+       - 対して、関数 [fun X:Type => nil (list X)] は [forall
+         X:Type, list (list X)] という型になります。これは、任意の集合 [X] を、 [X] 型のリストのリストに対応させるもの、ということになります。（もちろん、[nil] は通常 [nil X] と書く代わりに [[]] と書くのが普通ですが。）
+
+    実際、関数を記述するためのこれら二つの書き方はほぼ同じですが、 Coqでは [A->B] の書き方は、[x] が[B] の定義の中に変数として現れない限り、[fun x:nat => x + x] のただの省略形と考えていいでしょう。例えば、好みならばこれを [forall x:nat, nat] と書いてもいいのです。 *)
+
+(** ** 関数 vs. 含意 *)
+
+(*  In both [Type] and [Prop], we can write functions that transform
     values into other values.  Also, functions themselves are values;
     this means we can
       - write higher-order functions that take functions as arguments
@@ -1796,6 +1880,12 @@ Proof.
     evidence for an implication is a function on evidence.  This is why
     we use the same notation for functions and logical implications in
     Coq: they are exactly the same thing! *)
+(** [Type] にしろ [Prop] にしろ、我々はその値を別の値に変換する関数を書くことができます。 また、関数はそれ自身が値です。
+    このことは、我々が、次のようなことが出来ることを意味しています。
+      - 関数を引数にしたり、関数を戻り値にしたりする高階関数を書くこと。
+      - 関数をコンストラクタに適用し、関数を保持したさらに複雑な値を作り出すこと。
+
+    [Prop] 型を扱う [P->Q] という型の関数は、根拠 [P] を引数にとり、新たな根拠 [Q] を結果として生成するものです。このような関数はそれ自身が「[P] ならば [Q] である」ということの根拠であると見なせます。そのことから、[P] が真であるという根拠があるなら、それを関数に適用して [Q] が真であるという根拠を得ることができます。含意に根拠を与えるということは、関数に根拠を与えると言うことと同じです。このことが、我々がCoqで関数と論理学の「含意」に同じ表記を与えている理由です。これらは全く同じものなのです。 *)
 
 (* ####################################################### *)
 (** * Informal Proofs *)
