@@ -331,7 +331,7 @@ Require Export MoreStlc_J.
     つまり、型[S1->S2]の任意の関数[f]は、型[T1->T2]を持つと見ることもできるということです。 *)
 
 (* *** Top *)
-(** *** トップ *)
+(** *** Top *)
 
 (* It is natural to give the subtype relation a maximal element -- a
     type that lies above every other type and is inhabited by
@@ -388,9 +388,10 @@ Require Export MoreStlc_J.
 ]]
 *)
 
-(** *** Records *)
+(* *** Records *)
+(** *** レコード *)
 
-(** What about subtyping for record types?
+(* What about subtyping for record types?
 
    The basic intuition about subtyping for record types is that it is
    always safe to use a "bigger" record in place of a "smaller" one.
@@ -474,8 +475,91 @@ Require Export MoreStlc_J.
       - [{}->{j:A} <: {k:B}->Top]
       - [Top->{k:A,j:B} <: C->{j:B}]
 *)
+(** レコード型のサブタイプは何でしょうか？
 
-(** It is worth noting that real languages may choose not to adopt
+   レコード型のサブタイプについての基本的直観は、
+   「より小さな」レコードの場所で「より大きな」レコードを使うことは常に安全だということです。
+   つまり、レコード型があるとき、さらにフィールドを追加したものは常にサブタイプになるということです。
+   もしあるコードがフィールド[x]と[y]を持つレコードを期待していたとき、
+   レコード[x]、[y]、[z]を持つレコードを受けとることは完璧に安全です。
+   [z]フィールドは単に無視されるだけでしょう。
+   例えば次の通りです。
+<<
+       {x:Nat,y:Bool} <: {x:Nat}
+       {x:Nat} <: {}
+>>
+   これはレコードの"width subtyping"(幅サブタイプ)として知られます。
+
+   レコードの1つのフィールドの型をそのサブタイプで置き換えることでも、
+   レコードのサブタイプを作ることができます。
+   もしあるコードが型[T]のフィールド[x]を持つレコードを待っていたとき、
+   型[S]が型[T]のサブタイプである限りは、
+   型[S]のフィールド[x]を持つレコードが来ることはハッピーです。
+   例えば次の通りです。
+<<
+       {a:{x:Nat}} <: {a:{}}
+>>
+   これは"depth subtyping"(深さサブタイプ)として知られています。
+
+   最後に、レコードのフィールドは特定の順番で記述されますが、その順番は実際には問題ではありません。
+   例えば次の通りです。
+<<
+       {x:Nat,y:Bool} <: {y:Bool,x:Nat}
+>>
+   これは"permutation subtyping"(順列サブタイプ)として知られています。
+
+   これらをレコードについての単一のサブタイプ規則に形式化することをやってみましょう。
+   次の通りです:
+[[
+                        for each jk in j1..jn,
+                    exists ip in i1..im, such that
+                          jk=ip and Sp <: Tk
+                  ----------------------------------                    (S_Rcd)
+                  {i1:S1...im:Sm} <: {j1:T1...jn:Tn}
+]]
+   つまり、左のレコードは(少なくとも)右のレコードのフィールドラベルをすべて持ち、
+   両者で共通するフィールドはサブタイプ関係になければならない、ということです。
+   しかしながら、この規則はかなり重くて読むのがたいへんです。
+   ここでは、3つのより簡単な規則に分解します。この3つは[S_Trans]を使うことで結合することができ、
+   同じ作用をすることができます。   
+
+   最初に、レコード型の最後にフィールドを追加したものはサブタイプになります:
+[[
+                               n > m
+                 ---------------------------------                 (S_RcdWidth)
+                 {i1:T1...in:Tn} <: {i1:T1...im:Tm}
+]]
+   [S_RcdWidth]を使うと、複数のフィールドを持つレコードについて、
+   前方のフィールドを残したまま後方のフィールドを落とすことができます。
+   この規則で例えば [{y:B, x:A} <: {y:B}] が示されます。
+
+   二つ目に、レコード型の構成要素の内部にサブタイプ規則を適用できます:
+[[
+                       S1 <: T1  ...  Sn <: Tn
+                  ----------------------------------               (S_RcdDepth)
+                  {i1:S1...in:Sn} <: {i1:T1...in:Tn}
+]]
+   例えば [S_RcdDepth]と[S_RcdWidth]を両方使って [{y:{z:B}, x:A} <: {y:{}}]
+   を示すことができます。
+
+   三つ目に、フィールドの並べ替えを可能にする必要があります。
+   念頭に置いてきた例は [{x:A,y:B} <: {y:B}] でした。
+   これはまだ達成されていませんでした。
+   [S_RcdDepth]と[S_RcdWidth]だけでは、レコード型の「後」からフィールドを落とすことしかできません。
+   これから次の規則が必要です:
+[[
+         {i1:S1...in:Sn} is a permutation of {i1:T1...in:Tn}
+         ---------------------------------------------------        (S_RcdPerm)
+                  {i1:S1...in:Sn} <: {i1:T1...in:Tn}
+]]
+
+   さらなる例です:
+      - [{x:A,y:B}] <: [{y:B,x:A}].
+      - [{}->{j:A} <: {k:B}->Top]
+      - [Top->{k:A,j:B} <: C->{j:B}]
+*)
+
+(* It is worth noting that real languages may choose not to adopt
     all of these subtyping rules. For example, in Java:
 
     - A subclass may not change the argument or result types of a
@@ -492,10 +576,28 @@ Require Export MoreStlc_J.
     - A class may implement multiple interfaces -- so-called "multiple
       inheritance" of interfaces (i.e., permutation is allowed for
       interfaces). *)
+(** なお、実際の言語ではこれらのサブタイプ規則のすべてを採用しているとは限らないことは、
+    注記しておくべきでしょう。例えばJavaでは:
 
-(** *** Records, via Products and Top (optional) *)
+    - サブクラスではスーパークラスのメソッドの引数または結果の型を変えることはできません
+      (つまり、depth subtypingまたは関数型サブタイプのいずれかができないということです。
+      どちらかは見方によります)。
 
-(** Exactly how we formalize all this depends on how we are choosing
+    - それぞれのクラスは(直上の)スーパークラスを1つだけ持ちます(クラスの「単一継承」
+      ("single inheritance")です)。
+    
+      - 各クラスのメンバー(フィールドまたはメソッド)は1つだけインデックスを持ち、
+        サブクラスでメンバーが追加されるたびに新しいインデックスが「右に」追加されます
+        (つまり、クラスには並び換えがありません)。
+
+    - クラスは複数のインターフェースをインプリメントできます。これは
+      インターフェースの「多重継承」("multiple inheritance")と呼ばれます
+      (つまり、インターフェースには並び換えがあります)。 *)
+
+(* *** Records, via Products and Top (optional) *)
+(** *** 直積と Top によるレコード (optional) *)
+
+(* Exactly how we formalize all this depends on how we are choosing
     to formalize records and their types.  If we are treating them as
     part of the core language, then we need to write down subtyping
     rules for them.  The file [RecordSub.v] shows how this extension
@@ -517,6 +619,25 @@ Require Export MoreStlc_J.
     easy (and instructive) to check that the subtyping rules above are
     validated by the encoding.  For the rest of this chapter, we'll
     follow this approach. *)
+(** これらすべてをどのように形式化するかは、レコードとその型をどのように形式化するかに、
+    まさに依存しています。もしこれらを核言語の一部として扱うならば、
+    そのためのサブタイプ規則を書き下す必要があります。
+    ファイル[RecordSub_J.v]で、この拡張がどのようにはたらくかを示します。
+
+    一方、もしそれらをパーサで展開される派生形として扱うならば、新しい規則は何も必要ありません。
+    直積と[Unit]型のサブタイプについての既存の規則が、
+    このエンコードによるレコードのサブタイプに関する妥当な規則になっているかをチェックすれば良いだけです。
+    このために、前述のエンコードをわずかに変更する必要があります。
+    組のエンコードのベースケースおよびレコードのエンコードの "don't care" プレースホルダとして、
+    [Unit]の代わりに[Top]を使います。
+    すると:
+<<
+    {a:Nat, b:Nat} ----> {Nat,Nat}       つまり (Nat,(Nat,Top))
+    {c:Nat, a:Nat} ----> {Nat,Top,Nat}   つまり (Nat,(Top,(Nat,Top)))
+>>
+    レコード値のエンコードは何も変更しません。
+    このエンコードで上述のサブタイプ規則が成立することをチェックするのは容易です
+    (そしてタメになります)。この章の残りでは、このアプローチを追求します。 *)
 
 
 (* ###################################################### *)
