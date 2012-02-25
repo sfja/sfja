@@ -1181,7 +1181,7 @@ Fixpoint index' (n:nat) (l:natlist) : natoption :=
     guard is considered true if it evaluates to the first constructor
     in the [Inductive] definition and false if it evaluates to the
     second. *)
-(** Coq の条件式は他の言語に見られるものとほとんど同じですが、少しだけ一般化されています。 Coq には 組み込みのブーリアン型がないため、 Coq の条件式では、実際には、構成子のふたつある任意の帰納型に対して分岐をすることができます。条件部の式が [Inductive] の定義の最初の構成子に評価された場合には真、ふたつめの構成子に評価された場合には偽と見做されます。
+(** Coq の条件式(if式)は他の言語に見られるものとほとんど同じですが、少しだけ一般化されています。 Coq には 組み込みのブーリアン型がないため、 Coq の条件式では、実際には、構成子のふたつある任意の帰納型に対して分岐をすることができます。条件部の式が [Inductive] の定義の最初の構成子に評価された場合には真、ふたつめの構成子に評価された場合には偽と見做されます。
    *)
 
 (* The function below pulls the [nat] out of a [natoption], returning
