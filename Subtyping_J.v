@@ -672,7 +672,7 @@ Require Export MoreStlc_J.
     これらの型の定数を追加したり、その型の上の操作を追加したりすることをわざわざやりませんが、
     そうすることは簡単です。 *)
 
-(** In the rest of the chapter, we formalize just base types,
+(* In the rest of the chapter, we formalize just base types,
     booleans, arrow types, [Unit], and [Top], leaving product types as
     an exercise. *)
 (** この章の残りでは、基本型、ブール型、関数型、[Unit]と[Top]のみ形式化し、
@@ -741,9 +741,9 @@ Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
 (* *** Reduction *)
 (** *** 簡約 *)
 
-(** Likewise the definitions of the [value] property and the [step]
+(* Likewise the definitions of the [value] property and the [step]
     relation. *)
-(** [value]性や[step]関係と同様です。 *)
+(** [value](値)の定義や[step]関係の定義と同様です。 *)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T t,
@@ -802,9 +802,9 @@ Hint Constructors step.
 (* ** Definition *)
 (** ** 定義 *)
 
-(** The definition of subtyping is just what we sketched in the
+(* The definition of subtyping is just what we sketched in the
     motivating discussion. *)
-(** サブタイプの定義は、動機付けの議論で概観した通りです。 *)
+(** サブタイプの定義は、動機付けの議論のところで概観した通りです。 *)
 
 Inductive subtype : ty -> ty -> Prop :=
   | S_Refl : forall T,
@@ -1276,10 +1276,12 @@ End Examples.
 *)
 
 (* ###################################################################### *)
-(** * Typing *)
+(* * Typing *)
+(** * 型付け *)
 
-(** The only change to the typing relation is the addition of the rule
+(* The only change to the typing relation is the addition of the rule
     of subsumption, [T_Sub]. *)
+(** 型付け関係の変更は、包摂規則 [T_Sub] の追加だけです。 *)
 
 Definition context := id -> (option ty).
 Definition empty : context := (fun _ => None).
@@ -1326,26 +1328,33 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   | Case_aux c "T_Sub" ].
 
 (* ############################################### *)
-(** ** Typing examples *)
+(* ** Typing examples *)
+(** ** 型付けの例 *)
 
 Module Examples2.
 Import Examples.
 
-(** Do the following exercises after you have added product types to
+(* Do the following exercises after you have added product types to
     the language.  For each informal typing judgement, write it as a
     formal statement in Coq and prove it. *)
+(** 以下の練習問題は言語に直積を追加した後に行いなさい。
+    それぞれの非形式的な型付けジャッジメントについて、Coqで形式的主張を記述し、
+    それを証明しなさい。 *)
 
-(** **** Exercise: 1 star, optional (typing_example_0) *)
+(* **** Exercise: 1 star, optional (typing_example_0) *)
+(** **** 練習問題: ★, optional (typing_example_0) *)
 (* empty |- ((\z:A.z), (\z:B.z)) : (A->A * B->B) *)
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (typing_example_1) *)
+(* **** Exercise: 2 stars, optional (typing_example_1) *)
+(** **** 練習問題: ★★, optional (typing_example_1) *)
 (* empty |- (\x:(Top * B->B). x.snd) ((\z:A.z), (\z:B.z)) : B->B *)
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (typing_example_2) *)
+(* **** Exercise: 2 stars, optional (typing_example_2) *)
+(** **** 練習問題: ★★, optional (typing_example_2) *)
 (* empty |- (\z:(C->C)->(Top * B->B). (z (\x:C.x)).snd)
               (\z:C->C. ((\z:A.z), (\z:B.z)))
            : B->B *)
