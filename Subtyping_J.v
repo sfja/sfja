@@ -641,9 +641,10 @@ Require Export MoreStlc_J.
 
 
 (* ###################################################### *)
-(** * Core definitions *)
+(* * Core definitions *)
+(** * 中核部の定義 *)
 
-(** We've already sketched the significant extensions that we'll need
+(* We've already sketched the significant extensions that we'll need
     to make to the STLC: (1) add the subtype relation and (2) extend
     the typing relation with the rule of subsumption.  To make
     everything work smoothly, we'll also implement some technical
@@ -651,19 +652,31 @@ Require Export MoreStlc_J.
     of the definitions -- in particular, the syntax and operational
     semantics of the language -- are identical to what we saw in the
     last chapter.  Let's first do the identical bits. *)
+(** STLCに必要となる重要な拡張を既に概観してきました:
+    (1)サブタイプ関係を追加し、(2)型関係に包摂規則を拡張することです。
+    すべてがスムースにいくように、前の章の表現にいくらかの技術的改善を行います。
+    定義の残りは -- 特に言語の構文と操作的意味は -- 前の章で見たものと同じです。
+    最初に同じ部分をやってみましょう。 *)
 
 (* ################################### *)
-(** *** Syntax *)
+(* *** Syntax *)
+(** *** 構文 *)
 
-(** Just for the sake of more interesting examples, we'll make one
+(* Just for the sake of more interesting examples, we'll make one
     more very small extension to the pure STLC: an arbitrary set of
     additional _base types_ like [String], [Person], [Window], etc.
     We won't bother adding any constants belonging to these types or
     any operators on them, but we could easily do so. *)
+(** よりおもしろい例のために、純粋STLCに非常に小さな拡張を行います。
+    [String]、[Person]、[Window]等のような、任意の「基本型」の集合を追加します。
+    これらの型の定数を追加したり、その型の上の操作を追加したりすることをわざわざやりませんが、
+    そうすることは簡単です。 *)
 
 (** In the rest of the chapter, we formalize just base types,
     booleans, arrow types, [Unit], and [Top], leaving product types as
     an exercise. *)
+(** この章の残りでは、基本型、ブール型、関数型、[Unit]と[Top]のみ形式化し、
+    直積型は練習問題にします。 *)
 
 Inductive ty : Type :=
   | ty_Top   : ty
@@ -699,10 +712,12 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   ].
 
 (* ################################### *)
-(** *** Substitution *)
+(* *** Substitution *)
+(** *** 包摂 *)
 
-(** The definition of substitution remains the same as for the
+(* The definition of substitution remains the same as for the
     ordinary STLC. *)
+(** 包摂の定義は、いつものSTLCと同様です。 *)
 
 Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
   match t with
@@ -723,10 +738,12 @@ Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
   end.
 
 (* ################################### *)
-(** *** Reduction *)
+(* *** Reduction *)
+(** *** 簡約 *)
 
 (** Likewise the definitions of the [value] property and the [step]
     relation. *)
+(** [value]性や[step]関係と同様です。 *)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T t,
@@ -773,17 +790,21 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
 Hint Constructors step.
 
 (* ###################################################################### *)
-(** * Subtyping *)
+(* * Subtyping *)
+(** * サブタイプ *)
 
-(** Now we come to the interesting part.  We begin by defining
+(* Now we come to the interesting part.  We begin by defining
     the subtyping relation and developing some of its important
     technical properties. *)
+(** さて、おもしろい所にやって来ました。サブタイプ関係の定義から始め、その重要な技術的性質を調べます。 *)
 
 (* ################################### *)
-(** ** Definition *)
+(* ** Definition *)
+(** ** 定義 *)
 
 (** The definition of subtyping is just what we sketched in the
     motivating discussion. *)
+(** サブタイプの定義は、動機付けの議論で概観した通りです。 *)
 
 Inductive subtype : ty -> ty -> Prop :=
   | S_Refl : forall T,
@@ -800,9 +821,12 @@ Inductive subtype : ty -> ty -> Prop :=
     subtype (ty_arrow S1 S2) (ty_arrow T1 T2)
 .
 
-(** Note that we don't need any special rules for base types: they are
+(* Note that we don't need any special rules for base types: they are
     automatically subtypes of themselves (by [S_Refl]) and [Top] (by
     [S_Top]), and that's all we want. *)
+(** なお、基本型については特別な規則は何ら必要ありません。
+    基本型は自動的に([S_Refl]より)自分自身のサブタイプであり、
+    ([S_Top]より)[Top]のサブタイプでもあります。そしてこれが必要な全てです。 *)
 
 Hint Constructors subtype.
 
@@ -813,7 +837,8 @@ Tactic Notation "subtype_cases" tactic(first) ident(c) :=
   ].
 
 (* ############################################### *)
-(** ** Subtyping Examples and Exercises *)
+(* ** Subtyping Examples and Exercises *)
+(** ** サブタイプの例と練習問題 *)
 
 Module Examples.
 
@@ -829,13 +854,25 @@ Notation String := (ty_base (Id 9)).
 Notation Float := (ty_base (Id 10)).
 Notation Integer := (ty_base (Id 11)).
 
-(** **** Exercise: 2 stars, optional (subtyping judgements) *)
+(* **** Exercise: 2 stars, optional (subtyping judgements) *)
+(** **** 練習問題: ★★, optional (subtyping judgements) *)
 
-(** (Do this exercise after you have added product types to the
+(* (Do this exercise after you have added product types to the
     language, at least up to this point in the file).
 
     Using the encoding of records into pairs, define pair types
     representing the record types
+[[
+    Person   := { name : String }
+    Student  := { name : String ;
+                  gpa  : Float }
+    Employee := { name : String ;
+                  ssn  : Integer }
+]]
+*)
+(** (この練習問題は、少なくともファイルのここまでに、直積型を言語に追加した後で行ってください。)
+
+    レコードを対でエンコードするときに、以下のレコード型を表す直積型を定義しなさい。
 [[
     Person   := { name : String }
     Student  := { name : String ;
@@ -871,11 +908,15 @@ Proof.
     apply S_Refl. auto.
 Qed.
 
-(** The following facts are mostly easy to prove in Coq.  To get
+(* The following facts are mostly easy to prove in Coq.  To get
     full benefit from the exercises, make sure you also
     understand how to prove them on paper! *)
+(** 以下の事実のほとんどは、Coqで証明するのは簡単です。
+    練習問題の効果を十分に得るために、
+    どうやって証明するか自分が理解していることを紙に証明を書いて確認しなさい。 *)
 
-(** **** Exercise: 1 star, optional (subtyping_example_1) *)
+(* **** Exercise: 1 star, optional (subtyping_example_1) *)
+(** **** 練習問題: ★, optional (subtyping_example_1) *)
 Example subtyping_example_1 :
   subtype (ty_arrow ty_Top Student)
           (ty_arrow (ty_arrow C C) Person).
@@ -884,7 +925,8 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (subtyping_example_2) *)
+(* **** Exercise: 1 star, optional (subtyping_example_2) *)
+(** **** 練習問題: ★, optional (subtyping_example_2) *)
 Example subtyping_example_2 :
   subtype (ty_arrow ty_Top Person)
           (ty_arrow Person ty_Top).
@@ -895,8 +937,9 @@ Proof with eauto.
 
 End Examples.
 
-(** **** Exercise: 1 star, optional (subtype_instances_tf_1) *)
-(** Suppose we have types [S], [T], [U], and [V] with [S <: T]
+(* **** Exercise: 1 star, optional (subtype_instances_tf_1) *)
+(** **** 練習問題: ★, optional (subtype_instances_tf_1) *)
+(* Suppose we have types [S], [T], [U], and [V] with [S <: T]
     and [U <: V].  Which of the following subtyping assertions
     are then true?  Write _true_ or _false_ after each one.
     (Note that [A], [B], and [C] are base types.)
@@ -917,9 +960,31 @@ End Examples.
 
 []
 *)
+(** 型[S]、[T]、[U]、[V]があり [S <: T] かつ [U <: V] とします。
+    このとき以下のサブタイプ関係の主張のうち、正しいものはどれでしょうか？
+    それぞれの後に「真」または「偽」と書きなさい。
+    (ここで、[A]、[B]、[C]は基本型とします。)
 
-(** **** Exercise: 1 star (subtype_instances_tf_2) *)
-(** Which of the following statements are true?  Write TRUE or FALSE
+    - [T->S <: T->S]
+
+    - [Top->U <: S->Top]
+
+    - [(C->C) -> (A*B)  <:  (C->C) -> (Top*B)]
+
+    - [T->T->U <: S->S->V]
+
+    - [(T->T)->U <: (S->S)->V]
+
+    - [((T->S)->T)->U <: ((S->T)->S)->V]
+
+    - [S*V <: T*U]
+
+[]
+*)
+
+(* **** Exercise: 1 star (subtype_instances_tf_2) *)
+(** **** 練習問題: ★ (subtype_instances_tf_2) *)
+(* Which of the following statements are true?  Write TRUE or FALSE
     after each one.
 [[
       forall S T,
@@ -948,9 +1013,39 @@ End Examples.
               S = S1*S2  /\  S1 <: T1  /\  S2 <: T2
 ]]
 [] *)
+(** 以下の主張のうち正しいものはどれでしょうか？
+    それぞれについて「真」または「偽」と書きなさい。
+[[
+      forall S T,
+          S <: T  ->
+          S->S   <:  T->T
 
-(** **** Exercise: 1 star (subtype_concepts_tf) *)
-(** Which of the following statements are true, and which are false?
+      forall S T,
+           S <: A->A ->
+           exists T,
+              S = T->T  /\  T <: A
+
+      forall S T1 T1,
+           S <: T1 -> T2 ->
+           exists S1 S2,
+              S = S1 -> S2  /\  T1 <: S1  /\  S2 <: T2
+
+      exists S,
+           S <: S->S
+
+      exists S,
+           S->S <: S
+
+      forall S T2 T2,
+           S <: T1*T2 ->
+           exists S1 S2,
+              S = S1*S2  /\  S1 <: T1  /\  S2 <: T2
+]]
+[] *)
+
+(* **** Exercise: 1 star (subtype_concepts_tf) *)
+(** **** 練習問題: ★ (subtype_concepts_tf) *)
+(* Which of the following statements are true, and which are false?
     - There exists a type that is a supertype of every other type.
 
     - There exists a type that is a subtype of every other type.
@@ -979,9 +1074,33 @@ End Examples.
 
 []
 *)
+(** 以下のうち真であるものはどれで、偽であるものはどれでしょうか？
+    - 他のすべての型のスーパータイプである型がある。
 
-(** **** Exercise: 2 stars (proper_subtypes) *)
-(** Is the following statement true or false?  Briefly explain your
+    - 他のすべての型のサブタイプである型がある。
+
+    - 他のすべての対型のスーパータイプである対型がある。
+
+    - 他のすべての対型のサブタイプである対型がある。
+
+    - 他のすべての関数型のスーパータイプである関数型がある。
+
+    - 他のすべての関数型のサブタイプである関数型がある。
+
+    - サブタイプ関係による、同一型を含まない無限降鎖(infinite descending chain)がある。
+      つまり型の無限列[S0]、[S1]、... があり、すべての[Si]は異なり、
+      そして各[S(i+1)]は[S(i)]のサブタイプである。
+
+    - サブタイプ関係による、同一型を含まない無限昇鎖(infinite _ascending_ chain)がある。
+      つまり型の無限列[S0]、[S1]、... があり、すべての[Si]は異なり、
+      そして各[S(i+1)]は[S(i)]のスーパータイプである。
+
+[]
+*)
+
+(* **** Exercise: 2 stars (proper_subtypes) *)
+(** **** 練習問題: ★★ (proper_subtypes) *)
+(* Is the following statement true or false?  Briefly explain your
     answer.
 [[
     forall T,
@@ -991,9 +1110,19 @@ End Examples.
 ]]
 []
 *)
+(** 次の主張は真でしょうか偽でしょうか？自分の答えを簡単に説明しなさい。
+[[
+    forall T,
+         ~(exists n, T = ty_base n) ->
+         exists S,
+            S <: T  /\  S <> T
+]]
+[]
+*)
 
-(** **** Exercise: 2 stars (small_large_1) *)
-(**
+(* **** Exercise: 2 stars (small_large_1) *)
+(** **** 練習問題: ★★ (small_large_1) *)
+(*
    - What is the _smallest_ type [T] ("smallest" in the subtype
      relation) that makes the following assertion true?
 [[
@@ -1004,9 +1133,21 @@ End Examples.
 
 []
 *)
-
-(** **** Exercise: 2 stars (small_large_2) *)
 (**
+   - 次の表明を真にする最小の型[T]は何でしょうか？
+     (ここで「最小」とはサブタイプ関係においてです。)
+[[
+       empty |- (\p:T*Top. p.fst) ((\z:A.z), unit) : A->A
+]]
+
+   - 同じ表明を真にする最大の型[T]は何でしょうか？
+
+[]
+*)
+
+(* **** Exercise: 2 stars (small_large_2) *)
+(** **** 練習問題: ★★ (small_large_2) *)
+(*
    - What is the _smallest_ type [T] that makes the following
      assertion true?
 [[
@@ -1017,9 +1158,20 @@ End Examples.
 
 []
 *)
-
-(** **** Exercise: 2 stars, optional (small_large_3) *)
 (**
+   - 次の表明を真にする最小の型[T]は何でしょうか？
+[[
+       empty |- (\p:(A->A * B->B). p) ((\z:A.z), (\z:B.z)) : T
+]]
+
+   - 同じ表明を真にする最大の型[T]は何でしょうか？
+
+[]
+*)
+
+(* **** Exercise: 2 stars, optional (small_large_3) *)
+(** **** 練習問題: ★★, optional (small_large_3) *)
+(*
    - What is the _smallest_ type [T] that makes the following
      assertion true?
 [[
@@ -1030,9 +1182,20 @@ End Examples.
 
 []
 *)
-
-(** **** Exercise: 2 stars (small_large_4) *)
 (**
+   - 次の表明を真にする最小の型[T]は何でしょうか？
+[[
+       a:A |- (\p:(A*T). (p.snd) (p.fst)) (a , \z:A.z) : A
+]]
+
+   - 同じ表明を真にする最大の型[T]は何でしょうか？
+
+[]
+*)
+
+(* **** Exercise: 2 stars (small_large_4) *)
+(** **** 練習問題: ★★ (small_large_4) *)
+(*
    - What is the _smallest_ type [T] that makes the following
      assertion true?
 [[
@@ -1045,9 +1208,21 @@ End Examples.
 
 []
 *)
+(**
+   - 次の表明を真にする最小の型[T]は何でしょうか？
+[[
+       exists S,
+         empty |- (\p:(A*T). (p.snd) (p.fst)) : S
+]]
 
-(** **** Exercise: 2 stars (smallest_1) *)
-(** What is the _smallest_ type [T] that makes the following
+   - 同じ表明を真にする最大の型[T]は何でしょうか？
+
+[]
+*)
+
+(* **** Exercise: 2 stars (smallest_1) *)
+(** **** 練習問題: ★★ (smallest_1) *)
+(* What is the _smallest_ type [T] that makes the following
     assertion true?
 [[
       exists S, exists t,
@@ -1055,22 +1230,46 @@ End Examples.
 ]]
 []
 *)
+(** 次の表明を真にする最小の型[T]は何でしょうか？
+[[
+      exists S, exists t,
+        empty |- (\x:T. x x) t : S
+]]
+[]
+*)
 
-(** **** Exercise: 2 stars (smallest_2) *)
-(** What is the _smallest_ type [T] that makes the following
+(* **** Exercise: 2 stars (smallest_2) *)
+(** **** 練習問題: ★★ (smallest_2) *)
+(* What is the _smallest_ type [T] that makes the following
     assertion true?
 [[
       empty |- (\x:Top. x) ((\z:A.z) , (\z:B.z)) : T
 ]]
 []
 *)
+(** 次の表明を真にする最小の型[T]は何でしょうか？
+[[
+      empty |- (\x:Top. x) ((\z:A.z) , (\z:B.z)) : T
+]]
+[]
+*)
 
-(** **** Exercise: 3 stars, optional (count_supertypes) *)
-(** How many supertypes does the record type [{x:A, y:C->C}] have?  That is,
+(* **** Exercise: 3 stars, optional (count_supertypes) *)
+(** **** 練習問題: ★★★, optional (count_supertypes) *)
+(* How many supertypes does the record type [{x:A, y:C->C}] have?  That is,
     how many different types [T] are there such that [{x:A, y:C->C} <:
     T]?  (We consider two types to be different if they are written
     differently, even if each is a subtype of the other.  For example,
     [{x:A,y:B}] and [{y:B,x:A}] are different.)
+
+
+[]
+*)
+(** レコード型 [{x:A, y:C->C}] はいくつのスーパータイプを持つでしょうか？
+    つまり、いくつの異なる型[T]が [{x:A, y:C->C} <: T] を満たすでしょうか?
+    (ここで、2つの型が異なるとは、その記述が異なることとします。
+    たとえ両者が相互にサブタイプであってもです。
+    例えば、[{x:A,y:B}] と [{y:B,x:A}] は異なります。)
 
 
 []
