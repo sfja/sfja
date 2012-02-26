@@ -1364,32 +1364,48 @@ Import Examples.
 End Examples2.
 
 (* ###################################################################### *)
-(** * Properties *)
+(* * Properties *)
+(** * 性質 *)
 
-(** The fundamental properties of the system that we want to check are
+(* The fundamental properties of the system that we want to check are
     the same as always: progress and preservation.  Unlike the
     extension of the STLC with references, we don't need to change the
     _statements_ of these properties to take subtyping into account.
     However, their proofs do become a little bit more involved. *)
+(** チェックしたいシステムの根本的性質はいつもと同じく、進行と保存です。
+    STLCに参照を拡張したものとは違い、サブタイプを考慮しても、これらの主張を変化させる必要はありません。
+    ただし、それらの証明はもうちょっと複雑になります。 *)
 
 (* ###################################################################### *)
-(** ** Inversion Lemmas for Subtyping *)
+(* ** Inversion Lemmas for Subtyping *)
+(** ** サブタイプの反転補題(Inversion Lemmas) *)
 
-(** Before we look at the properties of the typing relation, we need
+(* Before we look at the properties of the typing relation, we need
     to record a couple of critical structural properties of the subtype
     relation:
        - [Bool] is the only subtype of [Bool]
        - every subtype of an arrow type _is_ an arrow type. *)
+(** 型付け関係の性質を見る前に、サブタイプ関係の2つの重要な構造的性質を記しておかなければなりません:
+       - [Bool]は[Bool]の唯一のサブタイプです
+       - 関数型のすべてのサブタイプは関数型です *)
 
-(** These are called _inversion lemmas_ because they play the same
+(* These are called _inversion lemmas_ because they play the same
     role in later proofs as the built-in [inversion] tactic: given a
     hypothesis that there exists a derivation of some subtyping
     statement [S <: T] and some constraints on the shape of [S] and/or
     [T], each one reasons about what this derivation must look like to
     tell us something further about the shapes of [S] and [T] and the
     existence of subtype relations between their parts. *)
+(** これらは反転補題(_inversion lemmas_)と呼ばれます。これは、後の証明でもともとの
+    [inversion]タクティックと同じ役目をするためです。
+    つまり、サブタイプ関係の主張 [S <: T] の導出が存在するという仮定と、
+    [S]や[T]の形についてのいくつかの制約が与えられたとき、
+    それぞれの補題は、[S]と[T]の形、および両者の構成要素間のサブタイプ関係の存在について、
+    より多くのことが言えるためには、
+    [S <: T] の導出がどういう形でなければならないかを提示するからです。 *)
 
-(** **** Exercise: 2 stars, optional (sub_inversion_Bool) *)
+(* **** Exercise: 2 stars, optional (sub_inversion_Bool) *)
+(** **** 練習問題: ★★, optional (sub_inversion_Bool) *)
 Lemma sub_inversion_Bool : forall U,
      subtype U ty_Bool ->
        U = ty_Bool.
@@ -1398,7 +1414,8 @@ Proof with auto.
   remember ty_Bool as V.
   (* FILL IN HERE *) Admitted.
 
-(** **** Exercise: 3 stars, optional (sub_inversion_arrow) *)
+(* **** Exercise: 3 stars, optional (sub_inversion_arrow) *)
+(** **** 練習問題: ★★★, optional (sub_inversion_arrow) *)
 Lemma sub_inversion_arrow : forall U V1 V2,
      subtype U (ty_arrow V1 V2) ->
      exists U1, exists U2,
@@ -1413,9 +1430,10 @@ Proof with eauto.
 (** [] *)
 
 (* ########################################## *)
-(** ** Canonical Forms *)
+(* ** Canonical Forms *)
+(** ** 正準形(Canonical Forms) *)
 
-(** We'll see first that the proof of the progress theorem doesn't
+(* We'll see first that the proof of the progress theorem doesn't
     change too much -- we just need one small refinement.  When we're
     considering the case where the term in question is an application
     [t1 t2] where both [t1] and [t2] are values, we need to know that
@@ -1437,8 +1455,28 @@ Proof with eauto.
     This bit of reasoning is packaged up in the following lemma, which
     tells us the possible "canonical forms" (i.e. values) of function
     type. *)
+(** 最初に、進行定理の証明はそれほど変わらないことを見ます。
+    1つだけ小さなリファインメントが必要です。
+    問題となる項が関数適用 [t1 t2] で[t1]と[t2]が両方とも値の場合を考えるとき、
+    [t1]がラムダ抽象の形をしており、
+    そのため[ST_AppAbs]簡約規則が適用できることを確認する必要があります。
+    もともとのSTLCでは、これは明らかです。
+    [t1]が関数型[T11->T12]を持ち、また、関数型の値を与える規則が1つだけ、
+    つまり規則[T_Abs]だけであり、そしてこの規則の結論部の形から、
+    [t1]は関数型にならざるを得ない、ということがわかります。
 
-(** **** Exercise: 3 stars, optional (canonical_forms_of_arrow_types) *)
+    サブタイプを持つSTLCにおいては、この推論はそのままうまく行くわけではありません。
+    その理由は、値が関数型を持つことを示すのに使える規則がもう1つあるからです。
+    包摂規則です。幸い、このことが大きな違いをもたらすことはありません。
+    もし [Gamma |- t1 : T11->T12] を示すのに使われた最後の規則が包摂規則だった場合、
+    導出のその前の部分で、同様に[t1]が主部(項の部分)である導出があり、
+    帰納法により一番最初には[T_Abs]が使われたことが推論できるからです。
+
+    推論のこの部分は次の補題にまとめられています。この補題は、関数型の可能な正準形
+    ("canonical forms"、つまり値)を示します。 *)
+
+(* **** Exercise: 3 stars, optional (canonical_forms_of_arrow_types) *)
+(** **** 練習問題: ★★★, optional (canonical_forms_of_arrow_types) *)
 Lemma canonical_forms_of_arrow_types : forall Gamma s T1 T2,
   has_type Gamma s (ty_arrow T1 T2) ->
   value s ->
@@ -1448,8 +1486,9 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** Similarly, the canonical forms of type [Bool] are the constants
+(* Similarly, the canonical forms of type [Bool] are the constants
     [true] and [false]. *)
+(** 同様に、型[Bool]の正準形は定数[true]と[false]です。 *)
 
 Lemma canonical_forms_of_Bool : forall Gamma s,
   has_type Gamma s ty_Bool ->
@@ -1465,13 +1504,16 @@ Qed.
 
 
 (* ########################################## *)
-(** ** Progress *)
+(* ** Progress *)
+(** ** 前進 *)
 
-(** The proof of progress proceeds like the one for the pure
+(* The proof of progress proceeds like the one for the pure
     STLC, except that in several places we invoke canonical forms
     lemmas... *)
+(** 前進性の証明は純粋なSTLCとほぼ同様に進みます。ただ何箇所かで正準形補題を使うことを除けば...
+    *)
 
-(** _Theorem_ (Progress): For any term [t] and type [T], if [empty |-
+(* _Theorem_ (Progress): For any term [t] and type [T], if [empty |-
     t : T] then [t] is a value or [t ==> t'] for some term [t'].
 
     _Proof_: Let [t] and [T] be given, with [empty |- t : T].  Proceed
@@ -1520,6 +1562,52 @@ Qed.
       result is exactly the induction hypothesis for the typing
       subderivation.
 *)
+(** 「定理」(前進): 任意の項[t]と型[T]について、
+    もし [empty |- t : T] ならば[t]は値であるか、ある項[t']について [t ==> t'] である。
+
+    「証明」:[t]と[T]が与えられ、[empty |- t : T] とする。
+    型付けの導出についての帰納法で進める。
+
+    (最後の規則が)[T_Abs]、[T_Unit]、[T_True]、[T_False]のいずれかの場合は、
+    自明である。なぜなら、関数抽象、[unit]、[true]、[false]は既に値だからである。
+    [T_Var]であることはありえない。なぜなら、変数は空コンテキストで型付けできないからである。
+    残るのはより興味深い場合である:
+
+    - 型付け導出の最後のステップで規則[T_App]が使われた場合、
+      項[t1]、[t2]と型[T1]、[T2]が存在して [t = t1 t2]、[T = T2]、
+      [empty |- t1 : T1 -> T2]、[empty |- t2 : T1] となる。
+      さらに帰納法の仮定から、[t1]は値であるかステップを進めることができ、
+      [t2]も値であるかステップを進めることができる。
+      このとき、3つの場合がある:      
+
+      - ある項 [t1'] について [t1 ==> t1'] とする。このとき[ST_App1]より
+        [t1 t2 ==> t1' t2] である。
+
+      - [t1]が値であり、ある項[t2']について [t2 ==> t2'] とする。
+        このとき規則[ST_App2]より [t1 t2 ==> t1 t2'] となる。なぜなら
+        [t1]が値だからである。
+      
+      - 最後に[t1]と[t2]がどちらも値とする。補題[canonical_forms_for_arrow_types]
+        より、[t1]はある[x]、[S1]、[s2]について[\x:S1.s2]という形である。
+        しかしすると[t2]が値であることから、
+        [ST_AppAbs]より [(\x:S1.s2) t2 ==> [t2/x]s2] となる。
+
+    - 導出の最後のステップで規則[T_If]が使われた場合、項[t1]、[t2]、[t3]があって
+      [t = if t1 then t2 else t3] となり、
+      [empty |- t1 : Bool] かつ [empty |- t2 : T] かつ [empty |- t3 : T] である。
+      さらに、帰納法の仮定より[t1]は値であるかステップを進めることができる。
+
+       - もし[t1]が値ならば、ブール値についての正準形補題より [t1 = true] または
+         [t1 = false] である。どちらの場合でも、規則[ST_IfTrue]または[ST_IfFalse]
+         を使うことによって[t]はステップを進めることができる。
+
+       - もし[t1]がステップを進めることができるならば、
+         規則[ST_If]より[t]もまたステップを進めることができる。
+
+    - 導出の最後のステップが規則[T_Sub]による場合、型[S]があって [S <: T] かつ
+      [empty |- t : S] となっている。
+      求める結果は型付け導出の帰納法の仮定そのものである。
+*)
 
 Theorem progress : forall t T,
      has_type empty t T ->
@@ -1557,9 +1645,10 @@ Proof with eauto.
 Qed.
 
 (* ########################################## *)
-(** ** Inversion Lemmas for Typing *)
+(* ** Inversion Lemmas for Typing *)
+(** ** 型付けの反転補題 *)
 
-(** The proof of the preservation theorem also becomes a little more
+(* The proof of the preservation theorem also becomes a little more
     complex with the addition of subtyping.  The reason is that, as
     with the "inversion lemmas for subtyping" above, there are a
     number of facts about the typing relation that are "obvious from
@@ -1572,8 +1661,19 @@ Qed.
     derivation of some typing statement [Gamma |- \x:S1.t2 : T] whose
     subject is an abstraction, then there must be some subderivation
     giving a type to the body [t2]. *)
+(** 保存定理の証明はサブタイプを追加したことでやはり少し複雑になります。
+    その理由は、上述の「サブタイプの反転補題」と同様に、純粋なSTLCでは「定義から自明」
+    であった(したがって[inversion]タクティックからすぐに得られた)のに、
+    サブタイプがあることで本当の証明が必要になった、
+    型付け関係についてのいくつもの事実があるからです。
+    サブタイプがある場合、同じ[has_type]の主張を導出するのに複数の方法があるのです。
 
-(** _Lemma_: If [Gamma |- \x:S1.t2 : T], then there is a type [S2]
+    以下の「反転補題」("inversion lemma")は、
+    もし、関数抽象の型付け主張 [Gamma |- \x:S1.t2 : T] 
+    の導出があるならば、その導出の中に本体[t2]の型を与える部分が含まれている、
+    ということを言うものです。 *)
+
+(* _Lemma_: If [Gamma |- \x:S1.t2 : T], then there is a type [S2]
     such that [Gamma, x:S1 |- t2 : S2] and [S1 -> S2 <: T].
 
     (Notice that the lemma does _not_ say, "then [T] itself is an arrow
@@ -1595,6 +1695,28 @@ Qed.
        some type [S2] with [S1 -> S2 <: S] and [Gamma, x:S1 |- t2 :
        S2].  Picking type [S2] gives us what we need, since [S1 -> S2
        <: T] then follows by [S_Trans]. *)
+(** 「補題」: もし [Gamma |- \x:S1.t2 : T] ならば、
+    型[S2]が存在して [Gamma, x:S1 |- t2 : S2] かつ [S1 -> S2 <: T] となる。
+
+    (この補題は「[T]はそれ自身が関数型である」とは言っていないことに注意します。
+    そうしたいところですが、それは成立しません!)
+
+    「証明」:[Gamma]、[x]、[S1]、[t2]、[T]を補題の主張に記述された通りとする。
+    [Gamma |- \x:S1.t2 : T] の導出についての帰納法で証明する。
+    [T_Var]と[T_App]の場合はあり得ない。
+    これらは構文的に関数抽象の形の項に型を与えることはできないからである。
+
+     - 導出の最後のステップ使われた規則が[T_Abs]の場合、型[T12]が存在して
+       [T = S1 -> T12] かつ [Gamma,x:S1 |- t2 : T12] である。 
+       [S2]として[T12]をとると、[S_Refl]より [S1 -> T12 <: S1 -> T12] となり、
+       求める性質が成立する。
+
+     - 導出の最後のステップ使われた規則が[T_Sub]の場合、型[S]が存在して
+       [S <: T] かつ [Gamma |- \x:S1.t2 : S] となる。
+       型付け導出の帰納仮定より、型[S2]が存在して
+       [S1 -> S2 <: S] かつ [Gamma, x:S1 |- t2 : S2] である。
+       この[S2]を採用すれば、
+       [S1 -> S2 <: T] であるから[S_Trans]より求める性質が成立する。 *)
 
 Lemma typing_inversion_abs : forall Gamma x S1 t2 T,
      has_type Gamma (tm_abs x S1 t2) T ->
@@ -1611,7 +1733,8 @@ Proof with eauto.
     destruct IHhas_type as [S2 [Hsub Hty]]...
   Qed.
 
-(** Similarly... *)
+(* Similarly... *)
+(** 同様に... *)
 
 Lemma typing_inversion_var : forall Gamma x T,
   has_type Gamma (tm_var x) T ->
@@ -1687,9 +1810,12 @@ Proof with eauto.
 Qed.
 
 
-(** The inversion lemmas for typing and for subtyping between arrow
+(* The inversion lemmas for typing and for subtyping between arrow
     types can be packaged up as a useful "combination lemma" telling
     us exactly what we'll actually require below. *)
+(** 型付けについての反転補題と関数型の間のサブタイプの反転補題は「結合補題」
+    ("combination lemma")としてまとめることができます。
+    この補題は以下で実際に必要になるものを示します。 *)
 
 Lemma abs_arrow : forall x S1 s2 T1 T2,
   has_type empty (tm_abs x S1 s2) (ty_arrow T1 T2) ->
@@ -1704,10 +1830,12 @@ Proof with eauto.
   inversion Heq; subst...  Qed.
 
 (* ########################################## *)
-(** ** Context Invariance *)
+(* ** Context Invariance *)
+(** ** コンテキスト不変性 *)
 
-(** The context invariance lemma follows the same pattern as in the
+(* The context invariance lemma follows the same pattern as in the
     pure STLC. *)
+(** コンテキスト不変性補題は、純粋のSTLCと同じパターンをとります。 *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -1768,14 +1896,19 @@ Proof with eauto.
     rewrite H2 in Hctx...  Qed.
 
 (* ########################################## *)
-(** ** Substitution *)
+(* ** Substitution *)
+(** ** 置換 *)
 
-(** The _substitution lemma_ is proved along the same lines as for the
+(* The _substitution lemma_ is proved along the same lines as for the
     pure STLC.  The only significant change is that there are several
     places where, instead of the built-in [inversion] tactic, we use
     the inversion lemmas that we proved above to extract structural
     information from assumptions about the well-typedness of
     subterms. *)
+(** 置換補題(_substitution lemma_)は純粋なSTLCと同じ流れで証明されます。
+    唯一の大きな変更点は、いくつかの場所で、
+    部分項が型を持つことについての仮定から構造的情報を抽出するために、
+    Coqの[inversion]タクティックを使う代わりに上で証明した反転補題を使うことです。 *)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      has_type (extend Gamma x U) t S  ->
@@ -1840,14 +1973,18 @@ Proof with eauto.
 Qed.
 
 (* ########################################## *)
-(** ** Preservation *)
+(* ** Preservation *)
+(** ** 保存 *)
 
-(** The proof of preservation now proceeds pretty much as in earlier
+(* The proof of preservation now proceeds pretty much as in earlier
     chapters, using the substitution lemma at the appropriate point
     and again using inversion lemmas from above to extract structural
     information from typing assumptions. *)
+(** (型の)保存の証明は以前の章とほとんど同じです。適切な場所で置換補題を使い、
+    型付け仮定から構造的情報を抽出するために上述の反転補題をまた使います。
+    *)
 
-(** _Theorem_ (Preservation): If [t], [t'] are terms and [T] is a type
+(* _Theorem_ (Preservation): If [t], [t'] are terms and [T] is a type
     such that [empty |- t : T] and [t ==> t'], then [empty |- t' :
     T].
 
@@ -1896,6 +2033,50 @@ Qed.
        is a type [S] such that [S <: T] and [empty |- t : S].  The
        result is immediate by the induction hypothesis for the typing
        subderivation and an application of [T_Sub].  [] *)
+(** 「定理」(保存)： [t]、[t']が項で[T]が型であり、[empty |- t : T] かつ [t ==> t']
+    ならば、[empty |- t' : T] である。
+
+    「証明」:[t] と [T] が [empty |- t : T] であるとする。
+    証明は、[t']を特化しないまま型付け導出の構造に関する帰納法で進める。
+    (最後の規則が)[T_Abs]、[T_Unit]、[T_True]、[T_False]の場合は考えなくて良い。
+    なぜなら関数抽象と定数はステップを進めないからである。
+    [T_Var]も考えなくて良い。なぜならコンテキストが空だからである。
+
+     - もし導出の最後のステップの規則が[T_App]ならば、
+       項[t1] [t2] と型 [T1] [T2] が存在して、[t = t1 t2]、[T = T2]、
+       [empty |- t1 : T1 -> T2]、[empty |- t2 : T1] である。
+
+       ステップ関係の定義から、[t1 t2] がステップする方法は3通りである。
+       [ST_App1]と[ST_App2]の場合、
+       型付け導出の帰納仮定と[T_App]より求める結果がすぐに得られる。
+
+       [t1 t2] のステップが [ST_AppAbs] によるとする。
+       するとある型[S]と項[t12]について [t1 = \x:S.t12] であり、かつ
+       [t' = [t2/x]t12] である。
+
+       補題[abs_arrow]より、[T1 <: S] かつ [x:S1 |- s2 : T2] となる。
+       すると置換補題([substitution_preserves_typing])より、
+       [empty |- [t2/x]t12 : T2] となるがこれが求める結果である。
+
+      - もし導出の最後のステップで使う規則が[T_If]ならば、
+        項[t1]、[t2]、[t3]が存在して [t = if t1 then t2 else t3] かつ
+        [empty |- t1 : Bool] かつ [empty |- t2 : T] かつ [empty |- t3 : T]
+        となる。さらに帰納法の仮定より、もし[t1]がステップして[t1']に進むならば
+        [empty |- t1' : Bool] である。
+        [t ==> t'] を示すために使われた規則によって、3つの場合がある。 
+
+           - [t ==> t'] が規則[ST_If]による場合、
+             [t' = if t1' then t2 else t3] かつ [t1 ==> t1'] となる。
+             帰納法の仮定より [empty |- t1' : Bool] となり、
+             これから[T_If]より [empty |- t' : T] となる。
+
+           - [t ==> t'] が規則[ST_IfTrue]または[ST_IfFalse]による場合、
+             [t' = t2] または [t' = t3] であり、仮定から [empty |- t' : T]
+             となる。
+
+     - もし導出の最後のステップで使う規則が[T_Sub]ならば、
+       型[S]が存在して [S <: T] かつ [empty |- t : S] となる。
+       型付け導出についての帰納法の仮定と[T_Sub]の適用から結果がすぐに得られる。 [] *)
 
 Theorem preservation : forall t t' T,
      has_type empty t T  ->
@@ -1915,10 +2096,12 @@ Proof with eauto.
 Qed.
 
 (* ###################################################### *)
-(** ** Exercises on Typing *)
+(* ** Exercises on Typing *)
+(** ** 型付けの練習問題 *)
 
-(** **** Exercise: 2 stars (variations) *)
-(** Each part of this problem suggests a different way of
+(* **** Exercise: 2 stars (variations) *)
+(** **** 練習問題: ★★ (variations) *)
+(* Each part of this problem suggests a different way of
     changing the definition of the STLC with Unit and
     subtyping.  (These changes are not cumulative: each part
     starts from the original language.)  In each part, list which
@@ -1974,12 +2157,68 @@ Qed.
 
 []
 *)
+(** この問題の各部分は、Unitとサブタイプを持つSTLCの定義を変更する別々の方法を導きます。
+    (これらの変更は累積的ではありません。各部分はいずれも元々の言語から始まります。)
+    各部分について、(前進、保存の)性質のうち偽になるものをリストアップしなさい。
+    偽になる性質について、反例を示しなさい。
+    - 次の型付け規則を追加する:
+[[
+                            Gamma |- t : S1->S2
+                    S1 <: T1      T1 <: S1     S2 <: T2
+                    -----------------------------------              (T_Funny1)
+                            Gamma |- t : T1->T2
+]]
+
+    - 次の簡約規則を追加する:
+[[
+                             ------------------                     (ST_Funny21)
+                             unit ==> (\x:Top. x)
+]]
+
+    - 次のサブタイプ規則を追加する:
+[[
+                               --------------                        (S_Funny3)
+                               Unit <: Top->Top
+]]
+
+    - 次のサブタイプ規則を追加する:
+[[
+                               --------------                        (S_Funny4)
+                               Top->Top <: Unit
+]]
+
+    - 次の評価規則を追加する:
+[[
+                             -----------------                      (ST_Funny5)
+                             (unit t) ==> (t unit)
+]]
+
+    - 上と同じ評価規則と新たな型付け規則を追加する:
+[[
+                             -----------------                      (ST_Funny5)
+                             (unit t) ==> (t unit)
+
+                           ----------------------                    (T_Funny6)
+                           empty |- Unit : Top->Top
+]]
+
+    - 関数型のサブタイプ規則を次のものに変更する:
+[[
+                          S1 <: T1       S2 <: T2
+                          -----------------------                    (S_Arrow')
+                               S1->S2 <: T1->T2
+]]
+
+[]
+*)
 
 (* ###################################################################### *)
-(** * Exercise: Adding Products *)
+(* * Exercise: Adding Products *)
+(** * 練習問題: 直積の追加 *)
 
-(** **** Exercise: 4 stars, optional (products) *)
-(** Adding pairs, projections, and product types to the system we have
+(* **** Exercise: 4 stars, optional (products) *)
+(** **** 練習問題: ★★★★, optional (products) *)
+(* Adding pairs, projections, and product types to the system we have
     defined is a relatively straightforward matter.  Carry out this
     extension:
 
@@ -2004,5 +2243,27 @@ Qed.
     - Extend the proofs of progress, preservation, and all their
       supporting lemmas to deal with the new constructs.  (You'll also
       need to add some completely new lemmas.)  []
+*)
+(** 定義したシステムに対、射影、直積型を追加することは比較的簡単な問題です。
+    次の拡張を行いなさい:
+
+    - [ty]と[tm]の定義に、対のコンストラクタ、第1射影、第2射影、直積型を追加しなさい。
+      ([ty_cases]と[tm_cases]に対応する場合を追加することを忘れないこと。)
+
+    - 自明な方法で、well-formedness 関係を拡張しなさい。
+
+    - 操作的意味に前の章と同様の簡約規則を拡張しなさい。
+
+    - サブタイプ関係に次の規則を拡張しなさい:
+[[
+                        S1 <: T1     S2 <: T2
+                        ---------------------                     (Sub_Prod)
+                          S1 * S2 <: T1 * T2
+]]
+    - 型付け関係に、前の章と同様の、対と射影の規則を拡張しなさい。
+
+    - 前進および保存の証明、およびそのための補題を、
+      新しい構成要素を扱うように拡張しなさい。
+      (完全に新しいある補題を追加する必要もあるでしょう。) []
 *)
 
