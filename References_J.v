@@ -2397,13 +2397,13 @@ Qed.
 
 (* ################################### *)
 (* ** Progress *)
-(** ** 前進 *)
+(** ** 進行 *)
 
 (* Fortunately, progress for this system is pretty easy to prove; the
     proof is very similar to the proof of progress for the STLC, with
     a few new cases for the new syntactic constructs. *)
-(** 幸いにも、このシステムの前進はかなり簡単に証明できます。
-    証明は、STLCの前進の証明とほとんど同じです。
+(** 幸いにも、このシステムの進行はかなり簡単に証明できます。
+    証明は、STLCの進行の証明とほとんど同じです。
     いくつかの新しい構文要素について新しい場合を追加するだけです。 *)
 
 Theorem progress : forall ST t T st,
