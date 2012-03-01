@@ -1,4 +1,4 @@
-(** * Logic_J : Coqの論理 *)
+(** * Logic_J : Coqにおける論理 *)
 (* * Logic: Logic in Coq *)
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
@@ -12,8 +12,8 @@ Require Export "Prop_J".
     even equality -- can be defined using just these. *)
 (**
    Coqの組み込み論理は非常に小さく、帰納的定義([Inductive])、
-   全称記号([forall])、ならば([->])だけです。その他の論理演算子(
-   かつ、または、否定、存在量化子、等号)は組み込みのものから
+   全称記号([forall])、ならば([->])だけです。しかしそれ以外の論理演算子(
+   かつ、または、否定、存在量化子、等号など)はこれら組み込みのものから
    定義できます。
 *)
 
@@ -26,8 +26,9 @@ Require Export "Prop_J".
     notation is more general, because it allows us to _name_ the
     hypothesis. *)
 (**
-   実は、[->]と[forall]は 同じものです! Coqの[->]記法は[forall]の
-   短縮記法です。[forall]記法の方がより一般的で、仮定に名前をつけることができます。
+   実は、[->] と [forall] は 同じものです! Coqの [->] 記法は [forall] の
+   短縮記法に過ぎません。仮定に名前をつけることができることから、
+   [forall]記法の方がより一般的に使われます。
 *)
 
 (* For example, consider this proposition: *)
@@ -42,42 +43,49 @@ Definition funny_prop1 := forall n, forall (E : ev n), ev (n+4).
     bother making up a name.  We could write it like this instead: *)
 
 (**
-   もしもこの命題の証明項があったら、それは二つの引数を持つ関数になるでしょう。
-   数字[n]と[n]が偶数であることの証拠[E]を引数として持ちます。
-   でも証拠となる[E]は[funny_prop1]の中では使われていません。
-   なので[E]という名前をつけることはちょっと無意味です。
-   この場合、次のように書くこともできます。
+   もしもこの命題を含む証明項があったら、その中でこの命題は二つの引数
+   （一つは、数字[n]、もう一つは[n]が偶数であることの根拠[E]）を持つ
+   関数になっているはずです。
+   しかし根拠となる[E]は[funny_prop1]の中では使われていませから、これに
+   わざわざ [E] という名前をつけることはちょっと無意味です。
+   このような場合は、次のように書くこともできます。
 *)
 
 Definition funny_prop1' := forall n, forall (_ : ev n), ev (n+4).
 
 (* Or we can write it in more familiar notation: *)
-(** また、より親しみ深い記法で次のようにも書けます。 *)
+(** また、より親しみ深い記法では次のようにも書けます。 *)
 
 Definition funny_prop1'' := forall n, ev n -> ev (n+4).
 
 (* This illustrates that "[P -> Q]" is just syntactic sugar for
     "[forall (_:P), Q]". *)
 
-(** これはつまり "[P -> Q]" は単に "[forall (_:P), Q]" の構文糖衣であるということです。 *)
-
-    
+(** これはつまり "[P -> Q]" は単に "[forall (_:P), Q]" の糖衣構文に過ぎないと
+いうことを示しています。 *)
 
 (* ########################################################### *)
-(** * Conjunction *)
+(*  * Conjunction *)
+(** * 論理積（Conjunction、AND） *)
 
-(** The logical conjunction of propositions [P] and [Q] is
+(*  The logical conjunction of propositions [P] and [Q] is
     represented using an [Inductive] definition with one
     constructor. *)
+(** 
+    命題論理積 [P] と [Q] の論理積は、コンストラクタを一つしか持たない
+     [Inductive] を使った定義で表せます。 *)
 
 Inductive and (P Q : Prop) : Prop :=
   conj : P -> Q -> (and P Q).
 
-(** Note that, like the definition of [ev] in the previous
+(*  Note that, like the definition of [ev] in the previous
     chapter, this definition is parameterized; however, in this case,
     the parameters are themselves propositions, rather than numbers. *)
+(** 注意してほしいのは、前の章で取り上げた関数 [ev] の定義と同様に、
+    この定義もパラメータ化された命題になっていますが、この場合はパラメータ
+    が数値ではなく命題である、ということです。 *)
 
-(** The intuition behind this definition is simple: to
+(*  The intuition behind this definition is simple: to
     construct evidence for [and P Q], we must provide evidence
     for [P] and evidence for [Q].  More precisely:
 
@@ -92,21 +100,36 @@ Inductive and (P Q : Prop) : Prop :=
    Since we'll be using conjunction a lot, let's introduce a more
    familiar-looking infix notation for it. *)
 
+(** この定義の内容を直感的に理解するのに、そうややこしく考える必要はありません。
+    [and P Q] に根拠を与えるには、[P] の根拠と [Q] の根拠が必要
+    だということです。もっと細かく言えば、
+
+    - もし [p] が [P] の根拠で、[q] が [Q] の根拠であるなら、[conj p q] は [and P Q] の根拠となり得る。
+
+    - これは [and P Q] に根拠を与える唯一の方法である。というこは、もし [and P Q] の根拠が得られたならば、[p] を [P] の根拠とし、 [q] を [Q] の根拠とした上で [conj p q] が得られるということです。
+
+   ここまでさんざん論理積（conjunction）という言葉を使ってきましたが、ここで
+   もっと馴染みのある、中置の記法を導入することにしましょう。 *)
+
 Notation "P /\ Q" := (and P Q) : type_scope.
 
-(** (The [type_scope] annotation tells Coq that this notation
+(*  (The [type_scope] annotation tells Coq that this notation
     will be appearing in propositions, not values.) *)
+(** （[type_scope] という注釈は、Coqに対しこの記法が値にではなく、
+    命題に現れるものであることを伝えまています。） *)
 
-(** Consider the "type" of the constructor [conj]: *)
+(*  Consider the "type" of the constructor [conj]: *)
+(** コンストラクタ [conj] の型はどのようなものか考えてみましょう。 *)
 
 Check conj.
 (* ===>  forall P Q : Prop, P -> Q -> P /\ Q *)
 
-(** Notice that it takes 4 inputs -- namely the propositions [P]
+(*  Notice that it takes 4 inputs -- namely the propositions [P]
     and [Q] and evidence for [P] and [Q] -- and returns as output the
     evidence of [P /\ Q]. *)
+(** conjが四つの引数 -- [P] 、[Q] という命題と、[P] 、[Q] の根拠 -- をとることに注目して下さい。 *)
 
-(** Besides the elegance of building everything up from a tiny
+(*  Besides the elegance of building everything up from a tiny
     foundation, what's nice about defining conjunction this way is
     that we can prove statements involving conjunction using the
     tactics that we already know.  For example, if the goal statement
@@ -115,6 +138,16 @@ Check conj.
     solves the current goal and leaves the two parts of the
     conjunction as subgoals to be proved separately. *)
 
+(** 
+    基本的なことから色々なことを組み立てていくエレガントさはさておき、
+    このような方法でconjunctionを定義することの利点は、これを含む
+    文を、既に知っているタクティックで証明できることです。
+    例えば、もしゴールが論理積を含んでいる場合、このたった一つの
+    コンストラクタ[conj]を適用するだけで証明できます。
+    それは、[conj]の型を見ても分かるように現在のゴールを解決してから
+    conjunctionの二つの部分を別々に証明するべきサブゴールにします。
+ *)
+
 Theorem and_example :
   (ev 0) /\ (ev 4).
 Proof.
@@ -122,7 +155,8 @@ Proof.
   (* Case "left". *) apply ev_0.
   (* Case "right". *) apply ev_SS. apply ev_SS. apply ev_0.  Qed.
 
-(** Let's take a look at the proof object for the above theorem. *)
+(*  Let's take a look at the proof object for the above theorem. *)
+(** 上の定理の証明オブジェクトをよく観察してみてください。 *)
 
 Print and_example.
 (* ===>  conj (ev 0) (ev 4) ev_0 (ev_SS 2 (ev_SS 0 ev_0))

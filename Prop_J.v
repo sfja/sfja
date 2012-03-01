@@ -307,7 +307,7 @@ Proof. apply gd_sun. Qed.
 
 (* The constructor [gd_sun] is "primitive evidence" -- an _axiom_ --
     justifying the claim that Sunday is good. *)
-(** コンストラクタ[gd_sun」は、日曜日が良いという主張を正当化する"素朴(primitive)な根拠"、つまり公理です。*)
+(** コンストラクタ[gd_sun]は、日曜日が良いという主張を正当化する"素朴(primitive)な根拠"、つまり公理です。*)
 
 (* Similarly, we can define a proposition [day_before]
     parameterized by _two_ days, together with axioms stating that
@@ -1209,7 +1209,7 @@ Proof.
   Case "E = ev_0". simpl. apply ev_0.
   Case "E = ev_SS n' E'". simpl. apply E'.  Qed.
 
-(** **** Exercise: 1 star (ev_minus2_n) *)
+(*  **** Exercise: 1 star (ev_minus2_n) *)
 (** **** 練習問題: ★ (ev_minus2_n) *)
 
 (* What happens if we try to [destruct] on [n] instead of [E]? *)
@@ -1239,8 +1239,8 @@ Proof.
     see how to prove it in the next chapter.) *)
 (** (もちろん、 [even n -> ev n] も成り立つはずです。 どのように証明するかは次の章で説明します。) *)
 
-(** **** 練習問題: ★ (ev_even_n) *)
 (* **** Exercise: 1 star (ev_even_n) *)
+(** **** 練習問題: ★ (ev_even_n) *)
 (** *)
 
 (** この証明を [E] でなく [n] に対する帰納法として実施できますか? *)
@@ -1260,11 +1260,8 @@ Proof.
     今の段階では、根拠 [ev n] に対する帰納法は [n] に対する帰納法に似ているが、 [ev n] が成立する数についてのみ着目することができると直感的に理解しておいて問題ありません。
     [ev] の帰納法の原理をもっと深く見て行き、実際に何を起こっているかを説明します。*)
 
-(** **** 練習問題: ★ (l_fails) *)
-(** **** Exercise: 1 star (l_fails) *)
-
-(** **** 練習問題: ★ (l_fails) *)
 (* **** Exercise: 1 star (l_fails) *)
+(** **** 練習問題: ★ (l_fails) *)
 (* The following proof attempt will not succeed.[[
 
      Theorem l : forall n,
@@ -1280,7 +1277,7 @@ Proof.
 (* FILL IN HERE *)
 *)
 
-(** 次の証明はうまくいきません。
+(** 次の証明はうまくいきません。 [[
 
      Theorem l : forall n,
        ev n.
@@ -1513,10 +1510,10 @@ Inductive MyProp : nat -> Prop :=
 (** [MyProp]の非形式的な定義の最初の3つの節は、帰納的な定義の最初の3つの節に反映されています。
     4つ目の節は、[Inductive]キーワードによって強制されます。
 *)
+(* As we did with evenness, we can now construct evidence that
+    certain numbers satisfy [MyProp]. *)
 (** これで、偶数のときにやったように、ある数が [MyProp] を満たすことの根拠を作ることができます。  *)
 
-(** As we did with evenness, we can now construct evidence that
-    certain numbers satisfy [MyProp]. *)
 
 Theorem MyProp_ten : MyProp 10.
 Proof.
@@ -1531,8 +1528,8 @@ Proof.
   apply MyProp2.
   apply MyProp1.   Qed.
 
-(** **** 練習問題: ★★ (MyProp) *)
 (* **** Exercise: 2 stars (MyProp) *)
+(** **** 練習問題: ★★ (MyProp) *)
 (* Here are two useful facts about MyProp.  The proofs are left
     to you. *)
 (** MyPropに関する便利な2つの事実があります。 
@@ -1547,7 +1544,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** With these, we can show that [MyProp] holds of all even numbers,
+(*  With these, we can show that [MyProp] holds of all even numbers,
     and vice versa. *)
 (** これらをつかって、 [MyProp]は全ての奇数について成り立つことと、その逆も成り立つをことを示せます。 *)
 
@@ -1885,12 +1882,13 @@ Proof.
       - 関数を引数にしたり、関数を戻り値にしたりする高階関数を書くこと。
       - 関数をコンストラクタに適用し、関数を保持したさらに複雑な値を作り出すこと。
 
-    [Prop] 型を扱う [P->Q] という型の関数は、根拠 [P] を引数にとり、新たな根拠 [Q] を結果として生成するものです。このような関数はそれ自身が「[P] ならば [Q] である」ということの根拠であると見なせます。そのことから、[P] が真であるという根拠があるなら、それを関数に適用して [Q] が真であるという根拠を得ることができます。含意に根拠を与えるということは、関数に根拠を与えると言うことと同じです。このことが、我々がCoqで関数と論理学の「含意」に同じ表記を与えている理由です。これらは全く同じものなのです。 *)
+    [Prop] 型を扱う [P->Q] という型の関数は、根拠 [P] を引数にとり、新たな根拠 [Q] を結果として生成するものです。このような関数はそれ自身が「[P] ならば [Q] である」ということの根拠であると見なせます。そのことから、[P] が真であるという根拠があるなら、それを関数に適用して [Q] が真であるという根拠を得ることができます。含意に根拠を与えるということは、関数に根拠を与えるということと同じです。このことが、我々がCoqで関数と論理学の「含意」に同じ表記を与えている理由です。これらは全く同じものなのです。 *)
 
 (* ####################################################### *)
-(** * Informal Proofs *)
+(*  * Informal Proofs *)
+(** * 非形式的な証明 *)
 
-(** Q: What is the relation between a formal proof of a proposition
+(*  Q: What is the relation between a formal proof of a proposition
        [P] and an informal proof of the same proposition [P]?
 
     A: The latter should _teach_ the reader how to produce the
@@ -1899,7 +1897,7 @@ Proof.
     Q: How much detail is needed?
 
     A: There is no single right answer; rather, there is a range
-       of choices.
+       of choices.  
 
       At one end of the spectrum, we can essentially give the
       reader the whole formal proof (i.e., the informal proof
@@ -1922,17 +1920,34 @@ Proof.
       routine parts to save the reader from spending too much
       time reconstructing these parts (e.g., what the IH says and
       what must be shown in each case of an inductive proof), but
-      not so much detail that the main ideas are obscured.
+      not so much detail that the main ideas are obscured. 
 
    Another key point: if we're talking about a formal proof of a
    proposition P and an informal proof of P, the proposition P doesn't
    change.  That is, formal and informal proofs are _talking about the
    same world_ and they must _play by the same rules_. *)
+(** Q: 命題 [P] の形式的な証明と、同じ命題 [P] の非形式的な証明の間にはどのような関係があるのでしょうか？
+
+    A: 後者は、読む人に「どのように非形式的な証明を導くか」を示すようなものとなっているべきです。
+
+    Q: どの程度細かく書く必要があるのですか？
+
+    A: この問いに唯一と言えるような解答はありません。回答には選択の幅があります。
+
+      その範囲の片方の端は、読み手にただ形式的な証明全体を与えればよいという考えです。つまり非形式的な証明は、形式的な証明をただ単に普通の言葉で書き換えただけ	、ということです。この方法は、読み手に形式的な証明を書かせるための能力を与えることはできますが、それについて何かも「教えてくれる」訳ではありません。
+
+      これに対しもう一方の端は、「その定理は真で、なぜあなたがそう考えたかが事細かに示されている」ような記述です。この方法も、「教える」ということに関してはあまりいいやり方とはいえません。なぜなら、証明を記述するときはいつも、今証明しようとしているものの奥深くにまで目を向け考えることが必要とされますが、細かく書きすぎると証明を読む側の人の多くは自分自身の力で同じ思考にたどり着くことなく、あきらめて証明の記述に頼ってしまうでしょう。
+
+      一番の答えはその中間にあります。全ての要点をかいつまんだ証明というのは、「かつてあなたが証明をしたときに非常に苦労した部分について、読む人が同じ苦労をしなくて済むようになっている」ようなものです。そしてまた、読み手が同じような苦労を何時間もかけてする必要がないよう、証明の中で使える部品などを高度に示唆するものでなければなりません（例えば、仮定 IH が何を言っているかや、帰納的な証明のどの部分に現れるかなど）。しかし、詳細が少なすぎると、証明の主要なアイデアがうまく伝わりません。
+
+   もう一つのキーポイント：もし我々が命題 P の形式的な証明と非形式的な証明について話しているならば、命題 P 自体は何も変わりません。このことは、形式的な証明も非形式的な証明も、同じ「世界」について話をしていて、同じルールに基づいていなければならない、と言うことを意味しています。
+ *)
 
 (* ####################################################### *)
-(** ** Informal Proofs by Induction *)
+(*  ** Informal Proofs by Induction *)
+(** ** 帰納法による非形式的な証明 *)
 
-(** Since we've spent much of this chapter looking "under the hood" at
+(*  Since we've spent much of this chapter looking "under the hood" at
     formal proofs by induction, now is a good moment to talk a little
     about _informal_ proofs by induction.
 
@@ -1949,9 +1964,15 @@ Proof.
     [Prop]).  In the rest of this course, please follow one of the two
     for _all_ of your inductive proofs. *)
 
-(** *** Induction Over an Inductively Defined Set *)
+(** ここまで、我々は「帰納法を使った形式的な証明の舞台裏」を覗くことにずいぶん章を割いてきました。そろそろ「帰納法を使った非形式的な証明」に話を向けてみましょう。
 
-(** _Template_:
+    現実世界の数学的な事柄をやりとりするた記述された証明を見てみると、極端に風呂敷が広く衒学的なものから、逆に短く簡潔すぎるものまで様々です。理想的なものはその間のとこかにあります。もちろん、じぶんなりのスタイルを見つけるまでは、衒学的なスタイルから始めてみるほうがいいでしょう。また、学習中には、標準的なテンプレートと比較してみることも、学習の一助になるでしょう。
+    このような考えから、我々は以下の二つのテンプレートを用意しました。一つは「データ」に対して（「型」に潜む帰納法な構造について）帰納法を適用したもの、もう一つは「命題」に対して（命題に潜む機能的な定義について）帰納法を適用したものです。このコースが終わるまでに、あなたが行った帰納的な証明の全てに、どちらかの方法を適用してみましょう。
+ *)
+
+(*  *** Induction Over an Inductively Defined Set *)
+(** *** 帰納的に定義された集合についての帰納法 *)
+(*  _Template_:
 
        - _Theorem_: <Universally quantified proposition of the form
          "For all [n:S], [P(n)]," where [S] is some inductively defined
@@ -1998,10 +2019,50 @@ Proof.
 ]]
           But this follows directly from the induction hypothesis,
           picking [n'] to be length [l'].  [] *)
+(** _Template_:
 
-(** *** Induction Over an Inductively Defined Proposition *)
+       - 定理: < "For all [n:S], [P(n)],"の形で全量子化された命題。ただし [S] は帰納的に定義された集合。>
 
-(** Since inductively defined proof objects are often called
+         証明: [n] についての帰納法で証明する。
+
+           <集合 [S] の各コンストラクタ [c] について...>
+
+           - [n = c a1 ... ak] と仮定して、<...もし必要なら [S} のそれぞれの要素 [a] についてIHであることをを示す。>ならば
+              <...ここで再び [P(c a1 ... ak)] を示す> である。
+
+             < [P(n)] を証明してこのケースを終わらせる...>
+
+           - <他のケースも同様に記述する...>                        []
+
+    _Example_:
+
+      - _Theorem_: 任意の集合 [X] 、リスト [l : list X]、 自然数 [n] について、
+          もし [length l = n] が成り立つなら、[index (S n) l = None] も成り立つ。
+
+        _Proof_: [l] についての帰納法で証明する。
+
+        - まず、[l = []] と仮定して、任意の [n] でこれが成り立つことを示す。もし length [[] = n] ならば [index (S n) [] = None] 。
+          これは indexの定義から直接導かれる 。
+
+        - 次に、 [x] と [l'] において [l = x :: l'] と仮定して、任意の [n'] について
+          [length l' = n'] ならば [index (S n') l' = None] である時、任意の [n] について、
+          もし [length (x::l') = n] ならば [index (S n) (x::l') = None] を示す。
+
+          [n] を [length l = n] となるような数とすると、
+[[
+            length l = length (x::l') = S (length l'),
+]]
+          これは以下の十分条件である。
+[[
+            index (S (length l')) l' = None.
+]]
+          しかしこれは仮定法の仮定から直接導かれる。
+          [l'] の length となるような [n'] を選択すればよい。  [] *)
+
+(*  *** Induction Over an Inductively Defined Proposition *)
+(** *** 帰納的に定義された命題についての帰納法 *)
+
+(*  Since inductively defined proof objects are often called
     "derivation trees," this form of proof is also known as _induction
     on derivations_.
 
@@ -2028,7 +2089,27 @@ Proof.
              <go on and prove [P] to finish the case...>
 
            - <other cases similarly...>                        []
+*)
+(** 帰納的に定義された証明オブジェクトは、しばしば”導出木”と呼ばれるため、この形の証明は「導出による帰納法（ _induction on derivations_ ）」として知られています。
 
+    _Template_:
+
+       - _Theorem_: <"[Q -> P]," という形を持った命題。ただし [Q] は帰納的に定義された命題 (さらに一般的には、"For all [x] [y] [z], [Q x y z -> P x y z]" という形の命題)>
+
+         _Proof_: [Q] の導出による帰納法で証明する。 <もしくは、さらに一般化して、" [x], [y], [z]を仮定して、[Q x y z] ならば [P x y z] を示す。[Q x y z]の導出による帰納法によって"...>
+
+           <各コンストラクタ [c] による値 [Q] について...>
+
+           - [Q] が [c] であることを示した最後のルールを仮定して、
+             <...ここで [a] の全ての型をコンストラクタの定義にある等式と
+             共に示し、型 [Q] を持つ [a] がIHであることをそれぞれ示す。>
+             ならば <...ここで再び [P] を示す> である。
+
+             <がんばって [P] を証明し、このケースを閉じる...>
+
+           - <他のケースも同様に...>                        []
+*)
+(* 
     _Example_
 
        - _Theorem_: The [<=] relation is transitive -- i.e., for all
@@ -2045,20 +2126,45 @@ Proof.
              By induction hypothesis, [n <= o'].
 
              But then, by [le_S], [n <= o].  [] *)
+(**  
+    _Example_
+
+       - _Theorem_: [<=] という関係は推移的である -- すなわち、任意の
+         数値 [n], [m], [o] について、もし [n <= m] と [m <= o] が成り立つ
+         ならば [n <= o] である。
+
+         _Proof_: [m <= o] についての帰納法で証明する。
+
+           -  [m <= o] が [le_n] であることを示した最後のルールを仮定する。
+              それにより [m = o] であることとその結果が直接導かれる。
+
+           - [m <= o] が [le_S] であることを示した最後のルールを仮定する。
+             それにより [m <= o'] を満たす [o'] について [o = S o'] が成り立つ。
+             帰納法の仮定法より [n <= o'] である。
+
+             従って[le_S] より [n <= o] である。  [] *)
 
 (* ##################################################### *)
-(** * Optional Material *)
+(*  * Optional Material *)
+(** * できればやっておいてもらいたいこと *)
 
-(** This section offers some additional details on how induction works
+(*  This section offers some additional details on how induction works
     in Coq.  It can safely be skimmed on a first reading.  (We
     recommend skimming rather than skipping over it outright: it
     answers some questions that occur to many Coq users at some point,
     so it is useful to have a rough idea of what's here.) *)
 
-(* ##################################################### *)
-(** ** More on the [induction] Tactic *)
+(** この項では、Coqにおいて帰納法がどのように帰納しているか、もう少し詳しく示していきたいと思います。
+    最初にこの項を読むときは、全体を読み流す感じでもかまいません（完全に
+    読み飛ばすのではなく、概要だけでも眺めてください。ここに書いてあることは、
+    多くのCoqユーザーにとって、概要だけでも頭に入れておくことで、いつか直面する問題に
+    対する回答となりえるものです。） *)
 
-(** The [induction] tactic actually does even more low-level
+(* ##################################################### *)
+(*  ** More on the [induction] Tactic *)
+(** ** [induction] タクティックについてもう少し *)
+
+(* The [induction] tactic actually does even more low-level
     bookkeeping for us than we discussed above.
 
     Recall the informal statement of the induction principle for
@@ -2078,6 +2184,25 @@ Proof.
     "re-generalize" the variable we perform induction on.  For
     example, in the proof above that [plus] is associative...
 *)
+(** [induction] タクティックは、実はこれまで見てきたような、いささか
+    低レベルな作業をこなすだけのものではありません。
+
+    自然数に関する機能的な公理の非形式的な記述を思い出してみてください。:
+      - もし [P n] が数値nを意味する何かの命題だとして、命題 P が全ての数値nに
+        ついて成り立つことを閉めてしたい場合は、このような推論を
+        することができます。:
+          - [P O] が成り立つことを示す
+          - もし [P n'] が成り立つなら, [P (S n')] が成り立つことを示す。
+          - 任意のnについて [P n] が成り立つと結論する。
+    我々が証明を [intros n] で始め、次に [induction n] とすると、
+    これはCoqに「特定の」 [n] について（それを仮定取り込むことで）考えて
+    から、その後でそれを帰納法を使って任意の数値にまで推し進めるよう
+    示していることになります。
+
+    このようなときにCoqが内部的に行っていることは、帰納法を適用した変数を
+    「再一般化（ _re-generalize_ ）」することです。
+    例えば、[plus] の結合則を証明するケースでは、
+*)
 
 Theorem plus_assoc' : forall n m p : nat,
   n + (m + p) = (n + m) + p.
@@ -2085,11 +2210,17 @@ Proof.
   (* ...we first introduce all 3 variables into the context,
      which amounts to saying "Consider an arbitrary [n], [m], and
      [p]..." *)
+  (** ...最初に 3個の変数を全てコンテキストに導入しています。
+     これはつまり”任意の [n], [m], [p] について考える”という
+     意味になっています..." *)
   intros n m p.
   (* ...We now use the [induction] tactic to prove [P n] (that
      is, [n + (m + p) = (n + m) + p]) for _all_ [n],
      and hence also for the particular [n] that is in the context
      at the moment. *)
+  (** ...ここで、[induction] タクティックを使い [P n] （任意の [n] に
+     ついて[n + (m + p) = (n + m) + p]）を証明し、すぐに、
+     コンテキストにある特定の [n] についても証明します。 *)
   induction n as [| n'].
   Case "n = O". reflexivity.
   Case "n = S n'".
@@ -2098,10 +2229,17 @@ Proof.
        [P (S n')] for all [n'].  The [induction] tactic
        automatically introduces [n'] and [P n'] into the context
        for us, leaving just [P (S n')] as the goal. *)
+    (** [induction] が作成した（帰納法の手順とも言うべき）二つ目の
+        ゴールでは、 [P n'] ならば任意の [n'] で [P (S n')] が成り立つ
+        ことを証明する必要があります。 この時に [induction] タクティックは
+        [P (S n')] をゴールにしたまま、自動的に [n'] と [P n'] を
+        コンテキストに導入してくれます。
+     *)
     simpl. rewrite -> IHn'. reflexivity.  Qed.
 
-(** It also works to apply [induction] to a variable that is
+(*  It also works to apply [induction] to a variable that is
    quantified in the goal. *)
+(** [induction] をゴールにある量化された変数に適用してもかまいません。 *)
 
 Theorem plus_comm' : forall n m : nat,
   n + m = m + n.
@@ -2111,7 +2249,7 @@ Proof.
   Case "n = S n'". intros m. simpl. rewrite -> IHn'.
     rewrite <- plus_n_Sm. reflexivity.  Qed.
 
-(** Note that [induction n] leaves [m] still bound in the goal --
+(*  Note that [induction n] leaves [m] still bound in the goal --
     i.e., what we are proving inductively is a statement beginning
     with [forall m].
 
@@ -2119,23 +2257,34 @@ Proof.
     _after_ some other quantifiers, the [induction] tactic will
     automatically introduce the variables bound by these quantifiers
     into the context. *)
+(** [induction n] が [m] をゴールに残したままにしていることに注目してください。
+    つまり、今証明しようとしている帰納的な性質は、[forall m] で表されて
+    いるということです。.
+
+    もし [induction] をゴールにおいて量化された変数に対して他の量化子の後に
+    適用すると、[induction] タクティックは自動的に変数をその量化子に基づいて
+    コンテキストに導入します。 *)
 
 Theorem plus_comm'' : forall n m : nat,
   n + m = m + n.
 Proof.
   (* Let's do induction on [m] this time, instead of [n]... *)
+  (** ここで [n] の代わりに [m] を induction しましょう。... *)
   induction m as [| m'].
   Case "m = O". simpl. rewrite -> plus_0_r. reflexivity.
   Case "m = S m'". simpl. rewrite <- IHm'.
     rewrite <- plus_n_Sm. reflexivity.  Qed.
 
-(** **** Exercise: 1 star, optional (plus_explicit_prop) *)
-(** Rewrite both [plus_assoc'] and [plus_comm'] and their proofs in
+(** **** 練習問題: ★, optional (plus_explicit_prop) *)
+(*  Rewrite both [plus_assoc'] and [plus_comm'] and their proofs in
     the same style as [mult_0_r''] above -- that is, for each theorem,
     give an explicit [Definition] of the proposition being proved by
     induction, and state the theorem and proof in terms of this
     defined proposition.  *)
-
+(** [plus_assoc'] と [plus_comm'] を、その証明とともに上の [mult_0_r''] と
+    同じスタイルになるよう書き直しなさい。このことは、それぞれの定理が
+    帰納法で証明された命題に明確な定義を与え、この定義された命題から定理と
+    証明を示しています。  *)
 (* FILL IN HERE *)
 (** [] *)
 
