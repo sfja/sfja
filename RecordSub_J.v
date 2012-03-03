@@ -1,14 +1,17 @@
-(** * RecordSub: Subtyping with Records *)
+(** * RecordSub_J: レコードのサブタイプ *)
+(* * RecordSub: Subtyping with Records *)
 
 (* $Date: 2011-04-04 09:00:42 -0400 (Mon, 04 Apr 2011) $ *)
 
 Require Export MoreStlc_J.
 
 (* ###################################################### *)
-(** * Core Definitions *)
+(* * Core Definitions *)
+(** * 中核部の定義 *)
 
 (* ################################### *)
-(** *** Syntax *)
+(* *** Syntax *)
+(** *** 構文 *)
 
 Inductive ty : Type :=
   (* proper types *)
@@ -40,6 +43,7 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   | Case_aux c "tm_proj" | Case_aux c "tm_rnil" | Case_aux c "tm_rcons" ].
 
 (* ################################### *)
+(* *** Well-Formedness *)
 (** *** Well-Formedness *)
 
 Inductive record_ty : ty -> Prop :=
@@ -75,7 +79,8 @@ Hint Constructors record_ty record_tm well_formed_ty.
 
 
 (* ################################### *)
-(** *** Substitution *)
+(* *** Substitution *)
+(** *** 置換 *)
 
 Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   match t with
@@ -88,7 +93,8 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   end.
 
 (* ################################### *)
-(** *** Reduction *)
+(* *** Reduction *)
+(** *** 簡約 *)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T t,
@@ -152,18 +158,24 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
 Hint Constructors step.
 
 (* ###################################################################### *)
-(** * Subtyping *)
+(* * Subtyping *)
+(** * サブタイプ *)
 
-(** Now we come to the interesting part.  We begin by defining
+(* Now we come to the interesting part.  We begin by defining
     the subtyping relation and developing some of its important
     technical properties. *)
+(** おもしろい部分に来ました。サブタイプ関係を定義し、
+    その重要な技術的性質のいくつかを調べることから始めます。 *)
 
 (* ################################### *)
-(** ** Definition *)
+(* ** Definition *)
+(** ** 定義 *)
 
-(** The definition of subtyping is essentially just what we
+(* The definition of subtyping is essentially just what we
     sketched in the motivating discussion, but we need to add
     well-formedness side conditions to some of the rules. *)
+(** サブタイプの定義は、本質的には、動機付けの議論で概観した通りです。
+    ただ、いくつかの規則に付加条件として well-formedness を追加する必要があります。 *)
 
 Inductive subtype : ty -> ty -> Prop :=
   (* Subtyping between proper types *)
@@ -206,7 +218,8 @@ Tactic Notation "subtype_cases" tactic(first) ident(c) :=
   | Case_aux c "S_RcdDepth" | Case_aux c "S_RcdPerm" ].
 
 (* ############################################### *)
-(** ** Subtyping Examples and Exercises *)
+(* ** Subtyping Examples and Exercises *)
+(** ** サブタイプの例と練習問題 *)
 
 Module Examples.
 
@@ -235,11 +248,15 @@ Proof.
     unfold ty_rcd_kj, ty_rcd_j. apply S_RcdWidth; auto.
 Qed.
 
-(** The following facts are mostly easy to prove in Coq.  To get
+(* The following facts are mostly easy to prove in Coq.  To get
     full benefit from the exercises, make sure you also
     understand how to prove them on paper! *)
+(** 以下の事実のほとんどはCoqで証明することは簡単です。
+    練習問題の効果を最大にするため、どのように証明するかを理解していることを紙の上でも確認しなさい! 
+    *)
 
-(** **** Exercise: 2 stars *)
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
 Example subtyping_example_1 :
   subtype ty_rcd_kj ty_rcd_j.
 (* {k:A->A,j:B->B} <: {j:B->B} *)
@@ -247,7 +264,8 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star *)
+(* **** Exercise: 1 star *)
+(** **** 練習問題: ★ *)
 Example subtyping_example_2 :
   subtype (ty_arrow ty_Top ty_rcd_kj)
           (ty_arrow (ty_arrow C C) ty_rcd_j).
@@ -256,7 +274,8 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star *)
+(* **** Exercise: 1 star *)
+(** **** 練習問題: ★ *)
 Example subtyping_example_3 :
   subtype (ty_arrow ty_rnil (ty_rcons j A ty_rnil))
           (ty_arrow (ty_rcons k B ty_rnil) ty_rnil).
@@ -265,7 +284,8 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars *)
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
 Example subtyping_example_4 :
   subtype (ty_rcons x A (ty_rcons y B (ty_rcons z C ty_rnil)))
           (ty_rcons z C (ty_rcons y B (ty_rcons x A ty_rnil))).
@@ -283,8 +303,10 @@ End Examples.
 
 
 (* ###################################################################### *)
-(** ** Properties of Subtyping *)
+(* ** Properties of Subtyping *)
+(** ** サブタイプの性質 *)
 
+(* *** Well-Formedness *)
 (** *** Well-Formedness *)
 
 Lemma subtype__wf : forall S T,
@@ -309,14 +331,20 @@ Proof with eauto.
     remember (beq_id i i0) as b. destruct b; subst...
     inversion H0. subst...  Qed.
 
-(** *** Field Lookup *)
+(* *** Field Lookup *)
+(** *** フィールド参照 *)
 
-(** Our record matching lemmas get a little more complicated in
+(* Our record matching lemmas get a little more complicated in
     the presence of subtyping for two reasons: First, record
     types no longer necessarily describe the exact structure of
     corresponding terms.  Second, reasoning by induction on
     [has_type] derivations becomes harder in general, because
     [has_type] is no longer syntax directed. *)
+(** サブタイプがあることで、レコードマッチング補題はいくらか複雑になります。
+    それには2つの理由があります。
+    1つはレコード型が対応する項の正確な構造を記述する必要がなくなることです。
+    2つ目は、[has_type]の導出に関する帰納法を使う推論が一般には難しくなることです。
+    なぜなら、[has_type]が構文指向ではなくなるからです。 *)    
 
 Lemma rcd_types_match : forall S T i Ti,
   subtype S T ->
@@ -352,16 +380,20 @@ Proof with (eauto using wf_rcd_lookup).
     SCase "subtype".
       inversion H. subst. inversion H5. subst...  Qed.
 
-(** **** Exercise: 3 stars (rcd_types_match_informal) *)
-(** Write a careful informal proof of the [rcd_types_match]
+(* **** Exercise: 3 stars (rcd_types_match_informal) *)
+(** **** 練習問題: ★★★ (rcd_types_match_informal) *)
+(* Write a careful informal proof of the [rcd_types_match]
     lemma. *)
+(** [rcd_types_match]補題の非形式的証明を注意深く記述しなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** *** Inversion Lemmas *)
+(* *** Inversion Lemmas *)
+(** *** 反転補題 *)
 
-(** **** Exercise: 3 stars, optional (sub_inversion_arrow) *)
+(* **** Exercise: 3 stars, optional (sub_inversion_arrow) *)
+(** **** 練習問題: ★★★, optional (sub_inversion_arrow) *)
 Lemma sub_inversion_arrow : forall U V1 V2,
      subtype U (ty_arrow V1 V2) ->
      exists U1, exists U2,
@@ -373,7 +405,8 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 
 (* ###################################################################### *)
-(** * Typing *)
+(* * Typing *)
+(** * 型付け *)
 
 Definition context := id -> (option ty).
 Definition empty : context := (fun _ => None).
@@ -421,12 +454,14 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   | Case_aux c "T_RNil" | Case_aux c "T_RCons" ].
 
 (* ############################################### *)
-(** ** Typing Examples *)
+(* ** Typing Examples *)
+(** ** 型付けの例 *)
 
 Module Examples2.
 Import Examples.
 
-(** **** Exercise: 1 star *)
+(* **** Exercise: 1 star *)
+(** **** 練習問題: ★ *)
 Example typing_example_0 :
   has_type empty
            (tm_rcons k (tm_abs z A (tm_var z))
@@ -438,7 +473,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars *)
+(* **** Exercise: 2 stars *)
+(** **** 練習問題: ★★ *)
 Example typing_example_1 :
   has_type empty
            (tm_app (tm_abs x ty_rcd_j (tm_proj (tm_var x) j))
@@ -449,7 +485,8 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional *)
+(* **** Exercise: 2 stars, optional *)
+(** **** 練習問題: ★★, optional *)
 Example typing_example_2 :
   has_type empty
            (tm_app (tm_abs z (ty_arrow (ty_arrow C C) ty_rcd_j)
@@ -468,8 +505,10 @@ Proof with eauto.
 End Examples2.
 
 (* ###################################################################### *)
-(** ** Properties of Typing *)
+(* ** Properties of Typing *)
+(** ** 型付けの性質 *)
 
+(* *** Well-Formedness *)
 (** *** Well-Formedness *)
 
 Lemma has_type__wf : forall Gamma t T,
@@ -495,7 +534,8 @@ Proof.
   inversion Hrt; subst; inversion Hstp; subst; eauto.
 Qed.
 
-(** *** Field Lookup *)
+(* *** Field Lookup *)
+(** *** フィールド参照 *)
 
 Lemma lookup_field_in_value : forall v T i Ti,
   value v ->
@@ -519,9 +559,11 @@ Proof with eauto.
       inversion Hval...  Qed.
 
 (* ########################################## *)
-(** *** Progress *)
+(* *** Progress *)
+(** *** 進行 *)
 
-(** **** Exercise: 3 stars (canonical_forms_of_arrow_types) *)
+(* **** Exercise: 3 stars (canonical_forms_of_arrow_types) *)
+(** **** 練習問題: ★★★ (canonical_forms_of_arrow_types) *)
 Lemma canonical_forms_of_arrow_types : forall Gamma s T1 T2,
      has_type Gamma s (ty_arrow T1 T2) ->
      value s ->
@@ -572,7 +614,7 @@ Proof with eauto.
       right. destruct H1 as [t' Hstp].
       exists (tm_rcons i t' tr)...  Qed.
 
-(** Informal proof of progress:
+(* Informal proof of progress:
 
     Theorem : For any term [t] and type [T], if [empty |- t : T]
       then [t] is a value or [t ==> t'] for some term [t'].
@@ -643,9 +685,77 @@ Proof with eauto.
 
           - Otherwise, [tr] is also a value.  So, [{i=t1, tr}] is a
             value by [v_rcons]. *)
+(** 進行の非形式的証明:
+
+    定理： 任意の項[t]と型[T]について、[empty |- t : T]ならば、
+      [t]は値であるか、ある項[t']について [t ==> t'] である。
+
+    証明 : [t]と[T]が [empty |- t : T] を満たすとする。
+      型付け導出についての帰納法を使う。
+      [T_Abs]と[T_RNil]の場合は自明である。それは、関数抽象と[{}]は常に値だからである。
+      [T_Var]の場合は考えなくて良い。なぜなら変数は空コンテキストで型付けできないからである。
+
+      - 型付け導出の最後のステップが[T_App]の適用だった場合、
+        項 [t1] [t2] と型 [T1] [T2] があって [t = t1 t2]、[T = T2]、
+        [empty |- t1 : T1 -> T2]、[empty |- t2 : T1] となる。
+
+        これらの型付け導出の帰納法の仮定より、[t1]は値であるかステップを進めることができ、
+        また[t2]は値であるかステップを進めることができる。
+        それぞれの場合を考える:
+
+        - ある項[t1']について [t1 ==> t1'] とする。
+          すると[ST_App1]より [t1 t2 ==> t1' t2] である。
+
+        - そうでないならば[t1]は値である。
+
+          - ある項[t2']について [t2 ==> t2'] とする。
+            すると[t1]が値であることから規則[ST_App2]により [t1 t2 ==> t1 t2'] となる。
+
+          - そうでなければ[t2]は値である。補題[canonical_forms_for_arrow_types]により、
+            ある[x]、[S1]、[s2]について [t1 = \x:S1.s2] である。
+            すると[t2]が値であることから、[ST_AppAbs]により 
+            [(\x:S1.s2) t2 ==> [t2/x]s2] となる。
+
+      - 導出の最後のステップが[T_Proj]の適用だった場合、
+        項[tr]、型[Tr]、ラベル[i]が存在して [t = tr.i]、[empty |- tr : Tr]、
+        [ty_lookup i Tr = Some T] となる。
+
+        導出の一部である型付け導出の帰納仮定より、[tr]は値であるかステップを進むことができる。
+        もしある項[tr']について [tr ==> tr'] ならば、規則[ST_Proj1]より
+        [tr.i ==> tr'.i] となる。
+
+        そうでなければ、[tr]は値である。この場合、補題[lookup_field_in_value]
+        により項[ti]が存在して [tm_lookup i tr = Some ti] となる。
+        これから、規則[ST_ProjRcd]より [tr.i ==> ti] となる。
+
+      - 導出の最後のステップが[T_Sub]の適用だった場合、
+        型[S]が存在して [S <: T] かつ [empty |- t : S] となる。
+        導出の一部である型付け導出の帰納法の仮定から求める結果がすぐに得られる。
+
+      - 導出の最後のステップが[T_RCons]の適用だった場合、
+        項[t1] [tr]、型 [T1 Tr]、ラベル[i]が存在して 
+        [t = {i=t1, tr}]、[T = {i:T1, Tr}]、[record_tm tr]、
+        [record_tm Tr]、[empty |- t1 : T1]、[empty |- tr : Tr] となる。
+
+        これらの型付け導出についての帰納法の仮定より、[t1]は値であるか、ステップを進めることができ、
+        [tr]は値であるかステップを進めることができることが言える。
+        それそれの場合を考える:
+
+        - ある項[t1']について [t1 ==> t1'] とする。
+          すると規則[ST_Rcd_Head]から [{i=t1, tr} ==> {i=t1', tr}] となる。
+
+        - そうではないとき、[t1]は値である。
+
+          - ある項[tr']について [tr ==> tr'] とする。
+            すると[t1]が値であることから、規則[ST_Rcd_Tail]より 
+            [{i=t1, tr} ==> {i=t1, tr'}] となる。
+
+          - そうではないとき、[tr]も値である。すると、[v_rcons]から [{i=t1, tr}] は値である。
+*)
 
 (* ########################################## *)
-(** *** Inversion Lemmas *)
+(* *** Inversion Lemmas *)
+(** *** 反転補題 *)
 
 Lemma typing_inversion_var : forall Gamma x T,
   has_type Gamma (tm_var x) T ->
@@ -747,7 +857,8 @@ Proof with eauto.
   inversion Heq; subst...  Qed.
 
 (* ########################################## *)
-(** *** Context Invariance *)
+(* *** Context Invariance *)
+(** *** コンテキスト不変性 *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -804,7 +915,8 @@ Proof with eauto.
     rewrite H3 in Hctx...  Qed.
 
 (* ########################################## *)
-(** *** Preservation *)
+(* *** Preservation *)
+(** *** 保存 *)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      has_type (extend Gamma x U) t S  ->
@@ -888,7 +1000,7 @@ Proof with eauto.
   Case "T_RCons".
     eauto using step_preserves_record_tm.  Qed.
 
-(** Informal proof of [preservation]:
+(* Informal proof of [preservation]:
 
     Theorem: If [t], [t'] are terms and [T] is a type such that
      [empty |- t : T] and [t ==> t'], then [empty |- t' : T].
@@ -947,12 +1059,66 @@ Proof with eauto.
        [T_RCons].  In the second case, the result follows by the IH
        for [tr]'s typing derivation, [T_RCons], and a use of the
        [step_preserves_record_tm] lemma. *)
+(** [preservation]の非形式的証明:
+
+    定理: [t]、[t']が項で[T]が型であり [empty |- t : T] かつ [t ==> t'] ならば、
+     [empty |- t' : T] である。
+
+    証明: [t]と[T]が [empty |- t : T] であるとする。
+     [t']を特化しないまま、型付け導出の構造についての帰納法で証明を進める。
+     [T_Var]の場合は前と同様考える必要はない。コンテキストが空だからである。
+
+     - もし導出の最後ステップで使った規則が[T_App]ならば、
+       項[t1] [t2]と型[T1] [T2]があり、[t = t1 t2]、
+       [T = T2]、[empty |- t1 : T1 -> T2]、[empty |- t2 : T1] である。
+
+       ステップ関係の定義を見ることにより、 [t1 t2] がステップを進める方法は3通りであることがわかる。
+       [ST_App1]と[ST_App2]の場合は型付け導出の帰納法の仮定と[T_App]を使うことで、
+       すぐに証明が完了する。
+
+       そうではなく[ST_AppAbs]により [t1 t2] がステップを進めるとする。
+       すると、ある型[S]と項[t12]について [t1 = \x:S.t12] かつ [t' = [t2/x]t12]
+       となる。
+
+       補題[abs_arrow]より、[T1 <: S] かつ [x:S1 |- s2 : T2] であるから、
+       補題[substitution_preserves_typing]より [empty |- [t2/x] t12 : T2]
+       となり、これが求める結果である。
+
+     - もし導出の最後ステップで使った規則が[T_Proj]ならば、
+       項[tr]、型[Tr]、ラベル[i]が存在して [t = tr.i] かつ [empty |- tr : Tr]
+       かつ [ty_lookup i Tr = Some T] となる。
+
+       型付け導出の帰納仮定より、任意の項[tr']について、[tr ==> tr'] ならば
+       [empty |- tr' Tr] である。ステップ関係の定義より、射影がステップを進める方法は2つである。
+       [ST_Proj1]の場合は帰納仮定からすぐに証明される。
+
+       そうではなく[tr.i]のステップが[ST_ProjRcd]による場合、
+       [tr]は値であり、ある項[vi]があって [tm_lookup i tr = Some vi] かつ
+       [t' = vi] となる。しかし補題[lookup_field_in_value]より
+       [empty |- vi : Ti] となるが、これが求める結果である。
+
+     - もし導出の最後ステップで使った規則が[T_Sub]ならば、型[S]が存在して
+       [S <: T] かつ [empty |- t : S] となる。
+       型付け導出の帰納法の仮定と[T_Sub]の適用により結果がすぐに得られる。
+
+     - もし導出の最後ステップで使った規則が[T_RCons]ならば、
+       項 [t1] [tr]、型 [T1 Tr]、ラベル[i]が存在して
+       [t = {i=t1, tr}]、[T = {i:T1, Tr}]、[record_tm tr]、
+       [record_tm Tr]、[empty |- t1 : T1]、[empty |- tr : Tr] となる。
+
+       ステップ関係の定義より、[t]は[ST_Rcd_Head]または[ST_Rcd_Tail]
+       によってステップを進めたはずである。[ST_Rcd_Head]の場合、
+       [t1]の型付け導出についての帰納仮定と[T_RCons]より求める結果が得られる。
+       [ST_Rcd_Tail]の場合、[tr]の型付け導出についての帰納仮定、[T_RCons]、
+       および[step_preserves_record_tm]補題の使用から求める結果が得られる。 *)
 
 (* ###################################################### *)
-(** ** Exercises on Typing *)
+(* ** Exercises on Typing *)
+(** ** 型付けの練習問題 *)
 
-(** **** Exercise: 2 stars, optional (variations) *)
-(** Each part of this problem suggests a different way of
+(* **** Exercise: 2 stars, optional (variations) *)
+(** **** 練習問題: ★★, optional (variations) *)
+(* Each part of this problem suggests a different way of
     changing the definition of the STLC with records and
     subtyping.  (These changes are not cumulative: each part
     starts from the original language.)  In each part, list which
@@ -1005,6 +1171,60 @@ Proof with eauto.
                           -----------------------                    (S_Arrow')
                                S1->S2 <: T1->T2
 ]]]
+
+[]
+*)
+(** この問題のそれぞれの部分は、レコードとサブタイプを持つSTLCの定義を変更する別々の方法を表しています。
+    (これらの変更は累積的ではありません。それぞれの部分はもともとの言語から始めます。)
+    それぞれの部分について、(進行、保存の)性質のうち成立するものをリストアップしなさい。
+    また、成立しない性質について、反例を挙げなさい。
+    - 次の型付け規則を追加する:
+[[
+                            Gamma |- t : S1->S2
+                    S1 <: T1      T1 <: S1     S2 <: T2
+                    -----------------------------------              (T_Funny1)
+                            Gamma |- t : T1->T2
+]]
+
+    - 次の簡約規則を追加する:    
+[[
+                             ------------------                     (ST_Funny21)
+                             {} ==> (\x:Top. x)
+]]
+
+    - 次のサブタイプ規則を追加する:
+[[
+                               --------------                        (S_Funny3)
+                               {} <: Top->Top
+]]
+
+    - 次のサブタイプ規則を追加する:
+[[
+                               --------------                        (S_Funny4)
+                               Top->Top <: {}
+]]
+
+    - 次の評価規則を追加する:
+[[
+                             -----------------                      (ST_Funny5)
+                             ({} t) ==> (t {})
+]]
+
+    - 上と同じ評価規則と新しい型付け規則を追加する:
+[[
+                             -----------------                      (ST_Funny5)
+                             ({} t) ==> (t {})
+
+                           ----------------------                    (T_Funny6)
+                           empty |- {} : Top->Top
+]]
+
+    - 関数型についてのサブタイプ規則を次のものに変更する:
+[[
+                          S1 <: T1       S2 <: T2
+                          -----------------------                    (S_Arrow')
+                               S1->S2 <: T1->T2
+]]
 
 []
 *)
