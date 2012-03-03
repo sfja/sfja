@@ -2211,8 +2211,8 @@ Proof.
      which amounts to saying "Consider an arbitrary [n], [m], and
      [p]..." *)
   (** ...最初に 3個の変数を全てコンテキストに導入しています。
-     これはつまり”任意の [n], [m], [p] について考える”という
-     意味になっています..." *)
+     これはつまり"任意の [n], [m], [p] について考える"という
+     意味になっています... *)
   intros n m p.
   (* ...We now use the [induction] tactic to prove [P n] (that
      is, [n + (m + p) = (n + m) + p]) for _all_ [n],
