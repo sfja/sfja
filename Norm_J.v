@@ -1,4 +1,5 @@
-(** * Norm: Normalization of STLC *)
+(** * Norm_J: STLCの正規化 *)
+(* * Norm: Normalization of STLC *)
 
 (* $Date: 2011-04-13 14:34:47 -0400 (Wed, 13 Apr 2011) $ *)
 (* Chapter maintained by Andrew Tolmach *)
@@ -8,7 +9,7 @@
 Require Import Stlc_J.
 Require Import Relations.
 
-(**
+(*
 (This chapter is optional.)
 
 In this chapter, we consider another fundamental theoretical property
@@ -41,25 +42,61 @@ terms treating [bool] as an uninterpreted base type, and leave the
 extension to the boolean operators and pairs to the reader.  Even for
 the base calculus, normalization is not entirely trivial to prove,
 since each reduction of a term can duplicate redexes in subterms. *)
+(**
+(この章はオプションです。)
 
-(** **** Exercise: 1 star *)
-(** Where do we fail if we attempt to prove normalization by a
+この章では、単純型付きラムダ計算の別の基本的な理論的性質を検討します。
+型付けされるプログラムは有限回のステップで停止することが保証されるという事実です。
+つまり、すべての型付けされた項は正規化可能(_normalizable_)です。
+
+ここまで考えてきた型安全性とは異なり、
+正規化性は本格的なプログラミング言語には拡張されません。
+なぜなら、本格的な言語ではほとんどの場合、単純型付きラムダ計算に、
+(MoreStlc_J章で議論したような)一般再帰や再帰型が拡張され、
+停止しないプログラムが書けるようになっているからです。
+しかし、正規化性の問題は「型のレベル」で再度現れます。
+それが現れるのは、F_omegaのようなラムダ計算の多相バージョンの、メタ理論を考えるときです。
+F_omegaでは、型の言語は単純型付きラムダ計算のコピーを効果的に包括しており、
+型チェックアルゴリズムの停止性は、
+型の式の「正規化」操作が停止することが保証されていることに依拠しています。
+
+正規化の証明を学習する別の理由は、それが、
+(ここでやっているように)論理的関係の基本的証明テクニックを含むような型理論の文献において、
+見るべき一番美しい---そして刺激的な---数学だからです。
+
+ここで考える計算は、基本型[bool]と対を持つ単純型付きラムダ計算です。
+ここでは[bool]を未解釈基本型として扱う基本ラムダ計算項の処理を細部まで示します。
+ブール演算と対の拡張は読者に残しておきます。
+基本計算においてさえ、正規化は証明が完全に自明ということはありません。
+なぜなら、項の各簡約は部分項のリデックスを複製することがあるからです。 *)
+
+(* **** Exercise: 1 star *)
+(** **** 練習問題: ★ *)
+(* Where do we fail if we attempt to prove normalization by a
 straightforward induction on the size of a well-typed term? *)
+(** 型付けされた項のサイズについての素直な帰納法で正規化性を証明しようとしたとき、
+    どこで失敗するでしょうか？ *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* ###################################################################### *)
-(** * Language *)
+(* * Language *)
+(** * 言語 *)
 
-(** We begin by repeating the relevant language definition, which is
+(* We begin by repeating the relevant language definition, which is
 similar to those in the MoreStlc chapter, and supporting results
 including type preservation and step determinism.  (We won't need
 progress.)  You may just wish to skip down to the Normalization
 section... *)
+(** 関係する言語の定義から始めます。MoreStlc_J章のものと同様です。
+そして、型の保存とステップの決定性を含む結果も成立します。
+(進行は使いません。)
+正規化の節まで飛ばしても構いません... *)
 
 (* ###################################################################### *)
-(** *** Syntax and Operational Semantics *)
+(* *** Syntax and Operational Semantics *)
+(** *** 構文と操作的意味 *)
 
 Inductive ty : Type :=
   | ty_Bool : ty
@@ -94,7 +131,8 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
 
 
 (* ###################################################################### *)
-(** *** Substitution *)
+(* *** Substitution *)
+(** *** 置換 *)
 
 Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   match t with
@@ -110,7 +148,8 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
   end.
 
 (* ###################################################################### *)
-(** *** Reduction *)
+(* *** Reduction *)
+(** *** 簡約 *)
 
 Inductive value : tm -> Prop :=
   | v_abs : forall x T11 t12,
@@ -193,7 +232,8 @@ Qed.
 
 
 (* ###################################################################### *)
-(** *** Typing *)
+(* *** Typing *)
+(** *** 型付け *)
 
 Definition context := partial_map ty.
 
@@ -244,7 +284,8 @@ Hint Extern 2 (has_type _ (tm_app _ _) _) => eapply T_App; auto.
 Hint Extern 2 (_ = _) => compute; reflexivity.
 
 (* ###################################################################### *)
-(** *** Context Invariance *)
+(* *** Context Invariance *)
+(** *** コンテキスト不変性 *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -329,7 +370,8 @@ Proof.
   inversion C.  Qed.
 
 (* ###################################################################### *)
-(** *** Preservation *)
+(* *** Preservation *)
+(** *** 保存 *)
 
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      has_type (extend Gamma x U) t S  ->
@@ -456,7 +498,8 @@ Qed.
 
 
 (* ###################################################################### *)
-(** *** Determinism *)
+(* *** Determinism *)
+(** *** 決定性 *)
 
 Lemma step_deterministic :
    partial_function step.
@@ -465,9 +508,10 @@ Proof with eauto.
    (* FILL IN HERE *) Admitted.
 
 (* ###################################################################### *)
-(** * Normalization *)
+(* * Normalization *)
+(** * 正規化 *)
 
-(** Now for the actual normalization proof.
+(* Now for the actual normalization proof.
 
     Our goal is to prove that every well-typed term evaluates to a
     normal form.  In fact, it turns out to be convenient to prove
@@ -477,10 +521,21 @@ Proof with eauto.
     Progress, and we didn't bother re-proving it above.
 
     Here's the key definition: *)
+(** ここからが本当の正規化の証明です。
+
+    ゴールはすべての型付けされた項が正規形になることを証明することです。
+    実際のところ、もうちょっと強いことを証明した方が便利です。
+    つまり、すべての型付けされた項が値になるということです。
+    この強い方は、いずれにしろ弱い方から進行補題を使って得ることができますが(なぜでしょう？)、
+    最初から強い方を証明すれば進行性は必要ありません。
+    そして、進行性を再び証明することは上では行いませんでした。
+
+    これがキーとなる定義です: *)
 
 Definition halts  (t:tm) : Prop :=  exists t', t ==>* t' /\  value t'.
 
-(** A trivial fact: *)
+(* A trivial fact: *)
+(** あたりまえの事実: *)
 
 Lemma value_halts : forall v, value v -> halts v.
 Proof.
@@ -490,7 +545,7 @@ Proof.
   assumption.
 Qed.
 
-(** The key issue in the normalization proof (as in many proofs by
+(* The key issue in the normalization proof (as in many proofs by
 induction) is finding a strong enough induction hypothesis.  To this
 end, we begin by defining, for each type [T], a set [R_T] of closed
 terms of type [T].  We will specify these sets using a relation [R]
@@ -504,8 +559,21 @@ Here is the definition of [R] for the base language:
 - [R (T1 -> T2) t] iff [t] is a closed term of type [T1 -> T2] and [t] halts
   in a value _and_ for any term [s] such that [R T1 s], we have [R
   T2 (t s)]. *)
+(** 正規化の証明のキーとなる問題は、
+(多くの帰納法による証明と同様に)十分な強さの帰納法の仮定を見つけることです。
+このために、それぞれの型[T]に対して型[T]の閉じた項の集合[R_T]を定義することから始めます。
+これらの集合を関係[R]を使って定め、[t]が[R_T]の要素であることを [R T t] と書きます。
+(集合[R_T]はしばしば飽和集合(_saturated sets_)あるいは簡約可能性候補
+(_reducibility candidates_)と呼ばれます。)
 
-(** This definition gives us the strengthened induction hypothesis that we
+基本言語に対する[R]の定義は以下の通りです:
+
+- [R bool t] とは、[t]が型[bool]の閉じた項で[t]が値になることである
+
+- [R (T1 -> T2) t] とは、[t]が型 [T1 -> T2] の閉じた項で、[t]が値になり、かつ、
+  [R T1 s] となる任意の項[s]について、[R T2 (t s)] となることである。 *)
+
+(* This definition gives us the strengthened induction hypothesis that we
 need.  Our primary goal is to show that all _programs_ ---i.e., all
 closed terms of base type---halt.  But closed terms of base type can
 contain subterms of functional type, so we need to know something
@@ -561,6 +629,56 @@ positivity test.
 
 Fortunately, it turns out that we _can_ define [R] using a
 [Fixpoint]: *)
+(** この定義は必要な強化された帰納法の仮定を与えます。
+最初のゴールはすべてのプログラム(つまり、基本型のすべての閉じた項)が停止することを示すことです。
+しかし、基本型の閉じた項は関数型の部分項を含むこともできるので、
+これらについても性質を知ることが必要です。
+さらに、これらの部分項が停止することが知るだけでは不十分です。なぜなら、
+正規化された関数を正規化された引数へ適用すると置換が行われるため、
+さらに評価ステップが発生する可能性があるからです。
+これから関数型の項についてより強い条件が必要です。つまり、
+自分自身が停止するだけでなく、停止する引数に適用されると停止する結果にならなければならないという条件です。
+
+[R]の形は論理的関係(_logical relations_)証明テクニックの特徴です。
+(ここで扱うのは単項関係のみなので、おそらく論理的述語(_logical predicates_)
+という方がより適切でしょう。)
+型[A]のすべての閉じた項についてある性質[P]を証明したい場合、
+型についての帰納法により、型[A]のすべての項が性質[P]を「持ち」、型[A->A]
+のすべての項が性質[P]を「保存し」、型[(A->A)->(A->A)]のすべての項が性質[P]を
+「保存することを保存し」、...ということを証明していきます。
+このために型をインデックスとする述語の族を定義します。
+基本型[A]に対しては、述語は単に[P]です。関数型に対しては、述語は、
+その関数が入力の型の述語を満たす値を出力の型の述語を満たす値に写像することを言うものです。
+
+Coqで[R]の定義を形式化しようとするとき、問題が生じます。
+一番自明な形式化は、次のようなパラメータ化された Inductive による命題でしょう：
+
+[[
+Inductive R : ty -> tm -> Prop :=
+| R_bool : forall b t, has_type empty t ty_Bool ->
+                halts t ->
+                R ty_Bool t
+| R_arrow : forall T1 T2 t, has_type empty t (ty_arrow T1 T2) ->
+                halts t ->
+                (forall s, R T1 s -> R T2 (tm_app t s)) ->
+                R (ty_arrow T1 T2) t.
+]]
+
+残念ながらCoqはこの定義を受け付けません。なぜなら帰納的定義の
+_strict positivity requirement_を満たさないからです。
+_strict positivity requirement_とは、
+定義される型はコンストラクタ引数の型の矢印の左に現れてはいけないというものです。
+ここで、この規則を破っているのは、[R_arrow]の第3引数、すなわち、
+[(forall s, R T1 s -> R TS (tm_app t s))] の、特に [R T1 s] の部分です。
+(一番外側のコンストラクタ引数を分離している矢印は規則の対象外です。
+そうでなければ、純粋な帰納的述語はまったく定義できません!)
+この規則がある理由は、正ではない再帰(non-positive recursion)
+を使って定義された型は停止しない関数を作るのに使うことができ、
+それがCoqの論理的健全性を脅かすからです。
+ここで定義しようとしている関係が完全に問題ないものであるにもかかわらず、
+_strict positivity requirement_のテストを通らないので、Coqはこれを拒否します。
+
+幸い、[Fixpoint]を使うと[R]が定義できます: *)
 
 Fixpoint R (T:ty) (t:tm) {struct T} : Prop :=
   has_type empty t T /\ halts t /\
@@ -571,9 +689,12 @@ Fixpoint R (T:ty) (t:tm) {struct T} : Prop :=
    | ty_prod T1 T2 => False (* ... and delete this line *)
    end).
 
-(** As immediate consequences of this definition, we have that every
+(* As immediate consequences of this definition, we have that every
 element of every set [R_T] halts in a value and is closed with type
 [t] :*)
+(** この定義からすぐに導かれることとして、
+すべての集合[R_T]について、
+そのすべての要素は停止して値となり、また型[T]について閉じていることが言えます: *)
 
 Lemma R_halts : forall {T} {t}, R T t -> halts t.
 Proof.
@@ -586,10 +707,13 @@ Proof.
   intros. destruct T; unfold R in H; inversion H; inversion H1; assumption.
 Qed.
 
-(** Now we proceed to show the main result, which is that every
+(* Now we proceed to show the main result, which is that every
 well-typed term of type [T] is an element of [R_T].  Together with
 [R_halts], that will show that every well-typed term halts in a
 value.  *)
+(** さあ、メインの結果に進みます。
+すべての型[T]の項が[R_T]の要素であることを示すことです。
+[R_halts]と組み合わせると、すべての型付けされる項は停止して値になることが示されます。 *)
 
 
 (* ###################################################################### *)
