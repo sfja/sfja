@@ -1,4 +1,4 @@
-(** * UseTactics_J:Coq用タクティックライブラリ:紹介 *)
+(** * UseTactics_J:Coq用タクティックライブラリのご紹介 *)
 (* * UseTactics: Tactic Library for Coq: a gentle introduction *)
 
 (* $Date: 2011-04-20 14:26:52 -0400 (Wed, 20 Apr 2011) $ *)
@@ -60,8 +60,8 @@ Require Import LibTactics_J.
     the various ways in which a given tactic can be used, we'll use a
     tactic that duplicates a given goal. More precisely, [dup] produces
     two copies of the current goal, and [dup n] produces [n] copies of it. *)
-(** タクティックの説明にはほとんど、
-    "Software Foundations"のコースの主要な章から抽出した例を使います。
+(** タクティックの説明にはほとんど、「ソフトウェアの基礎」
+    ("Software Foundations")のコースの主要な章から抽出した例を使います。
     タクティックのいろいろな使い方を説明するために、ゴールを複製するタクティックを使います。
     より詳しく言うと、[dup]は現在のゴールを2つにコピーします。
     また[dup n]はゴールのn個のコピーを作ります。*)
@@ -1061,7 +1061,7 @@ End SortExamples.
     can be rewritten in the form
     [destruct (typing_inversion_var _ _ _ Htypt) as (T & Hctx & Hsub).] *)
 (** この節では、Coq の便利な連言(and)と存在限量の分解機構を使います。
-    簡単に言うと、[intros]や[destruct]は [[H1 [H2 [H3 [H4 H5]]]]]] 
+    簡単に言うと、[intros]や[destruct]は [[H1 [H2 [H3 [H4 H5]]]]]
     の略記法としてパターン [(H1 & H2 & H3 & H4 & H5)] をとることができます。
     例えば [destruct (typing_inversion_var _ _ _ Htypt) as [T [Hctx Hsub]].]
     は [destruct (typing_inversion_var _ _ _ Htypt) as (T & Hctx & Hsub).] 
