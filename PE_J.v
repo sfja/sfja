@@ -1,9 +1,10 @@
-(** * PE: Partial Evaluation *)
+(** * PE_J: 部分評価 *)
+(* * PE: Partial Evaluation *)
 
 (* $Date: 2011-02-21 11:20:32 -0500 (Mon, 21 Feb 2011) $ *)
 (* Chapter author/maintainer: Chung-chieh Shan *)
 
-(** Equiv.v introduced constant folding as an example of a program
+(* Equiv.v introduced constant folding as an example of a program
     transformation and proved that it preserves the meaning of the
     program.  Constant folding operates on manifest constants such
     as [ANum] expressions.  For example, it simplifies the command
@@ -34,21 +35,60 @@
         X ::= ANum 3; Y ::= AMinus (ANum 4) (AId Y)
 ]]
     without knowing the initial value of [Y]. *)
+(** Equiv_J.v ではプログラム変換の例として定数畳み込みを紹介し、
+    そして、それがプログラムの意味を保存することを証明しました。
+    定数畳み込みは[ANum]式のようなマニフェスト定数(リテラル)を処理します。
+    例えば、コマンド [Y ::= APlus (ANum 3) (ANum 1)] をコマンド 
+    [Y ::= ANum 4] に単純化します。
+    しかしながら、この操作は、
+    定数とわかったことをデータフローに沿って伝播することは行いません。
+    例えば、次の列
+[[
+        X ::= ANum 3; Y ::= APlus (AId X) (ANum 1)
+]]
+    を
+[[
+        X ::= ANum 3; Y ::= ANum 4
+]]
+    に単純化することはありません。なぜなら、[X]が[3]であったことは、
+    [Y]に渡された時には忘れられてしまうからです。
+
+    定数畳み込みを強化して、定数と分かったことを伝播し、
+    それを使ってプログラムを単純化するようにしたいと思うのは自然なことです。
+    そうすることは、部分評価(_partial evaluation_)の初歩的な形となります。 
+    これから見るように、部分評価と呼ばれるのは、プログラムを走らせることと似ているからです。
+    ただ違うのは、プログラムの一部だけが評価されることです。
+    その理由はプログラムの入力の一部だけがわかっているからです。
+    例えば、[Y]の初期値がわからないとき、プログラム
+[[
+        X ::= ANum 3; Y ::= AMinus (APlus (AId X) (ANum 1)) (AId Y)
+]]
+    を単純化できるのは
+
+[[
+        X ::= ANum 3; Y ::= AMinus (ANum 4) (AId Y)
+]]
+    までです。 *)
 
 Require Export Imp_J.
 Require Import FunctionalExtensionality.
 
 (* ####################################################### *)
-(** * Generalizing Constant Folding *)
+(* * Generalizing Constant Folding *)
+(** * 定数畳み込みを一般化する *)
 
-(** The starting point of partial evaluation is to represent our
+(* The starting point of partial evaluation is to represent our
     partial knowledge about the state.  For example, between the two
     assignments above, the partial evaluator may know only that [X] is
     [3] and nothing about any other variable. *)
+(** 部分評価について最初にやることは、状態についての部分知識を表現することです。
+    例えば上述の2つの代入において、部分評価器は[X]が[3]であることだけを知っており、
+    他の変数については何も知らないでしょう。 *)
 
-(** ** Partial States *)
+(* ** Partial States *)
+(** ** 部分状態 *)
 
-(** Conceptually speaking, we can think of such partial states as the
+(* Conceptually speaking, we can think of such partial states as the
     type [id -> option nat] (as opposed to the type [id -> nat] of
     concrete, full states).  However, in addition to looking up and
     updating the values of individual variables in a partial state, we
@@ -57,15 +97,27 @@ Require Import FunctionalExtensionality.
     to compare two arbitrary functions in this way, so we represent
     partial states in a more concrete format: as a list of [id * nat]
     pairs. *)
+(** 概念的には、(完全な具体的状態の型が [id -> nat] であるのに対して)
+    部分状態は型 [id -> option nat] と考えることができます。
+    しかしながら、部分状態の個別の変数の状態を参照/更新するだけでなく、
+    条件分岐の制御フローを扱うために、2つの部分状態を比較して、同じかどうか、
+    あるいは違いはどこかを知りたいことがあるでしょう。
+    この方法では2つの任意の関数を比較することはできません。
+    このため、部分状態をより具体的な形、つまり [id * nat] 対のリストとして表現します。 *)
 
 Definition pe_state := list (id * nat).
 
-(** The idea is that a variable [id] appears in the list if and only
+(* The idea is that a variable [id] appears in the list if and only
     if we know its current [nat] value.  The [pe_lookup] function thus
     interprets this concrete representation.  (If the same variable
     [id] appears multiple times in the list, the first occurrence
     wins, but we will define our partial evaluator to never construct
     such a [pe_state].) *)
+(** これは、変数[id]がこのリストに現れることが、
+    その変数の現在の[nat]値を知っていることとするというアイデアです。
+    そして[pe_lookup]関数はこの具体的表現を解釈します。
+    (もし同じ変数[id]がこのリストに複数回現れるならば、最初の出現が有効です。
+    ただ、部分評価器はそのような[pe_state]を構成することがないように定義します。) *)
 
 Fixpoint pe_lookup (pe_st : pe_state) (V:id) : option nat :=
   match pe_st with
@@ -74,12 +126,14 @@ Fixpoint pe_lookup (pe_st : pe_state) (V:id) : option nat :=
                       else pe_lookup pe_st V
   end.
 
-(** For example, [empty_pe_state] represents complete ignorance about
+(* For example, [empty_pe_state] represents complete ignorance about
     every variable -- the function that maps every [id] to [None]. *)
+(** 例えば、[empty_pe_state]はすべての変数を完全に無視することを表します。
+    すべての[id]を[None]に写像する関数です。 *)
 
 Definition empty_pe_state : pe_state := [].
 
-(** More generally, if the [list] representing a [pe_state] does not
+(* More generally, if the [list] representing a [pe_state] does not
     contain some [id], then that [pe_state] must map that [id] to
     [None].  Before we prove this fact, we first define a useful
     tactic for reasoning with [id] equality.  The tactic
@@ -89,6 +143,15 @@ Definition empty_pe_state : pe_state := [].
     means to reason by cases whether [beq_id V V'] is [true] or
     [false].  In the case where [beq_id V V' = true], the tactic
     substitutes [V] for [V'] throughout. *)
+(** より一般に、もし[pe_state]を表現する[list]が、ある[id]を含まないならば、
+    [pe_state]は[id]を[None]に写像しなければなりません。
+    この事実を証明する前に、まず[id]の等号関係の推論に関する便利なタクティックを定義します。
+    タクティック
+[[
+        compare V V' SCase
+]]
+    は [beq_id V V'] が[true]か[false]かで場合分けする推論をすることを意味します。
+    [beq_id V V' = true] の場合、このタクティックは一貫して[V]を[V']に置換します。 *)
 
 Tactic Notation "compare" ident(i) ident(j) ident(c) :=
   let H := fresh "Heq" i j in
@@ -103,12 +166,16 @@ Proof. intros pe_st V n H. induction pe_st as [| [V' n'] pe_st].
   Case "[]". inversion H.
   Case "::". simpl in H. simpl. compare V V' SCase; auto. Qed.
 
-(** ** Arithmetic Expressions *)
+(* ** Arithmetic Expressions *)
+(** ** 算術式 *)
 
-(** Partial evaluation of [aexp] is straightforward -- it is basically
+(* Partial evaluation of [aexp] is straightforward -- it is basically
     the same as constant folding, [fold_constants_aexp], except that
     sometimes the partial state tells us the current value of a
     variable and we can replace it by a constant expression. *)
+(** [aexp]の部分評価は簡単です。基本的には定数畳み込み[fold_constants_aexp]と同じです。
+    違うのは、部分状態が変数の現在の値を教えてくれる場合があるので、
+    その時に変数を定数式に置換できるということです。 *)
 
 Fixpoint pe_aexp (pe_st : pe_state) (a : aexp) : aexp :=
   match a with
@@ -134,8 +201,9 @@ Fixpoint pe_aexp (pe_st : pe_state) (a : aexp) : aexp :=
       end
   end.
 
-(** This partial evaluator folds constants but does not apply the
+(* This partial evaluator folds constants but does not apply the
     associativity of addition. *)
+(** この部分評価器は定数を畳み込みしますが、可算の結合性の処理はしません。 *)
 
 Example test_pe_aexp1:
   pe_aexp [(X,3)] (APlus (APlus (AId X) (ANum 1)) (AId Y))
@@ -147,13 +215,19 @@ Example text_pe_aexp2:
   = APlus (APlus (AId X) (ANum 1)) (ANum 3).
 Proof. reflexivity. Qed.
 
-(** Now, in what sense is [pe_aexp] correct?  It is reasonable to
+(* Now, in what sense is [pe_aexp] correct?  It is reasonable to
     define the correctness of [pe_aexp] as follows: whenever a full
     state [st:state] is _consistent_ with a partial state
     [pe_st:pe_state] (in other words, every variable to which [pe_st]
     assigns a value is assigned the same value by [st]), evaluating
     [a] and evaluating [pe_aexp pe_st a] in [st] yields the same
     result.  This statement is indeed true. *)
+(** さて、[pe_aexp]はどういう意味で正しいのでしょうか？
+    [pe_aexp]の正しさを次のように定義するのが合理的です。
+    完全状態[st:state]が部分状態[pe_st:pe_state]と整合的(_consistent_)であるならば
+    (言い換えると、[pe_st]で値が与えられていないすべての変数に[st]と同じ値を代入した場合)常に、
+    [st]のもとでの[a]の評価と [pe_aexp pe_st a] の評価が同じ結果になる、ということです。
+    この主張は実際に真です。 *)
 
 Definition pe_consistent (st:state) (pe_st:pe_state) :=
   forall V n, Some n = pe_lookup pe_st V -> st V = n.
@@ -174,7 +248,7 @@ Proof. unfold pe_consistent. intros st pe_st H a.
     SCase "None". reflexivity.
 Qed.
 
-(** However, we will soon want our partial evaluator to remove
+(* However, we will soon want our partial evaluator to remove
     assignments.  For example, it will simplify
 [[
         X ::= ANum 3; Y ::= AMinus (AId X) (AId Y); X ::= ANum 4
@@ -212,6 +286,43 @@ Qed.
     function [pe_override], which updates [st] with the contents of
     [pe_st].  In other words, [pe_override] carries out the
     assignments listed in [pe_st] on top of [st]. *)
+(** しかしながらすぐに、部分評価器で代入を削除することも行ないたくなるでしょう。
+    例えば、
+[[
+        X ::= ANum 3; Y ::= AMinus (AId X) (AId Y); X ::= ANum 4
+]]
+    を簡単化するには、[X]の代入を最後に遅らせることで、単に
+[[
+        Y ::= AMinus (ANum 3) (AId Y); X ::= ANum 4
+]]
+    となります。
+    この単純化を達成するためには、
+[[
+        pe_aexp [(X,3)] (AMinus (AId X) (AId Y))
+]]
+    を部分評価した結果は [AMinus (ANum 3) (AId Y)] であるべきで、オリジナルの式
+    [AMinus (AId X) (AId Y)] ではありません。
+    何といっても、
+[[
+        X ::= ANum 3; Y ::= AMinus (AId X) (AId Y); X ::= ANum 4
+]]
+    を
+[[
+        Y ::= AMinus (AId X) (AId Y); X ::= ANum 4
+]]
+    に変換することは、非効率であるだけではなく、間違っています。
+    出力式 [AMinus (ANum 3) (AId Y)] と [AMinus (AId X) (AId Y)] 
+    は両方とも正しさの基準を満たすにもかかわらずです。
+    実のところ、単に [pe_aexp pe_st a = a] と定義したとしても、定理[pe_aexp_correct']
+    は成立してしまいます。
+
+    その代わりに、[pe_aexp]がより強い意味で正しいことを証明します。
+    つまり、
+    部分評価によって生成された式を評価したもの([aeval st (pe_aexp pe_st a)])は、
+    完全状態[st]の、部分状態[pe_st]によって特定された部分に依存しない、という意味でです。
+    より正確にするために、関数[pe_override]を、[st]を[pe_st]の内容に更新するものとして定義します。
+    言い換えると、[pe_override]は[st]より優先して[pe_st]にリストアップされた代入を行うということです。
+    *)
 
 Fixpoint pe_override (st:state) (pe_st:pe_state) : state :=
   match pe_st with
@@ -224,9 +335,11 @@ Example test_pe_override:
   = update (update (update empty_state Y 1) Z 2) X 3.
 Proof. reflexivity. Qed.
 
-(** Although [pe_override] operates on a concrete [list] representing
+(* Although [pe_override] operates on a concrete [list] representing
     a [pe_state], its behavior is defined entirely by the [pe_lookup]
     interpretation of the [pe_state]. *)
+(** [pe_override]が[pe_state]を表現する具体的[list]を操作するにもかかわらず、
+    そのふるまいは[pe_state]の[pe_lookup]解釈によって完全に定義されます。 *)
 
 Theorem pe_override_correct: forall st pe_st V0,
   pe_override st pe_st V0 =
@@ -238,11 +351,16 @@ Proof. intros. induction pe_st as [| [V n] pe_st]. reflexivity.
   simpl in *. unfold update. rewrite beq_id_sym.
   compare V0 V Case; auto. Qed.
 
-(** We can relate [pe_consistent] to [pe_override] in two ways.
+(* We can relate [pe_consistent] to [pe_override] in two ways.
     First, overriding a state with a partial state always gives a
     state that is consistent with the partial state.  Second, if a
     state is already consistent with a partial state, then overriding
     the state with the partial state gives the same state. *)
+(** [pe_consistent]と[pe_override]とは2つの方法で関係付けることができます。
+    1つ目は、状態を部分状態でオーバーライド(上書き)したものは、
+    常にその部分状態と整合的な状態となるということです。
+    2つ目は、状態がもし部分状態と整合的ならば、その状態をその部分状態でオーバーライドしたものは、
+    もとの状態と同じということです。 *)
 
 Theorem pe_override_consistent: forall st pe_st,
   pe_consistent (pe_override st pe_st) pe_st.
@@ -254,7 +372,7 @@ Theorem pe_consistent_override: forall st pe_st,
 Proof. intros st pe_st H V. rewrite pe_override_correct.
   remember (pe_lookup pe_st V) as l. destruct l; auto. Qed.
 
-(** Now we can state and prove that [pe_aexp] is correct in the
+(* Now we can state and prove that [pe_aexp] is correct in the
     stronger sense that will help us define the rest of the partial
     evaluator.
 
@@ -267,6 +385,15 @@ Proof. intros st pe_st H V. rewrite pe_override_correct.
     that are unknown in the static (partial) state.  Thus, the
     residual program should be equivalent to _prepending_ the
     assignments listed in the partial state to the original program. *)
+(** いよいよ、[pe_aexp]がより強い意味で正しいことを主張し証明します。
+    このことはこれから部分評価器の残りを定義する助けになります。
+
+    直観的には、部分評価を使ったプログラムの実行は2つのステージから成る過程です。
+    第一の「静的」ステージでは、与えられたプログラムをある部分状態のもとで部分評価し、
+    「残余」プログラムを得ます。第二の「動的」ステージは、残余プログラムを残りの状態で評価します。
+    この動的ステージでは、静的(部分)状態ではわからなかった変数の値が与えられます。
+    したがって残余プログラムは、
+    部分状態にリストアップされた代入をもとのプログラムの前に追加したものと同値になります。 *)
 
 Theorem pe_aexp_correct: forall (pe_st:pe_state) (a:aexp) (st:state),
   aeval (pe_override st pe_st) a = aeval st (pe_aexp pe_st a).
@@ -282,11 +409,14 @@ Proof.
   rewrite pe_override_correct. destruct (pe_lookup pe_st i); reflexivity.
 Qed.
 
-(** ** Boolean Expressions *)
+(* ** Boolean Expressions *)
+(** ** ブール式 *)
 
-(** The partial evaluation of boolean expressions is similar.  In
+(* The partial evaluation of boolean expressions is similar.  In
     fact, it is entirely analogous to the constant folding of boolean
     expressions, because our language has no boolean variables. *)
+(** ブール式の部分評価は同様です。実のところ、ブール式の定数畳み込みと完全に対応します。
+    なぜなら、この言語にはブール値の変数がないからです。 *)
 
 Fixpoint pe_bexp (pe_st : pe_state) (b : bexp) : bexp :=
   match b with
@@ -328,8 +458,9 @@ Example test_pe_bexp2: forall b,
   pe_bexp [] b = b.
 Proof. intros b H. rewrite -> H. reflexivity. Qed.
 
-(** The correctness of [pe_bexp] is analogous to the correctness of
+(* The correctness of [pe_bexp] is analogous to the correctness of
     [pe_aexp] above. *)
+(** [pe_bexp]の正しさは上述の[pe_aexp]の正しさと同様です。 *)
 
 Theorem pe_bexp_correct: forall (pe_st:pe_state) (b:bexp) (st:state),
   beval (pe_override st pe_st) b = beval st (pe_bexp pe_st b).
