@@ -390,9 +390,9 @@ Proof. intros st pe_st H V. rewrite pe_override_correct.
 
     直観的には、部分評価を使ったプログラムの実行は2つのステージから成る過程です。
     第一の「静的」ステージでは、与えられたプログラムをある部分状態のもとで部分評価し、
-    「残余」プログラムを得ます。第二の「動的」ステージは、残余プログラムを残りの状態で評価します。
+    「残留」プログラムを得ます。第二の「動的」ステージは、残留プログラムを残りの状態で評価します。
     この動的ステージでは、静的(部分)状態ではわからなかった変数の値が与えられます。
-    したがって残余プログラムは、
+    したがって残留プログラムは、
     部分状態にリストアップされた代入をもとのプログラムの前に追加したものと同値になります。 *)
 
 Theorem pe_aexp_correct: forall (pe_st:pe_state) (a:aexp) (st:state),
@@ -483,9 +483,10 @@ Proof.
 Qed.
 
 (* ####################################################### *)
-(** * Partial Evaluation of Commands, Without Loops *)
+(* * Partial Evaluation of Commands, Without Loops *)
+(** * ループ以外のコマンドの部分評価 *)
 
-(** What about the partial evaluation of commands?  The analogy
+(* What about the partial evaluation of commands?  The analogy
     between partial evaluation and full evaluation continues: Just as
     full evaluation of a command turns an initial state into a final
     state, partial evaluation of a command turns an initial partial
@@ -526,10 +527,49 @@ Qed.
 ]]
     to hold.  The assignment to [X] appears in the final partial state,
     not the residual command. *)
+(** コマンドの部分評価はどうなるでしょうか？
+    部分評価と完全評価の対応関係は続きます。
+    コマンドの完全評価が初期状態を終了状態に変換するのと同じように、
+    コマンドの部分評価は初期部分状態を終了部分状態に変換します。
+    違いは、状態が完全ではないことから、
+    コマンドのある部分が静的ステージでは実行可能でない可能性があることです。
+    上記の[pe_aexp]が残留[aexp]を返し、[pe_bexp]が残留[bexp]を返すように、
+    コマンドを部分評価すると残留コマンドとなります。
 
-(** ** Assignment *)
+    部分評価器が完全評価器と似ている別の点は、
+    すべてのコマンドに対して停止するとは限らないということです。
+    すべてのコマンドに対して停止する部分評価器を構築することは難しくはありません。
+    難しいのは、すべてのコマンドに対して停止し、かつ、
+    ループの展開のような最適化を自動的に行う部分評価器を構築することです。
+    しばしば、ソースプログラムの書き方を変えて、
+    静的情報と動的情報の区別をより明確にしてやることで、
+    部分評価器がより多くの場合に停止し、
+    より良い最適化をしてくれるように誘導することができます。
+    そのような誘導は「束縛時改良術」(the art of _binding-time improvement_)です。
+    変数の束縛の時が、その値が「静的」("static")か「動的」("dynamic")かがわかる時です。
 
-(** Let's start by considering how to partially evaluate an
+    とにかく、今のところは、対象とする部分評価器は、
+    ソースコマンドと初期部分状態から残留コマンドと最終部分状態への全関数ではない、
+    という事実を受け入れておきます。
+    この非停止性をモデル化するため、コマンドの完全評価と同様、帰納的に定義された関係を使います。
+    次の記述:
+[[
+        c1 / st || c1' / st'
+]]
+    は、
+    ソースコマンド[c1]を初期部分状態[st]のもとで部分評価すると、
+    残留コマンド[c1']と最終部分状態[st']になることを意味します。
+    例えば、次のようなことが成立することを期待するでしょう:
+[[
+        (X ::= ANum 3 ; Y ::= AMult (AId Z) (APlus (AId X) (AId X)))
+        / [] || (Y ::= AMult (AId Z) (ANum 6)) / [(X,3)]
+]]
+    [X]への代入は残留コマンドではなく、最終部分状態に現れます。 *)
+
+(* ** Assignment *)
+(** ** 代入 *)
+
+(* Let's start by considering how to partially evaluate an
     assignment.  The two assignments in the source program above needs
     to be treated differently.  The first assignment [X ::= ANum 3],
     is _static_: its right-hand-side is a constant (more generally,
@@ -544,6 +584,20 @@ Qed.
     a concrete [list] representing a [pe_state], but the theorems
     [pe_add_correct] and [pe_remove_correct] specify their behavior by
     the [pe_lookup] interpretation of the [pe_state]. *)
+(** 代入がどのように部分評価されるかを考えることから始めましょう。
+    上述のソースプログラムにおける2つの代入は、違った形で扱う必要があります。
+    最初の代入 [X ::= ANum 3] は「静的」です。
+    その右辺は定数(より一般には定数に簡単化されるもの)です。
+    これから部分状態の[X]を[3]に更新し、残留コードは生成しません。
+    (実際には、残留コードとして [SKIP] を作ります。)
+    2つ目の代入 [Y ::= AMult (AId Z) (APlus (AId X) (AId X))] は「動的」です。
+    右辺は定数に単純化されることはありません。これから、この代入は残留コードに残され、
+    [Y]がもし部分状態に存在していたなら、その[Y]が除去されます。
+    この2つの場合を実装するために、関数[pe_add]と[pe_remove]を定義します。
+    上述の[pe_override]のように、
+    これらの関数は[pe_state]を表現する具体的な[list]を操作しますが、
+    定理[pe_add_correct]と[pe_remove_correct]はこれらの関数のふるまいを
+    [pe_state]の[pe_lookup]による解釈にもとづいて規定します。 *)
 
 Fixpoint pe_remove (pe_st:pe_state) (V:id) : pe_state :=
   match pe_st with
@@ -578,9 +632,11 @@ Proof. intros pe_st V n V0. unfold pe_add. simpl. rewrite beq_id_sym.
   Case "not equal". rewrite pe_remove_correct. rewrite HeqVV0. reflexivity.
 Qed.
 
-(** We will use the two theorems below to show that our partial
+(* We will use the two theorems below to show that our partial
     evaluator correctly deals with dynamic assignments and static
     assignments, respectively. *)
+(** 以下の2つ定理は、
+    定義する部分評価器が動的代入と静的代入をそれぞれ正しく扱うことを示すのに使われます。 *)
 
 Theorem pe_override_update_remove: forall st pe_st V n,
   update (pe_override st pe_st) V n =
@@ -596,9 +652,10 @@ Proof. intros st pe_st V n. apply functional_extensionality. intros V0.
   unfold update. rewrite !pe_override_correct. rewrite pe_add_correct.
   destruct (beq_id V V0); reflexivity. Qed.
 
-(** ** Conditional *)
+(* ** Conditional *)
+(** ** 条件分岐 *)
 
-(** Trickier than assignments to partially evaluate is the
+(* Trickier than assignments to partially evaluate is the
     conditional, [IFB b1 THEN c1 ELSE c2 FI].  If [b1] simplifies to
     [BTrue] or [BFalse] then it's easy: we know which branch will be
     taken, so just take that branch.  If [b1] does not simplify to a
@@ -645,6 +702,51 @@ Proof. intros st pe_st V n. apply functional_extensionality. intros V0.
     at a given variable.  In the theorem [pe_disagree_domain], we
     prove that two [pe_state]s can only disagree at variables that
     appear in at least one of them. *)
+(** 部分評価について代入よりトリッキーなのは条件分岐 [IFB b1 THEN c1 ELSE c2 FI]
+    です。もし[b1]が[BTrue]または[BFalse]に単純化されるならば、簡単です。
+    どちらの選択肢が選ばれるか分かっているのですから、その選択肢を考えるだけです。
+    もし[b1]が定数に単純化されないならば、両方の選択肢を考える必要があります。
+    そして、最終部分状態は2つの選択肢で違うかもしれません!
+
+    次のプログラムは、問題の難しさを表します:
+[[
+        X ::= ANum 3;
+        IFB BLe (AId Y) (ANum 4) THEN
+            Y ::= ANum 4;
+            IFB BEq (AId X) (AId Y) THEN Y ::= ANum 999 ELSE SKIP FI
+        ELSE SKIP FI
+]]
+    初期部分状態が空とします。静的に[Y]を[4]と比較する方法を知りません。
+    これから、(外側の)条件分岐の両方の選択肢を部分評価しなければなりません。
+    [THEN]の側では、[Y]が[4]になり、コードを単純化する知識をいくらか使うことができるでしょう。
+    [ELSE]の側では最後の段階で未だに[Y]の値が確定しません。
+    最終部分状態と残留プログラムはどうなるべきでしょうか？
+
+    このような動的条件分岐を扱う一つの方法は、
+    2つの選択肢の最終部分状態の共通部分をとるというものです。
+    この例では、[(Y,4),(X,3)] と [(X,3)] の共通部分をとります。
+    従って、全体の最終部分状態は [(X,3)] です。
+    [Y]が[4]であるという情報を失なった代償として、[THEN]選択肢の最後に代入
+    [Y ::= ANum 4] を追加する必要があります。
+    結局、残留プログラムは次のようなものになります:
+[[
+        SKIP;
+        IFB BLe (AId Y) (ANum 4) THEN
+            SKIP;
+            SKIP;
+            Y ::= ANum 4
+        ELSE SKIP FI
+]]
+
+    Coqでこの場合をプログラミングするには、いくつものさらなる関数が必要です。
+    2つの[pe_state]の共通部分を計算する必要があります。
+    また、2つの[pe_state]の違いを代入に変換する必要もあります。
+
+    最初に、
+    2つの[pe_state]が特定の変数について不一致かどうかを計算する方法を示します。
+    定理[pe_disagree_domain]において、
+    2つの[pe_state]が変数について不一致になるのは、
+    少なくとも一方にその変数が現れるときだけであることを証明します。 *)
 
 Definition pe_disagree_at (pe_st1 pe_st2 : pe_state) (V:id) : bool :=
   match pe_lookup pe_st1 V, pe_lookup pe_st2 V with
@@ -670,12 +772,17 @@ Proof. unfold pe_disagree_at. intros pe_st1 pe_st2 V H.
   destruct lookup2 as [n2|]. right. symmetry. apply pe_domain with n2. auto.
   inversion H. Qed.
 
-(** We define the [pe_compare] function to list the variables where
+(* We define the [pe_compare] function to list the variables where
     two given [pe_state]s disagree.  This list is exact, according to
     the theorem [pe_compare_correct]: a variable appears on the list
     if and only if the two given [pe_state]s disagree at that
     variable.  Furthermore, we use the [pe_unique] function to
     eliminate duplicates from the list. *)
+(** 2つの与えられた[pe_state]の不一致の変数をリストアップする関数[pe_compare]を定義します。
+    このリストはまさに、定理[pe_compare_correct]に従うならば、
+    このリストにある変数が現れることと、
+    与えられた2つの[pe_state]がその変数で不一致であることが同値である、というものです。
+    さらに、リストから重複を除去するために[pe_unique]関数を使います。 *)
 
 Fixpoint pe_unique (l : list id) : list id :=
   match l with
@@ -733,7 +840,7 @@ Proof. intros pe_st1 pe_st2 V.
     rewrite beq_nat_eq with n1 n2. reflexivity.
     rewrite <- negb_involutive. rewrite Hagree. reflexivity. Qed.
 
-(** The intersection of two partial states is the result of removing
+(* The intersection of two partial states is the result of removing
     from one of them all the variables where the two disagree.  We
     define the function [pe_removes], in terms of [pe_remove] above,
     to perform such a removal of a whole list of variables at once.
@@ -746,6 +853,16 @@ Proof. intros pe_st1 pe_st2 V.
     does not care which of the two partial states we remove the
     variables from; that theorem [pe_compare_override] is used in the
     correctness proof shortly. *)
+(** 2つの部分状態の共通部分は、どちらか一方から、不一致の変数のすべてを除去したものです。
+    このような変数のリスト全体の除去を一度に行う関数[pe_removes]を、
+    上述の[pe_remove]を使って定義します。
+
+    定理[pe_compare_removes]は、
+    共通部分をとる操作の結果の[pe_lookup]による解釈が、
+    変数を除去する元として2つの部分状態のどちらを使っても同じであることを述べます。
+    [pe_override]は部分状態の[pe_lookup]による解釈だけに依存していることから、
+    [pe_override]もまた2つの部分状態のどちらから変数を除去するかに関係ないことが言えます。
+    定理[pe_compare_override]は正しさの証明の中で簡単に使われます。 *)
 
 Fixpoint pe_removes (pe_st:pe_state) (ids : list id) : pe_state :=
   match ids with
@@ -777,10 +894,13 @@ Proof. intros. apply functional_extensionality. intros V.
   rewrite !pe_override_correct. rewrite pe_compare_removes. reflexivity.
 Qed.
 
-(** Finally, we define an [assign] function to turn the difference
+(* Finally, we define an [assign] function to turn the difference
     between two partial states into a sequence of assignment commands.
     More precisely, [assign pe_st ids] generates an assignment command
     for each variable listed in [ids]. *)
+(** 最後に、2つの部分状態の違いを代入コマンドの列に変換する[assign]関数を定義します。
+    より詳しくは、[assign pe_st ids] は、
+    [ids]にリストアップされたそれぞれの変数に対して代入コマンドを生成します。 *)
 
 Fixpoint assign (pe_st : pe_state) (ids : list id) : com :=
   match ids with
@@ -791,12 +911,17 @@ Fixpoint assign (pe_st : pe_state) (ids : list id) : com :=
               end
   end.
 
-(** The command generated by [assign] always terminates, because it is
+(* The command generated by [assign] always terminates, because it is
     just a sequence of assignments.  The (total) function [assigned]
     below computes the effect of the command on the (dynamic state).
     The theorem [assign_removes] then confirms that the generated
     assignments perfectly compensate for removing the variables from
     the partial state. *)
+(** [assign]により生成されたコマンドは常に停止します。なぜなら、
+    単に代入の列だからです。
+    下記の(全)関数[assigned]はコマンドの(動的状態での)効果を計算します。
+    そして定理[assign_removes]は、
+    生成された代入の列が部分状態からの変数の除去を完全に補償することを保証します。 *)
 
 Definition assigned (pe_st:pe_state) (ids : list id) (st:state) : state :=
   fun V => match existsb (beq_id V) ids, pe_lookup pe_st V with
@@ -834,13 +959,18 @@ Proof. intros pe_st ids st. induction ids as [| V ids]; simpl.
         destruct (existsb (beq_id V0) ids); reflexivity.
       SSCase "not equal". reflexivity. Qed.
 
-(** ** The Partial Evaluation Relation *)
+(* ** The Partial Evaluation Relation *)
+(** ** 部分評価関係 *)
 
-(** At long last, we can define a partial evaluator for commands
+(* At long last, we can define a partial evaluator for commands
     without loops, as an inductive relation!  The inequality
     conditions in [PE_AssDynamic] and [PE_If] are just to keep the
     partial evaluator deterministic; they are not required for
     correctness. *)
+(** 遂に、ループ以外のコマンドに対する部分評価器を、帰納的関係として定義することができます!
+    [PE_AssDynamic]と[PE_If]における非等号([<>])条件は、
+    部分評価器に決定性を持たせるためのものです。
+    これらは正しさのためには必要ありません。 *)
 
 Reserved Notation "c1 '/' st '||' c1' '/' st'"
   (at level 40, st at level 39, c1' at level 39).
@@ -890,12 +1020,17 @@ Tactic Notation "pe_com_cases" tactic(first) ident(c) :=
 Hint Constructors pe_com.
 Hint Constructors ceval.
 
-(** ** Examples *)
+(* ** Examples *)
+(** ** 例 *)
 
-(** Below are some examples of using the partial evaluator.  To make
+(* Below are some examples of using the partial evaluator.  To make
     the [pe_com] relation actually usable for automatic partial
     evaluation, we would need to define more automation tactics in
     Coq.  That is not hard to do, but it is not needed here. *)
+(** 以下は部分評価器を利用する例のいくつかです。
+    [pe_com]関係を自動部分評価に実際に利用可能にするためには、
+    Coqにより多くの自動化タクティックを定義する必要があるでしょう。
+    それは難しいことではありませんが、ここでは必要ありません。 *)
 
 Example pe_example1:
   (X ::= ANum 3 ; Y ::= AMult (AId Z) (APlus (AId X) (AId X)))
@@ -928,9 +1063,11 @@ Proof. erewrite f_equal2 with (f := fun c st => _ / _ || c / st).
   eapply PE_IfFalse. reflexivity. econstructor.
   reflexivity. reflexivity. Qed.
 
-(** ** Correctness of Partial Evaluation *)
+(* ** Correctness of Partial Evaluation *)
+(** ** 部分評価の正しさ *)
 
-(** Finally let's prove that this partial evaluator is correct! *)
+(* Finally let's prove that this partial evaluator is correct! *)
+(** 最後に、定義した部分評価器が正しいことを証明しましょう! *)
 
 Reserved Notation "c' '/' pe_st' '/' st '||' st''"
   (at level 40, pe_st' at level 39, st at level 39).
@@ -1008,7 +1145,8 @@ Proof. intros c pe_st pe_st' c' Hpe.
       rewrite <- assign_removes. eauto.
 Qed.
 
-(** The main theorem. Thanks to David Menendez for this formulation! *)
+(* The main theorem. Thanks to David Menendez for this formulation! *)
+(** メインの定理です。この形式化について David Menendez に感謝します! *)
 
 Corollary pe_com_correct:
   forall c pe_st pe_st' c', c / pe_st || c' / pe_st' ->
