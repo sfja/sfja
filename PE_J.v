@@ -1159,9 +1159,10 @@ Proof. intros c pe_st pe_st' c' H st st''. split.
 Qed.
 
 (* ####################################################### *)
-(** * Partial Evaluation of Loops *)
+(* * Partial Evaluation of Loops *)
+(** * ループの部分評価 *)
 
-(** It may seem straightforward at first glance to extend the partial
+(* It may seem straightforward at first glance to extend the partial
     evaluation relation [pe_com] above to loops.  Indeed, many loops
     are easy to deal with.  Considered this repeated-squaring loop,
     for example:
@@ -1218,6 +1219,57 @@ Qed.
     evaluation on Imp commands.  We add one more command argument
     [c''] to the [pe_com] relation, which keeps track of a loop to
     roll up. *)
+(** 一見すると、部分評価関係[pe_com]をループに拡張することは簡単に見えます。
+    実際、多くのループは扱うのは簡単です。
+    例えば次の、二乗を繰り返すループを考えます:
+[[
+        WHILE BLe (ANum 1) (AId X) DO
+            Y ::= AMult (AId Y) (AId Y);
+            X ::= AMinus (AId X) (ANum 1)
+        END
+]]
+    [X]も[Y]も静的には分からないとき、ループ全体が動的で、残留コマンドはループ全体と同じです。
+    [X]が分かり[Y]が分からないときは、ループは完全に展開でき、
+    もし[X]が最初は[3](で最後は[0])だとすると、残留コマンドは
+[[
+        Y ::= AMult (AId Y) (AId Y);
+        Y ::= AMult (AId Y) (AId Y);
+        Y ::= AMult (AId Y) (AId Y)
+]]
+    となります。一般にループは、
+    ループ本体の最終部分状態が初期状態と同じである場合、
+    または、ガード条件が静的である場合には、部分評価は簡単です。
+
+    しかし、Impには、残留プログラムを示すのが難しい別のループが存在します。
+    例えば、[Y]が偶数か奇数かをチェックする次のプログラムを考えます:
+[[
+        X ::= ANum 0;
+        WHILE BLe (ANum 1) (AId Y) DO
+            Y ::= AMinus (AId Y) (ANum 1);
+            X ::= AMinus (ANum 1) (AId X)
+        END
+]]
+    [X]の値はループの間、[0]と[1]を交互にとります。
+    理想的には、ループを完全にではなく2段階展開したいところです。
+    次のような感じです:
+[[
+        WHILE BLe (ANum 1) (AId Y) DO
+            Y ::= AMinus (AId Y) (ANum 1);
+            IF BLe (ANum 1) (AId Y) THEN
+                Y ::= AMinus (AId Y) (ANum 1)
+            ELSE
+                X ::= ANum 1; EXIT
+            FI
+        END;
+        X ::= ANum 0
+]]
+    残念ながら、Impには[EXIT]コマンドはありません。
+    言語の制御構造を拡張しない範囲では、できることは、
+    ループのガードをテストを繰り返すか、フラグ変数を追加することです。
+    どちらにしても、ひどいものです。
+
+    それでも、横道ですが、以下はImpコマンドに部分評価を行おうとする試みです。
+    [pe_com]関係にもう1つコマンド引数[c'']を追加して、展開するループを追跡します。 *)
 
 Module Loop.
 
@@ -1318,7 +1370,8 @@ Tactic Notation "pe_com_cases" tactic(first) ident(c) :=
 
 Hint Constructors pe_com.
 
-(** ** Examples *)
+(* ** Examples *)
+(** ** 例 *)
 
 Tactic Notation "step" ident(i) :=
   (eapply i; intuition eauto; try solve by inversion);
@@ -1398,13 +1451,17 @@ Proof. erewrite f_equal2 with (f := fun c st => _ / _ || c / st / SKIP).
   step PE_WhileFixedEnd.
   inversion H. reflexivity. reflexivity. reflexivity. Qed.
 
-(** ** Correctness *)
+(* ** Correctness *)
+(** ** 正しさ *)
 
-(** Because this partial evaluator can unroll a loop n-fold where n is
+(* Because this partial evaluator can unroll a loop n-fold where n is
     a (finite) integer greater than one, in order to show it correct
     we need to perform induction not structurally on dynamic
     evaluation but on the number of times dynamic evaluation enters a
     loop body. *)
+(** この部分評価器は1より大きい(有限)整数 n について、ループをn回展開することができます。
+    このため、正しさを示すためには、動的評価の構造についての帰納法ではなく、
+    動的評価がループの本体に入る回数についての帰納法が必要です。 *)
 
 Reserved Notation "c1 '/' st '||' st' '#' n"
   (at level 40, st at level 39, st' at level 39).
@@ -1667,9 +1724,10 @@ Qed.
 End Loop.
 
 (* ####################################################### *)
-(** * Partial Evaluation of Flowchart Programs *)
+(* * Partial Evaluation of Flowchart Programs *)
+(** * フローチャートプログラムの部分評価 *)
 
-(** Instead of partially evaluating [WHILE] loops directly, the
+(* Instead of partially evaluating [WHILE] loops directly, the
     standard approach to partially evaluating imperative programs is
     to convert them into _flowcharts_.  In other words, it turns out
     that adding labels and jumps to our language makes it much easier
@@ -1677,16 +1735,32 @@ End Loop.
     flowchart is a residual flowchart.  If we are lucky, the jumps in
     the residual flowchart can be converted back to [WHILE] loops, but
     that is not possible in general; we do not pursue it here. *)
+(** 命令型プログラムを部分評価する標準的アプローチは、
+    [WHILE]ループを直接部分評価する代わりに、それをフローチャート(_flowcharts_)
+    に変換することです。
+    言い換えると、言語にラベルとジャンプを追加すると、
+    部分評価がずいぶん簡単になることがわかります。
+    フローチャートを部分評価した結果は、残留フローチャートになります。
+    ラッキーな場合は、残留フローチャートのジャンプは[WHILE]ループに戻すことができます。
+    ただし、これは一般にできるわけではありません。
+    ここではこのことは追求しません。 *)
 
-(** ** Basic blocks *)
+(* ** Basic blocks *)
+(** ** 基本ブロック *)
 
-(** A flowchart is made of _basic blocks_, which we represent with the
+(* A flowchart is made of _basic blocks_, which we represent with the
     inductive type [block].  A basic block is a sequence of
     assignments (the constructor [Assign]), concluding with a
     conditional jump (the constructor [If]) or an unconditional jump
     (the constructor [Goto]).  The destinations of the jumps are
     specified by _labels_, which can be of any type.  Therefore, we
     parameterize the [block] type by the type of labels. *)
+(** フローチャートは基本ブロック(_basic blocks_)から成ります。
+    これをここでは、帰納型[block]で表します。
+    基本ブロックは、代入(コンストラクタ[Assign])の列の最後に条件ジャンプ
+    (コンストラクタ[If])または無条件ジャンプ(コンストラクタ[Goto])が付いたものです。
+    ジャンプ先は任意の型のラベル(_labels_)で特定されます。
+    これから、[block]型をラベルの型でパラメータ化します。 *)
 
 Inductive block (Label:Type) : Type :=
   | Goto : Label -> block Label
@@ -1701,9 +1775,12 @@ Implicit Arguments Goto   [[Label]].
 Implicit Arguments If     [[Label]].
 Implicit Arguments Assign [[Label]].
 
-(** We use the "even or odd" program, expressed above in Imp, as our
+(* We use the "even or odd" program, expressed above in Imp, as our
     running example.  Converting this program into a flowchart turns
     out to require 4 labels, so we define the following type. *)
+(** 以下では、上述のImpによる「奇数/偶数」プログラムを、全体を通した例として使います。
+    このプログラムをフローチャートに変換するには、4つのラベルが必要です。
+    それを以下のように定義します。 *)
 
 Inductive parity_label : Type :=
   | entry : parity_label
@@ -1711,19 +1788,25 @@ Inductive parity_label : Type :=
   | body  : parity_label
   | done  : parity_label.
 
-(** The following [block] is the basic block found at the [body] label
+(* The following [block] is the basic block found at the [body] label
     of the example program. *)
+(** 以下の[block]は例プログラムの[body]ラベルに対する基本ブロックです。 *)
 
 Definition parity_body : block parity_label :=
   Assign Y (AMinus (AId Y) (ANum 1))
    (Assign X (AMinus (ANum 1) (AId X))
      (Goto loop)).
 
-(** To evaluate a basic block, given an initial state, is to compute
+(* To evaluate a basic block, given an initial state, is to compute
     the final state and the label to jump to next.  Because basic
     blocks do not _contain_ loops or other control structures,
     evaluation of basic blocks is a total function -- we don't need to
     worry about non-termination. *)
+(** 与えられた初期状態で基本ブロックを評価することは、
+    最終状態と次にジャンプするためのラベルを計算することです。
+    基本ブロックはループや他の制御構造を含まないことから、
+    基本ブロックの評価は全関数です。
+    非停止性の心配をする必要はありません。 *)
 
 Fixpoint keval {L:Type} (st:state) (k : block L) : state * L :=
   match k with
@@ -1737,13 +1820,19 @@ Example keval_example:
   = (update (update empty_state Y 0) X 1, loop).
 Proof. reflexivity. Qed.
 
-(** ** Flowchart programs *)
+(* ** Flowchart programs *)
+(** ** フローチャートプログラム *)
 
-(** A flowchart program is simply a lookup function that maps labels
+(* A flowchart program is simply a lookup function that maps labels
     to basic blocks.  Actually, some labels are _halting states_ and
     do not map to any basic block.  So, more precisely, a flowchart
     [program] whose labels are of type [L] is a function from [L] to
     [option (block L)]. *)
+(** フローチャートプログラムは単にラベルを基本ブロックに写像する検索関数です。
+    実際には、いくつかのラベルは停止状態(_halting states_)で、
+    基本ブロックには写像されません。これから、より正確には、
+    ラベルの型が[L]であるフローチャート[program]は[L]から [option (block L)] 
+    への関数です。 *)
 
 Definition program (L:Type) : Type := L -> option (block L).
 
@@ -1755,9 +1844,11 @@ Definition parity : program parity_label := fun l =>
   | done => None (* halt *)
   end.
 
-(** Unlike a basic block, a program may not terminate, so we model the
+(* Unlike a basic block, a program may not terminate, so we model the
     evaluation of programs by an inductive relation [peval] rather
     than a recursive function. *)
+(** 基本ブロックとは異なり、プログラムは停止しないこともあります。
+    これからプログラムの評価は再帰関数ではなく帰納的関係[peval]でモデル化します。 *)
 
 Inductive peval {L:Type} (p : program L)
   : state -> L -> state -> L -> Prop :=
@@ -1782,9 +1873,10 @@ Tactic Notation "peval_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "E_None" | Case_aux c "E_Some" ].
 
-(** ** Partial evaluation of basic blocks and flowchart programs *)
+(* ** Partial evaluation of basic blocks and flowchart programs *)
+(** ** 基本ブロックとフローチャートプログラムの部分評価 *)
 
-(** Partial evaluation changes the label type in a systematic way: if
+(* Partial evaluation changes the label type in a systematic way: if
     the label type used to be [L], it becomes [pe_state * L].  So the
     same label in the original program may be unfolded, or blown up,
     into multiple labels by being paired with different partial
@@ -1792,6 +1884,14 @@ Tactic Notation "peval_cases" tactic(first) ident(c) :=
     will become two labels: [([(X,0)], loop)] and [([(X,1)], loop)].
     This change of label type is reflected in the types of [pe_block]
     and [pe_program] defined presently. *)
+(** 部分評価はラベルの型を体系的に変更します。
+    もとのラベルの型が[L]ならば、[pe_state * L] になります。
+    そして、オリジナルプログラムと同じラベルが、異なる部分状態と対にされることで、
+    複数のラベルに拡大されます。
+    例えば、[parity]プログラムのラベル[loop]は2つのラベル:
+    [([(X,0)], loop)] と [([(X,1)], loop)] になります。
+    このラベルの型の変更は以前に定義した [pe_block] と [pe_program] の型に反映されます。
+    *)
 
 Fixpoint pe_block {L:Type} (pe_st:pe_state) (k : block L)
   : block (pe_state * L) :=
