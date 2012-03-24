@@ -1,9 +1,10 @@
-(** * LibTactics: A Collection of Handy General-Purpose Tactics *)
+(** * LibTactics_J: 使いやすい汎用タクティックのコレクション *)
+(* * LibTactics: A Collection of Handy General-Purpose Tactics *)
 
 (* $Date: 2010-10-14 12:27:18 -0400 (Thu, 14 Oct 2010) $ *)
 (* Chapter maintained by Arthur Chargueraud *)
 
-(** This file contains a set of tactics that extends the set of builtin
+(* This file contains a set of tactics that extends the set of builtin
     tactics provided with the standard distribution of Coq. It intends
     to overcome a number of limitations of the standard set of tactics,
     and thereby to help user to write shorter and more robust scripts.
@@ -17,8 +18,21 @@
     file; instead, he/she is encouraged to read the chapter named
     UseTactics.v, which is gentle introduction to the most useful
     tactics from the LibTactic library. *)
+(** このファイルは、
+    Coqの標準ディストリビューションで提供されるビルトインタクティックを拡張するタクティックのセットを含んでいます。
+    タクティックの標準セットのいくつもの限界を克服し、
+    それによってユーザがより短かくより頑強な証明を書けるようにすることを意図したものです。
 
-(** The main features offered are:
+    おそらく、Coqのタクティックは時が経つにつれて改良されて行き、
+    このファイルは究極的には不要になるでしょう。
+    それまでの間は、本格的はCoqユーザはおそらくとても便利だと感じるでしょう。
+
+    このファイルはそれらのタクティックの実装と詳細なドキュメンテーションを含んでいます。
+    SFの読者はこのファイルを読む必要はありません。その代わり、UseTactics_J.v
+    という名前の章を読むと良いでしょう。
+    その章はLibTacticライブラリの最も便利なタクティックの紹介となっています。 *)
+
+(* The main features offered are:
   - More convenient syntax for naming hypotheses, with tactics for
     introduction and inversion that take as input only the name of
     hypotheses of type [Prop], rather than the name of all variables.
@@ -41,24 +55,56 @@
     asserts hypotheses or sub-goals, and improved tactics for
     clearing, renaming, and sorting hypotheses.
 *)
+(** 提供するメインの機能は:
+  - 仮定の名前付けのためのより便利な構文と、それに関する導入(introduction)
+    と反転(inversion)のタクティック。
+    それらのタクティックは、すべての変数の名前は必要とせず、
+    型[Prop]の仮定の名前だけを入力とします。
+  - N-引数の連言、選言、存在限量の扱いをサポートするタクティック。
+    背後にある実装が二項述語をベースにしていることを隠蔽します。
+  - 自動化の便利なサポート。タクティックの後に"~"または"*"を付けると、
+    生成されたサブゴールについて自動処理を行います。
+    記号"~"は[auto]を、"*"は [intuition eauto] を行います。
+    これらはカスタマイズできます。
+  - 補題を、変数、仮定、あるいはその両方を使って具体化するための、
+    前方連鎖のタクティックが提供されます。
+  - [apply]のより強力な実装が提供されます([refine]をベースにしているので、
+    変換(conversion)に関してより良い振る舞いをします)。
+  - 従来の反転(inversion)のメカニズムで生成される変数の等式を置換する、
+    改良版の反転タクティック。さらに、依存型の等式の除去もサポートします
+    (これは Proof Irrelevance の弱い形である公理[K]を必要とします)。
+  - 証明記述の時間を節約するためのタクティック。
+    それには、仮定やサブゴールを主張するタクティックや、
+    仮定を除去したり、仮定の名前や順番を変えたりするタクティックの改良版があります。
+*)
 
-(** External credits:
+(* External credits:
   - thanks to Xavier Leroy for providing the idea of tactic [forward],
   - thanks to Georges Gonthier for the implementation trick in [rapply],
+*)
+(** 追加のクレジット:
+  - タクティック[forward]のアイデアの提供に関して、Xavier Leroy に感謝します
+  - [rapply]の実装のトリックに関して、Georges Gonthier に感謝します
 *)
 
 Set Implicit Arguments.
 
 (* ********************************************************************** *)
-(** * Additional notations for Coq *)
+(* * Additional notations for Coq *)
+(** * Coqのための追加の記法 *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** N-ary Existentials *)
+(* ** N-ary Existentials *)
+(** ** N変数の存在限量 *)
 
-(** [exists T1 ... TN, P] is a shorthand for
+(* [exists T1 ... TN, P] is a shorthand for
     [exists T1, ..., exists TN, P]. Note that
     [Coq.Program.Syntax] already defines exists
     for arity up to 4. *)
+(** [exists T1 ... TN, P] は
+    [exists T1, ..., exists TN, P] の略記法です。
+    なお、
+    [Coq.Program.Syntax] は既に4つまでの変数の存在限量を定義しています。*)
 
 Notation "'exists' x1 ',' P" :=
   (exists x1, P)
@@ -113,52 +159,70 @@ Notation "'exists' x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 ',' P" :=
 
 
 (* ********************************************************************** *)
-(** * Tools for programming with Ltac *)
+(* * Tools for programming with Ltac *)
+(** * Ltacによるプログラミングのための道具類 *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** Identity continuation *)
+(* ** Identity continuation *)
+(** ** 等価継続 *)
 
 Ltac idcont tt :=
   idtac.
 
 (* ---------------------------------------------------------------------- *)
-(** ** Untyped arguments for tactics *)
+(* ** Untyped arguments for tactics *)
+(** ** タクティックの型付けされない引数 *)
 
-(** Any Coq value can be boxed into the type [Boxer]. This is
+(* Any Coq value can be boxed into the type [Boxer]. This is
     useful to use Coq computations for implementing tactics. *)
+(** 任意のCoqの値は型[Boxer]に収めることができます。
+    これは、タクティックを実装するためのCoqの計算に便利です。 *)
 
 Inductive Boxer : Type :=
   | boxer : forall (A:Type), A -> Boxer.
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Optional arguments for tactics  *)
+(* ** Optional arguments for tactics  *)
+(** ** タクティックのオプショナルな引数  *)
 
-(** [ltac_no_arg] is a constant that can be used to simulate
+(* [ltac_no_arg] is a constant that can be used to simulate
     optional arguments in tactic definitions.
     Use [mytactic ltac_no_arg] on the tactic invokation,
     and use [match arg with ltac_no_arg => ..] or
     [match type of arg with ltac_No_arg  => ..] to
     test whether an argument was provided. *)
+(** [ltac_no_arg]は、タクティックの定義の中で、
+    オプショナルな引数をシミュレートするのに使うことができる定数です。
+    タクティックの呼び出しには [mytactic ltac_no_arg] とします。
+    また、引数が与えられたかどうかをテストするためには
+    [match arg with ltac_no_arg => ..] または
+    [match type of arg with ltac_No_arg  => ..] とします。 *)
 
 Inductive ltac_No_arg : Set :=
   | ltac_no_arg : ltac_No_arg.
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Wildcard arguments for tactics  *)
+(* ** Wildcard arguments for tactics  *)
+(** ** タクティックのワイルドカード引数  *)
 
-(** [ltac_wild] is a constant that can be used to simulate
+(* [ltac_wild] is a constant that can be used to simulate
     wildcard arguments in tactic definitions. Notation is [__]. *)
+(** [ltac_wild]は、タクティックの定義の中で、
+    ワイルドカード引数をシミュレートするのに使うことができる定数です。
+    記法は [__] です。 *)
 
 Inductive ltac_Wild : Set :=
   | ltac_wild : ltac_Wild.
 
 Notation "'__'" := ltac_wild : ltac_scope.
 
-(** [ltac_wilds] is another constant that is typically used to
+(* [ltac_wilds] is another constant that is typically used to
     simulate a sequence of [N] wildcards, with [N] chosen
     appropriately depending on the context. Notation is [___]. *)
+(** [ltac_wilds]は、典型的には[N]個のワイルドカードの列をシミュレートするのに使う定数です。
+    ここで[N]はコンテキストに依存して適切に選ばれます。記法は [___] です。 *)
 
 Inductive ltac_Wilds : Set :=
   | ltac_wilds : ltac_Wilds.
@@ -169,18 +233,25 @@ Open Scope ltac_scope.
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Position markers *)
+(* ** Position markers *)
+(** ** ポジションマーカ *)
 
-(** [ltac_Mark] and [ltac_mark] are dummy definitions used as sentinel
+(* [ltac_Mark] and [ltac_mark] are dummy definitions used as sentinel
     by tactics, to mark a certain position in the context or in the goal. *)
+(** [ltac_Mark]と[ltac_mark]は、コンテキストまたはゴールにおいて、
+    特定のポジションにマークをつけるために、
+    タクティックが使う標識のダミーの定義です。*)
 
 Inductive ltac_Mark : Type :=
   | ltac_mark : ltac_Mark.
 
-(** [gen_until_mark] repeats [generalize] on hypotheses from the
+(* [gen_until_mark] repeats [generalize] on hypotheses from the
     context, starting from the bottom and stopping as soon as reaching
     an hypothesis of type [Mark]. If fails if [Mark] does not
     appear in the context. *)
+(** [gen_until_mark]はコンテキストの一番下の仮定から型[Mark]の仮定に逹するまで
+    [generalize]を繰り返します。
+    コンテキストに[Mark]が現れないときは失敗します。 *)
 
 Ltac gen_until_mark :=
   match goal with H: ?T |- _ =>
@@ -189,10 +260,13 @@ Ltac gen_until_mark :=
   | _ => generalize H; clear H; gen_until_mark
   end end.
 
-(** [intro_until_mark] repeats [intro] until reaching an hypothesis of
+(* [intro_until_mark] repeats [intro] until reaching an hypothesis of
     type [Mark]. It throws away the hypothesis [Mark].
     It fails if [Mark] does not appear as an hypothesis in the
     goal. *)
+(** [intro_until_mark]は型[Mark]の仮定に逹するまで[intro]を繰り返します。
+    そしてその仮定[Mark]を廃棄します。
+    ゴールの仮定に[Mark]が現れないときには失敗します。 *)
 
 Ltac intro_until_mark :=
   match goal with
@@ -202,11 +276,14 @@ Ltac intro_until_mark :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** List of arguments for tactics  *)
+(* ** List of arguments for tactics  *)
+(** ** タクティックの引数のリスト  *)
 
-(** A datatype of type [list Boxer] is used to manipulate list of
+(* A datatype of type [list Boxer] is used to manipulate list of
     Coq values in ltac. Notation is [>> v1 v2 ... vN] for building
     a list containing the values [v1] through [vN]. *)
+(** 型[list Boxer]の datatype は ltac でCoqの値のリストを扱うために使われます。
+    記法は [>> v1 v2 ... vN] で値[v1]から[vN]までを含むリストを作ります。 *)
 
 Require Import List.
 
@@ -297,10 +374,14 @@ Notation "'>>' v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13" :=
   : ltac_scope.
 
 
-(** The tactic [list_boxer_of] inputs a term [E] and returns a term
+(* The tactic [list_boxer_of] inputs a term [E] and returns a term
     of type "list boxer", according to the following rules:
     - if [E] is already of type "list Boxer", then it returns [E];
     - otherwise, it returns the list [(boxer E)::nil]. *)
+(** タクティック[list_boxer_of]は項[E]を入力し、次の規則に従って型 "list boxer"
+    の項を返します:
+    - もし[E]が既に型"list Boxer"ならば[E]を返す;
+    - そうでなければリスト [(boxer E)::nil] を返す。 *)
 
 Ltac list_boxer_of E :=
   match type of E with
@@ -310,9 +391,10 @@ Ltac list_boxer_of E :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Databases of lemmas  *)
+(* ** Databases of lemmas  *)
+(** ** 補題のデータベース  *)
 
-(** Use the hint facility to implement a database mapping
+(* Use the hint facility to implement a database mapping
     terms to terms. To declare a new database, use a definition:
     [Definition mydatabase := True.]
 
@@ -323,6 +405,17 @@ Ltac list_boxer_of E :=
     tactic [ltac_database_get mydatabase mykey]. This will leave
     at the head of the goal the term [myvalue]. It can then be
     named and exploited using [intro]. *)
+(** 項を項へマップするデータベースを実装するために、ヒント機構を使います。
+    新しいデータベースを宣言するには定義 [Definition mydatabase := True.]
+    を使います。
+
+    そして、[mykey]を[myvalue]にマップするには、次のヒントを記述します:
+    [Hint Extern 1 (Register mydatabase mykey) => Provide myvalue.]
+
+    最後に、キーに関連付けられた値を問合わせるには、
+    タクティック[ltac_database_get mydatabase mykey]を走らせます。
+    そうするとゴールの先頭に項[myvalue]が置かれます。
+    すると[intro]によって指名し利用できます。 *)
 
 Definition ltac_database (D:Boxer) (T:Boxer) (A:Boxer) := True.
 
@@ -345,24 +438,31 @@ Ltac ltac_database_get D T :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** On-the-fly removal of hypotheses *)
+(* ** On-the-fly removal of hypotheses *)
+(** ** その場での仮定の除去 *)
 
-(** In a list of arguments [>> H1 H2 .. HN] passed to a tactic
+(* In a list of arguments [>> H1 H2 .. HN] passed to a tactic
     such as [lets] or [applys] or [forwards] or [specializes],
     the term [rm], an identity function, can be placed in front
     of the name of an hypothesis to be deleted. *)
+(** [lets]、[applys]、[forwards]、[specializes]
+    などのタクティックに渡される引数のリスト [>> H1 H2 .. HN] において、
+    恒等関数である項[rm]を消去すべき仮定の名前の前に置くことができます。 *)
 
 Definition rm (A:Type) (X:A) := X.
 
-(** [rm_term E] removes one hypothesis that admits the same
+(* [rm_term E] removes one hypothesis that admits the same
     type as [E]. *)
+(** [rm_term E] は[E]と同じ型と認められる仮定を除去します。 *)
 
 Ltac rm_term E :=
   let T := type of E in
   match goal with H: T |- _ => try clear H end.
 
-(** [rm_inside E] calls [rm_term Ei] for any subterm
+(* [rm_inside E] calls [rm_term Ei] for any subterm
     of the form [rm Ei] found in E *)
+(** [rm_inside E] は [rm Ei] という形の[E]の任意の部分項に対して
+    [rm_term Ei] を呼びます。 *)
 
 Ltac rm_inside E :=
   let go E := rm_inside E in
@@ -389,20 +489,26 @@ Ltac rm_inside E :=
   | _ => idtac
   end.
 
-(** For faster performance, one may deactivate [rm_inside] by
+(* For faster performance, one may deactivate [rm_inside] by
     replacing the body of this definition with [idtac]. *)
+(** パフォーマンスを上げるために[rm_inside]を非アクティブ化するには、
+    次の定義の本体を[idtac]に置換してください。 *)
 
 Ltac fast_rm_inside E :=
   rm_inside E.
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Numbers as arguments *)
+(* ** Numbers as arguments *)
+(** ** 引数としての数値 *)
 
-(** When tactic takes a natural number as argument, it may be
+(* When tactic takes a natural number as argument, it may be
     parsed either as a natural number or as a relative number.
     In order for tactics to convert their arguments into natural numbers,
     we provide a conversion tactic. *)
+(** タクティックが自然数を引数としてとるとき、
+    自然数として構文解析される可能性と相対値として構文解析される可能性があります。
+    タクティックが引数を自然数に変換するために、変換タクティックを提供します。 *)
 
 Require Coq.NArith.BinPos Coq.ZArith.BinInt.
 
@@ -419,9 +525,12 @@ Ltac nat_from_number N :=
   | BinInt.Z => let N' := constr:(ltac_nat_from_int N) in eval compute in N'
   end.
 
-(** [ltac_pattern E at K] is the same as [pattern E at K] except that
+(* [ltac_pattern E at K] is the same as [pattern E at K] except that
     [K] is a Coq natural rather than a Ltac integer. Syntax
     [ltac_pattern E as K in H] is also available. *)
+(** [ltac_pattern E at K]は [pattern E at K] と同様ですが、
+    [K] が Ltac の整数ではなく Coq の自然数である点が違います。
+    構文 [ltac_pattern E as K in H] も可能です。*)
 
 Tactic Notation "ltac_pattern" constr(E) "at" constr(K) :=
   match nat_from_number K with
@@ -449,17 +558,22 @@ Tactic Notation "ltac_pattern" constr(E) "at" constr(K) "in" hyp(H) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Testing tactics *)
+(* ** Testing tactics *)
+(** ** タクティックをテストする *)
 
-(** [show tac] executes a tactic [tac] that produces a result,
+(* [show tac] executes a tactic [tac] that produces a result,
     and then display its result. *)
+(** [show tac] はタクティック[tac]を実行し、その結果を表示します。*)
 
 Tactic Notation "show" tactic(tac) :=
   let R := tac in pose R.
 
-(** [dup N] produces [N] copies of the current goal. It is useful
+(* [dup N] produces [N] copies of the current goal. It is useful
     for building examples on which to illustrate behaviour of tactics.
     [dup] is short for [dup 2]. *)
+(** [dup N] は現在のゴールの[N]個のコピーを作ります。
+    これは、タクティックのふるまいを示す例を作るのに便利です。
+    [dup]は [dup 2] の略記法です。 *)
 
 Lemma dup_lemma : forall P, P -> P -> P.
 Proof. auto. Qed.
@@ -478,7 +592,8 @@ Tactic Notation "dup" :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Check no evar in goal *)
+(* ** Check no evar in goal *)
+(** ** ゴールにやり残しがないことのチェック *)
 
 Ltac check_noevar M :=
   match M with M => idtac end.
@@ -492,11 +607,15 @@ Ltac check_noevar_goal := (* todo: imlement using check_noevar *)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Tagging of hypotheses *)
+(* ** Tagging of hypotheses *)
+(** ** 仮定のタグ付け *)
 
-(** [get_last_hyp tt] is a function that returns the last hypothesis
+(* [get_last_hyp tt] is a function that returns the last hypothesis
     at the bottom of the context. It is useful to obtain the default
     name associated with the hypothesis, e.g.
+    [intro; let H := get_last_hyp tt in let H' := fresh "P" H in ...] *)
+(** [get_last_hyp tt] はコンテキストの一番下の最後の仮定を返す関数です。
+    仮定に付けられたデフォルトの名前を得るのに便利です。例えば:
     [intro; let H := get_last_hyp tt in let H' := fresh "P" H in ...] *)
 
 Ltac get_last_hyp tt :=
@@ -504,16 +623,19 @@ Ltac get_last_hyp tt :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Tagging of hypotheses *)
+(* ** Tagging of hypotheses *)
+(** ** 仮定のタグ付け *)
 
-(** [ltac_tag_subst] is a specific marker for hypotheses
+(* [ltac_tag_subst] is a specific marker for hypotheses
     which is used to tag hypotheses that are equalities to
     be substituted. *)
+(** [ltac_tag_subst]は置換対象の等式である仮定にタグ付けするのに使われる特別なマーカです。*)
 
 Definition ltac_tag_subst (A:Type) (x:A) := x.
 
-(** [ltac_to_generalize] is a specific marker for hypotheses
+(* [ltac_to_generalize] is a specific marker for hypotheses
     to be generalized. *)
+(** [ltac_to_generalize]は一般化する仮定のための特別なマーカです。 *)
 
 Definition ltac_to_generalize (A:Type) (x:A) := x.
 
@@ -527,13 +649,24 @@ Ltac mark_to_generalize H :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Deconstructing terms *)
+(* ** Deconstructing terms *)
+(** ** 項を解体する *)
 
-(** [get_head E] is a tactic that returns the head constant of the
+(* [get_head E] is a tactic that returns the head constant of the
     term [E], ie, when applied to a term of the form [P x1 ... xN]
     it returns [P]. If [E] is not an application, it returns [E].
     Warning: the tactic seems to loop in some cases when the goal is
     a product and one uses the result of this function. *)
+(** [get_head E] は項[E]の冒頭の定数を返すタクティックです。
+    つまり、[P x1 ... xN] という形の項に適用されると[P]を返します。
+    [E]が適用の形ではないときには、[E]を返します。
+    注意: このタクティックは、ゴールが積で、
+    この関数の結果を使う処理がある場合にループすることがあります。 
+    (訳注: このファイル中での積(product)は、他のファイルとは異なり(？)
+    Coq のマニュアルの product のことです。含意または全称限量のことを指します。
+    [Logic_J.v]の冒頭で、[->] と [forall] が同じだと言っていますが、
+    これらのことです。)
+*)
 
 Ltac get_head E :=
   match E with
@@ -552,9 +685,12 @@ Ltac get_head E :=
   | ?P => constr:(P)
   end.
 
-(** [get_fun_arg E] is a tactic that decomposes an application
+(* [get_fun_arg E] is a tactic that decomposes an application
   term [E], ie, when applied to a term of the form [X1 ... XN]
   it returns a pair made of [X1 .. X(N-1)] and [XN]. *)
+(** [get_fun_arg E] は適用項[E]の分解をするタクティックです。
+  つまり、[X1 ... XN] という形の項に適用されると [X1 .. X(N-1)] と [XN] 
+  の対を返します。 *)
 
 Ltac get_fun_arg E :=
   match E with
@@ -569,12 +705,17 @@ Ltac get_fun_arg E :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Action at occurence and action not at occurence *)
+(* ** Action at occurence and action not at occurence *)
+(** ** 出現場所でのアクションと出現場所以外でのアクション *)
 
-(** [ltac_action_at K of E do Tac] isolates the [K]-th occurence of [E] in the
+(* [ltac_action_at K of E do Tac] isolates the [K]-th occurence of [E] in the
     goal, setting it in the form [P E] for some named pattern [P],
     then calls tactic [Tac], and finally unfolds [P]. Syntax
     [ltac_action_at K of E in H do Tac] is also available. *)
+(** [ltac_action_at K of E do Tac] はゴールにおける[E]の[K]番目の出現を区別し、
+    それを指定されたパターン[P]によって [P E] の形にセットしてタクティック[Tac]を呼び、
+    最後に[P]を unfold します。
+    構文 [ltac_action_at K of E in H do Tac] も可能です。 *)
 
 Tactic Notation "ltac_action_at" constr(K) "of" constr(E) "do" tactic(Tac) :=
   let p := fresh in ltac_pattern E at K;
@@ -586,9 +727,12 @@ Tactic Notation "ltac_action_at" constr(K) "of" constr(E) "in" hyp(H) "do" tacti
   match type of H with ?P _ => set (p:=P) in H end;
   Tac; unfold p in H; clear p.
 
-(** [protects E do Tac] temporarily assigns a name to the expression [E]
+(* [protects E do Tac] temporarily assigns a name to the expression [E]
     so that the execution of tactic [Tac] will not modify [E]. This is
     useful for instance to restrict the action of [simpl]. *)
+(** [protects E do Tac] は式[E]に一時的に名前を与えることで、
+    タクティック[Tac]の実行が[E]を変更しないようにします。
+    これは例えば[simpl]のアクションを制限するのに便利です。 *)
 
 Tactic Notation "protects" constr(E) "do" tactic(Tac) :=
   (* let x := fresh "TEMP" in sets_eq x: E; T; subst x. *)
@@ -600,11 +744,14 @@ Tactic Notation "protects" constr(E) "do" tactic(Tac) "/" :=
   protects E do Tac.
 
 (* ---------------------------------------------------------------------- *)
-(** ** An alias for [eq] *)
+(* ** An alias for [eq] *)
+(** ** [eq]の別名 *)
 
-(** [eq'] is an alias for [eq] to be used for equalities in
+(* [eq'] is an alias for [eq] to be used for equalities in
     inductive definitions, so that they don't get mixed with
     equalities generated by [inversion]. *)
+(** [eq']は帰納的定義の等式で使うための[eq]の別名で、 
+    これにより、[inversion]によって生成される等式と混ざるのを防ぐことができます。 *)
 
 Definition eq' := @eq.
 
@@ -616,17 +763,24 @@ Notation "x '='' y" := (@eq' _ x y)
 
 
 (* ********************************************************************** *)
-(** * Backward and forward chaining *)
+(* * Backward and forward chaining *)
+(** * 後方/前方連鎖 *)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Application *)
+(* ** Application *)
+(** ** 適用(Application) *)
 
-(** [rapply] is a tactic similar to [eapply] except that it is
+(* [rapply] is a tactic similar to [eapply] except that it is
     based on the [refine] tactics, and thus is strictly more
     powerful (at least in theory :). In short, it is able to perform
     on-the-fly conversions when required for arguments to match,
     and it is able to instantiate existentials when required. *)
+(** [rapply]は[eapply]と同様のタクティックですが、[refine]
+    タクティックに基づいている点が違います。そしてこのために、
+    (少なくとも理論的には ：)より強力です。
+    簡単に言うと、引数がマッチするために必要となる変換をその場で行うことができます。
+    また必要なときに存在変数を具体化できます。 *)
 
 Tactic Notation "rapply" constr(t) :=
   first  (* todo: les @ sont inutiles *)
@@ -649,10 +803,14 @@ Tactic Notation "rapply" constr(t) :=
   | refine (@t _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
   ].
 
-(** The tactics [applys_N T], where [N] is a natural number,
+(* The tactics [applys_N T], where [N] is a natural number,
     provides a more efficient way of using [applys T]. It avoids
     trying out all possible arities, by specifying explicitely
     the arity of function [T]. *)
+(** 自然数[N]について、タクティック [applys_N T] は 
+    [applys T] をより効果的に使う方法を提供します。
+    関数[T]の引数の数(アリティ、arity)を明示的に指定することで、
+    すべての可能なアリティを試してみることを避けます。 *)
 
 Tactic Notation "rapply_0" constr(t) :=
   refine (@t).
@@ -677,15 +835,19 @@ Tactic Notation "rapply_9" constr(t) :=
 Tactic Notation "rapply_10" constr(t) :=
   refine (@t _ _ _ _ _ _ _ _ _ _).
 
-(** [lets_base H E] adds an hypothesis [H : T] to the context, where [T] is
+(* [lets_base H E] adds an hypothesis [H : T] to the context, where [T] is
     the type of term [E]. If [H] is an introduction pattern, it will
     destruct [H] according to the pattern. *)
+(** [lets_base H E] は仮定 [H : T] をコンテキストに追加します。ここで
+    [T]は項[E]の型です。もし[H]が導入パターンなら、パターンに従って[H]を分解します。 *)
 
 Ltac lets_base I E := generalize E; intros I.
 
-(** [applys_to H E] transform the type of hypothesis [H] by
+(* [applys_to H E] transform the type of hypothesis [H] by
     replacing it by the result of the application of the term
     [E] to [H]. Intuitively, it is equivalent to [lets H: (E H)]. *)
+(** [applys_to H E] は、仮定[H]を、項[E]を[H]に適用した結果で置換することで、
+    仮定の型を変換します。直観的には、[lets H: (E H)] と同値です。 *)
 
 Tactic Notation "applys_to" hyp(H) constr(E) :=
   let H' := fresh in rename H into H';
@@ -701,54 +863,73 @@ Tactic Notation "applys_to" hyp(H) constr(E) :=
          | lets_base H (E _ _ _ _ _ _ _ _ _ H') ]
   ); clear H'.
 
-(** [constructors] calls [constructor] or [econstructor]. *)
+(* [constructors] calls [constructor] or [econstructor]. *)
+(** [constructors]は[constructor]または[econstructor]を呼びます。 *)
 
 Tactic Notation "constructors" :=
   first [ constructor | econstructor ]; unfold eq'.
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Assertions *)
+(* ** Assertions *)
+(** ** 表明(Assertions) *)
 
-(** [false_goal] replaces any goal by the goal [False].
+(* [false_goal] replaces any goal by the goal [False].
     Contrary to the tactic [false] (below), it does not try to do
     anything else *)
+(** [false_goal]は任意のゴールを[False]で置換します。
+    タクティック[false](後述)と対照的に、特に何もしようとしません。*)
 
 Tactic Notation "false_goal" :=
   elimtype False.
 
-(** [false_post] is the underlying tactic used to prove goals
+(* [false_post] is the underlying tactic used to prove goals
     of the form [False]. In the default implementation, it proves
     the goal if the context contains [False] or an hypothesis of the
     form [C x1 .. xN  =  D y1 .. yM], or if the [congruence] tactic
     finds a proof of [x <> x] for some [x]. *)
+(** [false_post]は[False]の形のゴールを証明するときに背後で使われるタクティックです。
+    デフォルトの実装ではコンテキストが[False]か、または[C x1 .. xN  =  D y1 .. yM]
+    という形の仮定を含む場合、あるいは[congruence]タクティックがある[x]について
+    [x <> x] の証明を見つけた場合にゴールを証明します。 *)
 
 Ltac false_post :=
   solve [ assumption | discriminate | congruence ].
 
-(** [false] replaces any goal by the goal [False], and calls [false_post] *)
+(* [false] replaces any goal by the goal [False], and calls [false_post] *)
+(** [false]は任意のゴールを[False]に置換し、[false_post]を呼びます。 *)
 
 Tactic Notation "false" :=
   false_goal; try false_post.
 
-(** [tryfalse] tries to solve a goal by contradiction, and leaves
+(* [tryfalse] tries to solve a goal by contradiction, and leaves
     the goal unchanged if it cannot solve it.
     It is equivalent to [try solve \[ false \]]. *)
+(** [tryfalse]は矛盾によってゴールを解こうとします。
+    そして解けなかった場合にはゴールを変更しないまま残します。
+    これは [try solve \[ false \]] と同値です。 *)
 
 Tactic Notation "tryfalse" :=
   try solve [ false ].
 
-(** [tryfalse by tac /] is that same as [tryfalse] except that
+(* [tryfalse by tac /] is that same as [tryfalse] except that
     it tries to solve the goal using tactic [tac] if [assumption]
     and [discriminate] do not apply.
     It is equivalent to [try solve \[ false; tac \]].
     Example: [tryfalse by congruence/] *)
+(** [tryfalse by tac /] は[tryfalse]と同様ですが、
+    [assumption]と[discriminate]が適用できないとき、
+    タクティック[tac]を使ってゴールを解こうとする点が違います。
+    これは [try solve \[ false; tac \]] と同値です。
+    例: [tryfalse by congruence/] *)
 
 Tactic Notation "tryfalse" "by" tactic(tac) "/" :=
   try solve [ false; instantiate; tac ].
 
-(** [false T] tries [false; apply T], or otherwise adds [T] as
+(* [false T] tries [false; apply T], or otherwise adds [T] as
     an assumption and calls [false]. *)
+(** [false T] は [false; apply T] を試みます。それが失敗した場合、[T]
+    を仮定に加え[false]を呼びます。 *)
 
 Tactic Notation "false" constr(T) "by" tactic(tac) "/" :=
   false_goal; first
@@ -761,9 +942,12 @@ Tactic Notation "false" constr(T) "by" tactic(tac) "/" :=
 Tactic Notation "false" constr(T) :=
   false T by idtac/.
 
-(** [false_invert] proves any goal provided there is at least
+(* [false_invert] proves any goal provided there is at least
     one hypothesis [H] in the context that can be proved absurd
     by calling [inversion H]. *)
+(** [false_invert]は、コンテキストに少なくとも1つの仮定[H]があって、
+    [inversion H]によって[H]が不合理(absurd)であることが証明されるとき、
+    任意のゴールを証明します。 *)
 
 Ltac false_invert_tactic :=
   match goal with H:_ |- _ =>
@@ -774,24 +958,33 @@ Ltac false_invert_tactic :=
 Tactic Notation "false_invert" :=
   false_invert_tactic.
 
-(** [tryfalse_invert] tries to prove the goal using
+(* [tryfalse_invert] tries to prove the goal using
     [false] or [false_invert], and leaves the goal
     unchanged if it does not succeed. *)
+(** [tryfalse_invert]は[false]と[false_invert]を使ってゴールを解こうとします。
+    そして失敗するときは、ゴールを変えずに残します。 *)
 
 Tactic Notation "tryfalse_invert" :=
   try solve [ false | false_invert ].
 
-(** [asserts H: T] is another syntax for [assert (H : T)], which
+(* [asserts H: T] is another syntax for [assert (H : T)], which
     also works with introduction patterns. For instance, one can write:
     [asserts \[x P\] (exists n, n = 3)], or
     [asserts \[H|H\] (n = 0 \/ n = 1). *)
+(** [asserts H: T] は [assert (H : T)] の別構文です。
+    これは同様に導出パターンについてはたらきます。
+    例えば、次のように書くことができます:
+    [asserts \[x P\] (exists n, n = 3)]、あるいは
+    [asserts \[H|H\] (n = 0 \/ n = 1)]。 *)
 
 Tactic Notation "asserts" simple_intropattern(I) ":" constr(T) :=
   let H := fresh in assert (H : T);
   [ | generalize H; clear H; intros I ].
 
-(** [asserts H1 .. HN: T] is a shorthand for
+(* [asserts H1 .. HN: T] is a shorthand for
     [asserts \[H1 \[H2 \[.. HN\]\]\]\]: T]. *)
+(** [asserts H1 .. HN: T] は
+    [asserts \[H1 \[H2 \[.. HN\]\]\]: T] の略記法です。 *)
 
 Tactic Notation "asserts" simple_intropattern(I1)
  simple_intropattern(I2) ":" constr(T) :=
@@ -813,25 +1006,32 @@ Tactic Notation "asserts" simple_intropattern(I1)
  simple_intropattern(I6) ":" constr(T) :=
   asserts [I1 [I2 [I3 [I4 [I5 I6]]]]]: T.
 
-(** [asserts: T] is [asserts H: T] with [H] being chosen automatically. *)
+(* [asserts: T] is [asserts H: T] with [H] being chosen automatically. *)
+(** [asserts: T] は自動的に選択された[H]について [asserts H: T] をします。 *)
 
 Tactic Notation "asserts" ":" constr(T) :=
   let H := fresh in asserts H : T.
 
-(** [cuts H: T] is the same as [asserts H: T] except that the two subgoals
+(* [cuts H: T] is the same as [asserts H: T] except that the two subgoals
     generated are swapped: the subgoal [T] comes second. Note that contrary
     to [cut], it introduces the hypothesis. *)
+(** [cuts H: T] は [asserts H: T] と同様ですが、
+    生成される2つのサブゴールの順番が逆になる点が違います。
+    サブゴール[T]が二番目に来ます。なお、[cut]と対照的に仮定を導入します。 *)
 
 Tactic Notation "cuts" simple_intropattern(I) ":" constr(T) :=
   cut (T); [ intros I | idtac ].
 
-(** [cuts: T] is [cuts H: T] with [H] being chosen automatically. *)
+(* [cuts: T] is [cuts H: T] with [H] being chosen automatically. *)
+(** [cuts: T] は自動的に選択された[H]について [cuts H: T] をします。 *)
 
 Tactic Notation "cuts" ":" constr(T) :=
   let H := fresh in cuts H: T.
 
-(** [cuts H1 .. HN: T] is a shorthand for
+(* [cuts H1 .. HN: T] is a shorthand for
     [cuts \[H1 \[H2 \[.. HN\]\]\]\]: T]. *)
+(** [cuts H1 .. HN: T] は
+    [cuts \[H1 \[H2 \[.. HN\]\]\]: T] の略記法です。 *)
 
 Tactic Notation "cuts" simple_intropattern(I1)
  simple_intropattern(I2) ":" constr(T) :=
@@ -855,9 +1055,10 @@ Tactic Notation "cuts" simple_intropattern(I1)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Instantiation and forward-chaining *)
+(* ** Instantiation and forward-chaining *)
+(** ** 具体化と前方連鎖 *)
 
-(** The instantiation tactics are used to instantiate a lemma [E]
+(* The instantiation tactics are used to instantiate a lemma [E]
     (whose type is a product) on some arguments. The type of [E] is
     made of implications and universal quantifications, e.g.
     [forall x, P x -> forall y z, Q x y z -> R z].
@@ -902,6 +1103,49 @@ Tactic Notation "cuts" simple_intropattern(I1)
     then it is equivalent to providing a list of wildcards, with
     the appropriate number of wildcards. This means that all
     the remaining arguments of the lemma will be instantiated. *)
+(** 具体化タクティックは補題[E](その型は積)をある引数について具体化するために使います。
+    [E]の型は含意と全称限量から成ります。例えば
+    [forall x, P x -> forall y z, Q x y z -> R z] です。
+
+    最初の可能性は引数を順番に与えることです。最初に[x]、次に[P x]の証明、次に[y]...
+    このやり方をとることは"Args"モードと呼ばれますが、すべての引数を与えることが必要です。
+    もしワイルドカード([__]と書かれる)が与えられると、引数の場所に存在変数が導入されます。
+
+    しばしば、依存する変数(この場合[x],[y],[z])だけを与え、
+    生成される仮定をサブゴールとすることで、多くの時間を節約できます。
+    この"Vars"モードでは、変数だけが与えなければならないものです。
+    例えば、補題[E]が[3]と[4]に適用されたとき、結果は型 [forall z, Q 3 4 z -> R z]
+    の項となり、[P 3] が新しいサブゴールになります。
+    ワイルドカードを使って存在変数を導入することもできます。
+
+    しかしながら、仮定のいくつかが既に存在していることがあり、そのときには、
+    その仮定を使って補題[E]を具体化することで時間を節約することができます。
+    例えば、[F]が型 [P 2] の項とします。この"Hyps"モードで
+    [E]を[F]に適用すると結果は型 [forall y z, Q 2 y z -> R z] の項になります。
+    ワイルドカードの使用はこのモードでは表明を生成します。
+    例えば[G]が型 [Q 2 3 4] を持つならば、mode-h で
+    [E]をワイルドカードへ適用し、それを[G]へ適用した結果は型 [R 4] の項となり、
+    [P 2] は新しいサブゴールとなります。
+
+    補題の具体化するべき引数を与え、
+    アンダースコアが入るべき場所をタクティックに自動的に発見させることはとても便利です。
+    アンダースコア引数 [__] は次のように解釈されます:
+    アンダースコアは引数をスキップしたいことを意味します。
+    ただしその引数の型は次に与えられる実際の引数
+    (ここで「実際の」とはアンダースコアでないこと)と同じになります。
+    アンダースコアの後で実際の引数が与えられない場合、
+    アンダースコアは最初の可能な引数に使われます。
+
+    一般構文は [tactic (>> E1 .. EN)] です。ここで[tactic]はタクティック
+    (いくつかの引数を伴うこともある)の名前で、[Ei]は引数です。
+    さらに、いくつかのタクティックは、5以下の[N]について
+    [tactic (>>Hnts E1 .. EN)] の略記法として構文 [tactic E1 .. EN]
+    を使うことができます。
+
+    最後に、与えられた引数[EN]が三連アンダースコア [___] のときは、
+    適切な数のワイルドカードのリストを与えるのと同値です。
+    これは、補題の残りのすべての引数が具体化されることを意味します。 
+    *)
 
 (* Underlying implementation *)
 
@@ -1002,7 +1246,7 @@ Ltac args_unfold_head_if_not_product_but_params args :=
   | _ => constr:(args)
   end.
 
-(** [lets H: (>> E0 E1 .. EN)] will instantiate lemma [E0]
+(* [lets H: (>> E0 E1 .. EN)] will instantiate lemma [E0]
     on the arguments [Ei] (which may be wildcards [__]),
     and name [H] the resulting term. [H] may be an introduction
     pattern, or a sequence of introduction patterns [I1 I2 IN],
@@ -1010,6 +1254,13 @@ Ltac args_unfold_head_if_not_product_but_params args :=
     Syntax [lets H: E0 E1 .. EN] is also available. If the last
     argument [EN] is [___] (triple-underscore), then all
     arguments of [H] will be instantiated. *)
+(** [lets H: (>> E0 E1 .. EN)] は補題[E0]を各引数[Ei]
+    (これはワイルドカード [__] のこともあります)について具体化し、
+    結果の項に名前[H]を付けます。
+    [H]は導出パターンか、導出パターンの列 [I1 I2 IN] か、空です。
+    構文 [lets H: E0 E1 .. EN] も可能です。
+    もし最後の引数[EN]が [___] (三連アンダースコア)ならば、
+    [H]のすべての引数が具体化されます。 *)
 
 Ltac lets_build I Ei :=
   let args := list_boxer_of Ei in
@@ -1085,12 +1336,17 @@ Tactic Notation "lets" simple_intropattern(I1) simple_intropattern(I2) ":" const
   lets [I1 I2]: E0 A1 A2 A3 A4 A5.
 
 
-(** [forwards H: (>> E0 E1 .. EN)] is short for
+(* [forwards H: (>> E0 E1 .. EN)] is short for
     [forwards H: (>> E0 E1 .. EN ___)].
     The arguments [Ei] can be wildcards [__] (except [E0]).
     [H] may be an introduction pattern, or a sequence of
     introduction pattern, or empty.
     Syntax [forwards H: E0 E1 .. EN] is also available. *)
+(** [forwards H: (>> E0 E1 .. EN)] は
+    [forwards H: (>> E0 E1 .. EN ___)] の略記法です。
+    各引数 [Ei] ([E0] を除く)はワイルドカード [__] でも構いません。
+    [H] は導入パターンか、導入パターンの列か、空です。
+    構文 [forwards H: E0 E1 .. EN] も可能です。 *)
 
 Ltac forwards_build_app_arg Ei :=
   let args := list_boxer_of Ei in
@@ -1169,11 +1425,15 @@ Ltac forwards_nounfold_then Ei cont :=
   build_app args cont;
   fast_rm_inside Ei.
 
-(** [applys (>> E0 E1 .. EN)] instantiates lemma [E0]
+(* [applys (>> E0 E1 .. EN)] instantiates lemma [E0]
     on the arguments [Ei] (which may be wildcards [__]),
     and apply the resulting term to the current goal,
     using the tactic [applys] defined earlier on.
     [applys E0 E1 E2 .. EN] is also available. *)
+(** [applys (>> E0 E1 .. EN)] は補題[E0]を各引数
+    [Ei] (ワイルドカード [__] でも良い)について具体化し、
+    その結果を、前述の[applys]を使って現在のゴールに適用します。
+    [applys E0 E1 E2 .. EN] も可能です。*)
 
 Ltac applys_build Ei :=
   let args := list_boxer_of Ei in
@@ -1200,11 +1460,15 @@ Tactic Notation "applys" constr(E0) constr(A1) constr(A2) constr(A3) constr(A4) 
 Tactic Notation "applys" constr(E0) constr(A1) constr(A2) constr(A3) constr(A4) constr(A5) :=
   applys (>> E0 A1 A2 A3 A4 A5).
 
-(** [fapplys (>> E0 E1 .. EN)] instantiates lemma [E0]
+(* [fapplys (>> E0 E1 .. EN)] instantiates lemma [E0]
     on the arguments [Ei] and on the argument [___] meaning
     that all evars should be explicitly instantiated,
     and apply the resulting term to the current goal.
     [fapplys E0 E1 E2 .. EN] is also available. *)
+(** [fapplys (>> E0 E1 .. EN)] は補題[E0]を各引数[Ei]について具体化します。
+    引数が [___] のときは、すべての存在変数が明示的に具体化されます。
+    そして結果の項を現在のゴールに適用します。
+    [fapplys E0 E1 E2 .. EN] も可能です。 *)
 
 Ltac fapplys_build Ei :=
   let args := list_boxer_of Ei in
@@ -1228,10 +1492,13 @@ Tactic Notation "fapplys" constr(E0) constr(A1) constr(A2) constr(A3) constr(A4)
 Tactic Notation "fapplys" constr(E0) constr(A1) constr(A2) constr(A3) constr(A4) constr(A5) :=
   fapplys (>> E0 A1 A2 A3 A4 A5).
 
-(** [specializes H (>> E1 E2 .. EN)] will instantiate hypothesis [H]
+(* [specializes H (>> E1 E2 .. EN)] will instantiate hypothesis [H]
     on the arguments [Ei] (which may be wildcards [__]). If the last
     argument [EN] is [___] (triple-underscore), then all arguments of
     [H] get instantiated. *)
+(** [specializes H (>> E1 E2 .. EN)] は仮定[H]を各引数[Ei](ワイルドカード [__] も可)
+    について具体化します。もし最後の引数[EN]が [___] (三連アンダースコア)
+    ならば、[H]のすべての引数が具体化されます。 *)
 
 Ltac specializes_build H Ei :=
   let H' := fresh "TEMP" in rename H into H';
@@ -1259,9 +1526,11 @@ Tactic Notation "specializes" hyp(H) constr(A1) constr(A2) constr(A3) constr(A4)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Experimental tactics for application *)
+(* ** Experimental tactics for application *)
+(** ** 適用(application)の実験的タクティック *)
 
-(** [fapply] is a version of [apply] based on [forwards]. *)
+(* [fapply] is a version of [apply] based on [forwards]. *)
+(** [fapply]は[apply]の[forwards]にもとづくバージョンです。*)
 
 Tactic Notation "fapply" constr(E) :=
   let H := fresh in forwards H: E;
@@ -1269,9 +1538,12 @@ Tactic Notation "fapply" constr(E) :=
         | hnf; eapply H | applys H ].
    (* todo: is applys redundant with rapply ? *)
 
-(** [sapply] stands for "super apply". It tries
+(* [sapply] stands for "super apply". It tries
     [apply], [eapply], [applys] and [fapply],
     and also tries to head-normalize the goal first. *)
+(** [sapply]は"super apply"の意味です。
+    [apply]、[eapply]、[applys]、[fapply]を試し、
+    さらに最初にゴールの頭正規化(head-nomalize)をしようとします。 *)
 
 Tactic Notation "sapply" constr(H) :=
   first [ apply H | eapply H | rapply H | applys H
@@ -1279,34 +1551,45 @@ Tactic Notation "sapply" constr(H) :=
         | fapply H ].
 
 (* ---------------------------------------------------------------------- *)
-(** ** Adding assumptions *)
+(* ** Adding assumptions *)
+(** ** 仮定を追加する *)
 
-(** [lets_simpl H: E] is the same as [lets H: E] excepts that it
+(* [lets_simpl H: E] is the same as [lets H: E] excepts that it
     calls [simpl] on the hypothesis H. *)
+(** [lets_simpl H: E] は [lets H: E] と同様ですが、仮定 H について
+    [simpl]を呼ぶ点が違います。 *)
 
 Tactic Notation "lets_simpl" ident(H) ":" constr(E) :=
   lets H: E; simpl in H.
 
-(** [lets_hnf H: E] is the same as [lets H: E] excepts that it
+(* [lets_hnf H: E] is the same as [lets H: E] excepts that it
     calls [hnf] to set the definition in head normal form. *)
+(** [lets_hnf H: E] は [lets H: E] と同様ですが、
+    [hnf]を呼んで定義を頭正規形(head normal form)にする点が違います。 *)
 
 Tactic Notation "lets_hnf" ident(H) ":" constr(E) :=
   lets H: E; hnf in H.
 
-(** [lets_simpl: E] is the same as [lets_simpl H: E] with
+(* [lets_simpl: E] is the same as [lets_simpl H: E] with
    the name [H] being choosed automatically. *)
+(** [lets_simpl: E] は [lets_simpl H: E] と同様ですが、名前[H]
+    は自動的に選ばれます。 *)
 
 Tactic Notation "lets_simpl" ":" constr(T) :=
   let H := fresh in lets_simpl H: T.
 
-(** [lets_hnf: E] is the same as [lets_hnf H: E] with
+(* [lets_hnf: E] is the same as [lets_hnf H: E] with
    the name [H] being choosed automatically. *)
+(** [lets_hnf: E] は [lets_hnf H: E] と同様ですが、
+   名前[H]は自動的に選ばれます。 *)
 
 Tactic Notation "lets_hnf" ":" constr(T) :=
   let H := fresh in lets_hnf H: T.
 
-(** [put X: E] is a synonymous for [pose (X := E)].
+(* [put X: E] is a synonymous for [pose (X := E)].
     Other syntaxes are [put: E]. *)
+(** [put X: E] は [pose (X := E)] と同義です。
+    別に [put: E] という構文もあります。 *)
 
 Tactic Notation "put" ident(X) ":" constr(E) :=
   pose (X := E).
@@ -1315,12 +1598,17 @@ Tactic Notation "put" ":" constr(E) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Application of tautologies *)
+(* ** Application of tautologies *)
+(** ** トートロジーの適用 *)
 
-(** [logic E], where [E] is a fact, is equivalent to
+(* [logic E], where [E] is a fact, is equivalent to
     [assert H:E; [tauto | eapply H; clear H]. It is useful for instance
     to prove a conjunction [A /\ B] by showing first [A] and then [A -> B],
     through the command [logic (foral A B, A -> (A -> B) -> A /\ B)] *)
+(** [E]が事実とするとき、[logic E]は [assert H:E; [tauto | eapply H; clear H]]
+    と同値です。例えば連言(AND式) [A /\ B] を証明するとき、
+    最初に [A] を示し、次に [A -> B] を示すのに、コマンド
+    [logic (foral A B, A -> (A -> B) -> A /\ B)] を使うのが便利です。 *)
 
 Ltac logic_base E cont :=
   assert (H:E); [ cont tt | eapply H; clear H ].
@@ -1330,9 +1618,10 @@ Tactic Notation "logic" constr(E) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Application modulo equalities *)
+(* ** Application modulo equalities *)
+(** ** 等式を法とした適用 *)
 
-(** The tactic [equates] replaces a goal of the form
+(* The tactic [equates] replaces a goal of the form
     [P x y z] with a goal of the form [P x ?a z] and a
     subgoal [?a = y]. The introduction of the evar [?a] makes
     it possible to apply lemmas that would not apply to the
@@ -1344,6 +1633,16 @@ Tactic Notation "logic" constr(E) :=
     positions of the arguments to be replaced by evars,
     counting from the right-hand side. If [0] is given as
     argument, then the entire goal is replaced by an evar. *)
+(** タクティック[equates]は [P x y z] の形のゴールを
+    [P x ?a z] に置き換え、サブゴール [?a = y] を作ります。
+    存在変数[?a]が導入されることで、
+    もとのゴールに適用できなかった補題が適用できるようになることがあります。
+    例えば、[forall n m, P n n m] という形の補題です。
+    なぜなら、[x]と[y]は等しかったかもしれませんが、変換可能ではないからです。
+
+    使用法は [equates i1 ... ik] です。ここで各インデックス[ij]
+    は存在変数に置き換える引数の場所を、左端から数えたものです。
+    もし[0]が引数に与えられたら、ゴール全体が存在変数に置き換えられます。 *)
 
 Section equatesLemma.
 Variables
@@ -1427,10 +1726,11 @@ Tactic Notation "equates" constr(n1) constr(n2) constr(n3) :=
 Tactic Notation "equates" constr(n1) constr(n2) constr(n3) constr(n4) :=
   equates (>> n1 n2 n3 n4).
 
-(** [applys_eq H i1 .. iK] is the same as
+(* [applys_eq H i1 .. iK] is the same as
     [equates i1 .. iK] followed by [apply H]
     on the first subgoal. *)
-
+(** [applys_eq H i1 .. iK] は
+    [equates i1 .. iK] の後最初のサブゴールに対して [apply H] を行ったのと同じです。 *)
 Tactic Notation "applys_eq" constr(H) constr(E) :=
   equates_several E ltac:(fun _ => sapply H).
 Tactic Notation "applys_eq" constr(H) constr(n1) constr(n2) :=
@@ -1442,12 +1742,14 @@ Tactic Notation "applys_eq" constr(H) constr(n1) constr(n2) constr(n3) constr(n4
 
 
 (* ********************************************************************** *)
-(** * Introduction and generalization *)
+(* * Introduction and generalization *)
+(** * 導入と一般化 *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** Introduction *)
+(* ** Introduction *)
+(** ** 導入(Introduction) *)
 
-(** [introv] is used to name only non-dependent hypothesis.
+(* [introv] is used to name only non-dependent hypothesis.
  - If [introv] is called on a goal of the form [forall x, H],
    it should introduce all the variables quantified with a
    [forall] at the head of the goal, but it does not introduce
@@ -1457,6 +1759,13 @@ Tactic Notation "applys_eq" constr(H) constr(n1) constr(n2) constr(n3) constr(n4
    until the goal takes the form [forall x, H] or [P -> Q].
    If unfolding definitions does not produces a goal of this form,
    then the tactic [introv] does nothing at all. *)
+(** [introv]は依存性のない(non-dependent)仮定のみを指名するのに使います。
+ - [introv]が [forall x, H] という形のゴールに対して呼ばれると、
+   ゴールの頭部の[forall]に限量されたすべての変数が導入されます。
+   しかし、[P -> Q] のような矢印コンストラクタの前の仮定は導入されません。
+ - [introv]が [forall x, H] でも [P -> Q] でもない形のゴールに対して呼ばれると、
+   [forall x, H] または [P -> Q.] の形になるまで、定義を展開(unfold)します。
+   展開してもゴールが上記の形にならなかったとき、タクティック[introv]は何もしません。 *)
 
 (* [introv_rec] introduces all visible variables.
    It does not try to unfold any definition. *)
@@ -1541,16 +1850,22 @@ Tactic Notation "introv" simple_intropattern(I1) simple_intropattern(I2)
  simple_intropattern(I9) simple_intropattern(I10) :=
   introv I1; introv I2 I3 I4 I5 I6 I7 I8 I9 I10.
 
-(** [intros_all] repeats [intro] as long as possible. Contrary to [intros],
+(* [intros_all] repeats [intro] as long as possible. Contrary to [intros],
     it unfolds any definition on the way. Remark that it also unfolds the
     definition of negation, so applying [introz] to a goal of the form
     [forall x, P x -> ~Q] will introduce [x] and [P x] and [Q], and will
     leave [False] in the goal. *)
+(** [intros_all] は [intro] を可能な限り繰り返します。[intros]と対照的に、
+    定義を途中で unfold します。否定の定義も unfold するので、
+    [intros_all]を [forall x, P x -> ~Q] の形のゴールに適用すると、
+    [x]、[P x]、[Q]を導入し、ゴールに[False]を残すことに注意します。 *)
+(* 訳注: [introz] は [intros_all] の間違いと判断。 *)
 
 Tactic Notation "intros_all" :=
   repeat intro.
 
-(** [intros_hnf] introduces an hypothesis and sets in head normal form *)
+(* [intros_hnf] introduces an hypothesis and sets in head normal form *)
+(** [intros_hnf] は仮定を導入し、頭正規形にします。 *)
 
 Tactic Notation "intro_hnf" :=
   intro; match goal with H: _ |- _ => hnf in H end.
@@ -1558,13 +1873,18 @@ Tactic Notation "intro_hnf" :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Generalization *)
+(* ** Generalization *)
+(** ** 一般化(Generalization) *)
 
-(** [gen X1 .. XN] is a shorthand for calling [generalize dependent]
+(* [gen X1 .. XN] is a shorthand for calling [generalize dependent]
     successively on variables [XN]...[X1]. Note that the variables
     are generalized in reverse order, following the convention of
     the [generalize] tactic: it means that [X1] will be the first
     quantified variable in the resulting goal. *)
+(** [gen X1 .. XN] は、変数 [XN]...[X1] に対して [generalize dependent]
+    を呼ぶことの略記法です。なお、[generalize]タクティックの慣習にならって、
+    変数は逆順で一般化(generalize)されます。つまり、
+    [X1]が結果のゴールの最初の束縛変数になるということです。 *)
 
 Tactic Notation "gen" ident(X1) :=
   generalize dependent X1.
@@ -1592,9 +1912,12 @@ Tactic Notation "gen" ident(X1) ident(X2) ident(X3) ident(X4) ident(X5)
  ident(X6) ident(X7) ident(X8) ident(X9) ident(X10) :=
   gen X10; gen X9; gen X8; gen X7; gen X6; gen X5; gen X4; gen X3; gen X2; gen X1.
 
-(** [generalizes X] is a shorthand for calling [generalize X; clear X].
+(* [generalizes X] is a shorthand for calling [generalize X; clear X].
     It is weaker than tactic [gen X] since it does not support
     dependencies. It is mainly intended for writing tactics. *)
+(** [generalizes X] は [generalize X; clear X] の略記法です。
+    これは依存性をサポートしないため、タクティック [gen X] より弱いです。
+    主にタクティック記述に利用することを意図したものです。 *)
 
 Tactic Notation "generalizes" hyp(X) :=
   generalize X; clear X.
@@ -1607,27 +1930,34 @@ Tactic Notation "generalizes" hyp(X1) hyp(X2) hyp(X3) hyp(X4) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Naming *)
+(* ** Naming *)
+(** ** 名前付け(Naming) *)
 
-(** [sets X: E] is the same as [set (X := E) in *], that is,
+(* [sets X: E] is the same as [set (X := E) in *], that is,
     it replaces all occurences of [E] by a fresh meta-variable [X]
     whose definition is [E]. *)
+(** [sets X: E] は [set (X := E) in *] と同じです。つまり、
+    [E]のすべての出現を新しいメタ変数[X]に置換します。[X]の定義は[E]になります。 *)
 
 Tactic Notation "sets" ident(X) ":" constr(E) :=
   set (X := E) in *.
 
-(** [def_to_eq E X H] applies when [X := E] is a local
+(* [def_to_eq E X H] applies when [X := E] is a local
     definition. It adds an assumption [H: X = E]
     and then clears the definition of [X].
     [def_to_eq_sym] is similar except that it generates
     the equality [H: E = X]. *)
+(** [def_to_eq E X H] は、[X := E] がローカルな定義のとき適用できます。
+    適用されると仮定 [H: X = E] が追加され、[X]の定義がクリアされます。
+    [def_to_eq_sym] も同様ですが、違いは、
+    この場合、等式 [H: E = X] が生成されることです。 *)
 
 Ltac def_to_eq X HX E :=
   assert (HX : X = E) by reflexivity; clearbody X.
 Ltac def_to_eq_sym X HX E :=
   assert (HX : E = X) by reflexivity; clearbody X.
 
-(** [set_eq X H: E] generates the equality [H: X = E],
+(* [set_eq X H: E] generates the equality [H: X = E],
     for a fresh name [X], and replaces [E] by [X] in the
     current goal. Syntaxes [set_eq X: E] and
     [set_eq: E] are also available. Similarly,
@@ -1636,6 +1966,14 @@ Ltac def_to_eq_sym X HX E :=
     [sets_eq X HX: E] does the same but replaces [E] by [X]
     everywhere in the goal. [sets_eq X HX: E in H] replaces in [H].
     [set_eq X HX: E in |-] performs no substitution at all. *)
+(** [set_eq X H: E] は新しい名前[X]についての等式 [H: X = E] を生成し、
+    現在のゴールの [E] を [X] で置換します。構文 [set_eq X: E] および
+    [set_eq: E] も可能です。同様に、
+    [set_eq <- X H: E] は等式 [H: E = X] を生成します。
+
+    [sets_eq X HX: E] も同様ですが、ゴールのすべての[E]を[X]で置換します。
+    [sets_eq X HX: E in H] は [H] 内を置換します。
+    [set_eq X HX: E in |-] は何も置換しません。 *)
 
 Tactic Notation "set_eq" ident(X) ident(HX) ":" constr(E) :=
   set (X := E); def_to_eq X HX E.
@@ -1693,13 +2031,19 @@ Tactic Notation "set_eq" "<-" ident(X) ":" constr(E) "in" "|-" :=
 Tactic Notation "set_eq" "<-" ":" constr(E) "in" "|-" :=
   let X := fresh "X" in set_eq <- X: E in |-.
 
-(** [gen_eq X: E] is a tactic whose purpose is to introduce
+(* [gen_eq X: E] is a tactic whose purpose is to introduce
     equalities so as to work around the limitation of the [induction]
     tactic which typically loses information. [gen_eq E as X] replaces
     all occurences of term [E] with a fresh variable [X] and the equality
     [X = E] as extra hypothesis to the current conclusion. In other words
     a conclusion [C] will be turned into [(X = E) -> C].
     [gen_eq: E] and [gen_eq: E as X] are also accepted. *)
+(** [induction]タクティックは通常、情報を失いますが、[gen_eq X: E] は、
+    [induction]のこの限界を避けて等式を導入することを目的としたタクティックです。
+    [gen_eq E as X] 項[E]のすべての出現を新しい変数[X]で置換し、
+    等式 [X = E] を現在の結論の追加の仮定とします。言い換えると、
+    結論[C]は [(X = E) -> C] になります。
+    [gen_eq: E] および [gen_eq: E as X] も可能です。 *)
 
 Tactic Notation "gen_eq" ident(X) ":" constr(E) :=
   let EQ := fresh in sets_eq X EQ: E; revert EQ.
@@ -1714,7 +2058,7 @@ Tactic Notation "gen_eq" ident(X1) ":" constr(E1) ","
   ident(X2) ":" constr(E2) "," ident(X3) ":" constr(E3) :=
   gen_eq X3: E3; gen_eq X2: E2; gen_eq X1: E1.
 
-(** [sets_let X] finds the first let-expression in the goal
+(* [sets_let X] finds the first let-expression in the goal
     and names its body [X]. [sets_eq_let X] is similar,
     except that it generates an explicit equality.
     Tactics [sets_let X in H] and [sets_eq_let X in H]
@@ -1723,6 +2067,14 @@ Tactic Notation "gen_eq" ident(X1) ":" constr(E1) ","
 
     Known limitation: it does not seem possible to support
     naming of multiple let-in constructs inside a term, from ltac. *)
+(** [sets_let X] はゴールの最初の let-式を見つけ出し、その本体を[X]と名付けます。
+    [sets_eq_let X] も同様ですが、明示的に等式を作ることが違います。
+    タクティック [sets_let X in H] と [sets_eq_let X in H] 
+    により特定の仮定を指定することができます(デフォルトでは、
+    [let]を含む最初のものが対象となります)。
+
+    既知の限界: ltac で項内の複数の let-in 
+    コンストラクタに対する名前付けのサポートをすることは不可能なようです。 *)
 
 Ltac sets_let_base tac :=
   match goal with
@@ -1746,15 +2098,20 @@ Tactic Notation "sets_eq_let" ident(X) "in" hyp(H) :=
 
 
 (* ********************************************************************** *)
-(** * Rewriting *)
+(* * Rewriting *)
+(** * 書き換え *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** Rewriting *)
+(* ** Rewriting *)
+(** ** 書き換え(Rewriting) *)
 
-(** [rewrite_all E] iterates version of [rewrite E] as long as possible.
+(* [rewrite_all E] iterates version of [rewrite E] as long as possible.
     Warning: this tactic can easily get into an infinite loop.
     Syntax for rewriting from right to left and/or into an hypothese
     is similar to the one of [rewrite]. *)
+(** [rewrite_all E] は [rewrite E] を可能な限り繰り返します。
+    注意: このタクティックは簡単に無限ループに陥ります。
+    右から左への書き換えや仮定への適用の構文は[rewrite]と同様です。 *)
 
 Tactic Notation "rewrite_all" constr(E) :=
   repeat rewrite E.
@@ -1769,12 +2126,17 @@ Tactic Notation "rewrite_all" constr(E) "in" "*" :=
 Tactic Notation "rewrite_all" "<-" constr(E) "in" "*" :=
   repeat rewrite <- E in *.
 
-(** [asserts_rewrite E] asserts that an equality [E] holds (generating a
+(* [asserts_rewrite E] asserts that an equality [E] holds (generating a
     corresponding subgoal) and rewrite it straight away in the current
     goal. It avoids giving a name to the equality and later clearing it.
     Syntax for rewriting from right to left and/or into an hypothese
     is similar to the one of [rewrite]. Note: the tactic [replaces]
     plays a similar role. *)
+(** [asserts_rewrite E] は等式[E]の成立を主張し(対応するサブゴールを生成します)、
+    現在のゴールの対応する部分をすぐに書き換えます。これによって、
+    等式に名前を付けて後でそれを消すことを避けることができます。
+    右から左への書き換えや仮定への適用の構文は[rewrite]と同様です。
+    なお、タクティック[replaces]も同様のはたらきをします。 *)
 
 Ltac asserts_rewrite_tactic E action :=
   let EQ := fresh in (assert (EQ : E);
@@ -1789,8 +2151,10 @@ Tactic Notation "asserts_rewrite" constr(E) "in" hyp(H) :=
 Tactic Notation "asserts_rewrite" "<-" constr(E) "in" hyp(H) :=
   asserts_rewrite_tactic E ltac:(fun EQ => rewrite <- EQ in H).
 
-(** [cuts_rewrite E] is the same as [asserts_rewrite E] except
+(* [cuts_rewrite E] is the same as [asserts_rewrite E] except
     that subgoals are permuted. *)
+(** [cuts_rewrite E] は [asserts_rewrite E] と同様ですが、
+   サブゴールの順番が変わります。 *)
 
 Ltac cuts_rewrite_tactic E action :=
   let EQ := fresh in (cuts EQ: E;
@@ -1805,19 +2169,24 @@ Tactic Notation "cuts_rewrite" constr(E) "in" hyp(H) :=
 Tactic Notation "cuts_rewrite" "<-" constr(E) "in" hyp(H) :=
   cuts_rewrite_tactic E ltac:(fun EQ => rewrite <- EQ in H).
 
-(** [rewrite_except H EQ] rewrites equality [EQ] everywhere
+(* [rewrite_except H EQ] rewrites equality [EQ] everywhere
     but in hypothesis [H]. *)
+(** [rewrite_except H EQ] は、仮定[H]以外のすべての部分で等式 [EQ] を書き換えます。*)
 
 Ltac rewrite_except H EQ :=
   let K := fresh in let T := type of H in
   set (K := T) in H;
   rewrite EQ in *; unfold K in H; clear K.
 
-(** [rewrites E at K] applies when [E] is of the form [T1 = T2]
+(* [rewrites E at K] applies when [E] is of the form [T1 = T2]
     rewrites the equality [E] at the [K]-th occurence of [T1]
     in the current goal.
     Syntaxes [rewrites <- E at K] and [rewrites E at K in H]
     are also available. *)
+(** [rewrites E at K] は [E] が [T1 = T2] の形のときに適用できます。
+    このタクティックにより、現在のゴールにおける[T1]の[K]番目の出現が[T2]に書き換えられます。
+    構文 [rewrites <- E at K] と [rewrites E at K in H] も可能です。 *)
+(* 訳注: "It applies" の間違いと判断。 *)
 
 Tactic Notation "rewrites" constr(E) "at" constr(K) :=
   match type of E with ?T1 = ?T2 =>
@@ -1834,14 +2203,20 @@ Tactic Notation "rewrites" "<-" constr(E) "at" constr(K) "in" hyp(H) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(**  ** Replace *)
+(*  ** Replace *)
+(**  ** 置き換え(Replace) *)
 
-(** [replaces E with F] is the same as [replace E with F] except that
+(* [replaces E with F] is the same as [replace E with F] except that
     the equality [E = F] is generated as first subgoal. Syntax
     [replaces E with F in H] is also available. Note that contrary to
     [replace], [replaces] does not try to solve the equality
     by [assumption]. Note: [replaces E with F] is similar to
     [asserts_rewrite (E = F)]. *)
+(** [replaces E with F] は [replace E with F] と同様ですが、
+    等式 [E = F] が最初のサブゴールとして生成される点が違います。
+    構文 [replaces E with F in H] も可能です。
+    [replace]と対照的に、[replaces]は[assumption]によって等式を解こうとはしません。
+    なお、[replaces E with F] は [asserts_rewrite (E = F)] と同様です。 *)
 
 Tactic Notation "replaces" constr(E) "with" constr(F) :=
   let T := fresh in assert (T: E = F); [ | replace E with F; clear T ].
@@ -1850,9 +2225,11 @@ Tactic Notation "replaces" constr(E) "with" constr(F) "in" hyp(H) :=
   let T := fresh in assert (T: E = F); [ | replace E with F in H; clear T ].
 
 
-(** [replaces E at K with F] replaces the [K]-th occurence of [E]
+(* [replaces E at K with F] replaces the [K]-th occurence of [E]
     with [F] in the current goal. Syntax [replaces E at K with F in H]
     is also available. *)
+(** [replaces E at K with F] は現在のゴールの [E]の[K]番目の出現を[F]に置き換えます。
+    構文 [replaces E at K with F in H] も可能です。 *)
 
 Tactic Notation "replaces" constr(E) "at" constr(K) "with" constr(F) :=
   let T := fresh in assert (T: E = F); [ | rewrites T at K; clear T ].
@@ -1862,10 +2239,13 @@ Tactic Notation "replaces" constr(E) "at" constr(K) "with" constr(F) "in" hyp(H)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Renaming *)
+(* ** Renaming *)
+(** ** 名前変え(リネーム、Renaming) *)
 
-(** [renames X1 to Y1, ..., XN to YN] is a shorthand for a sequence of
+(* [renames X1 to Y1, ..., XN to YN] is a shorthand for a sequence of
     renaming operations [rename Xi into Yi]. *)
+(** [renames X1 to Y1, ..., XN to YN] はリネーム操作 
+    [rename Xi into Yi] の列の略記法です。 *)
 
 Tactic Notation "renames" ident(X1) "to" ident(Y1) :=
   rename X1 into Y1.
@@ -1891,13 +2271,19 @@ Tactic Notation "renames" ident(X1) "to" ident(Y1) ","
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Unfolding *)
+(* ** Unfolding *)
+(** ** 定義の展開(Unfolding) *)
 
-(** [unfolds] unfolds the head definition in the goal, i.e. if the
+(* [unfolds] unfolds the head definition in the goal, i.e. if the
     goal has form [P x1 ... xN] then it calls [unfold P].
     If the goal is an equality, it tries to unfold the head constant
     on the left-hand side, and otherwise tries on the right-hand side.
     If the goal is a product, it calls [intros] first. *)
+(** [unfolds] はゴールの先頭の定義を展開します。
+    つまり、ゴールが [P x1 ... xN] の形のとき、[unfold P] を呼びます。
+    ゴールが等式のとき、左辺の先頭の定数を展開しようとします。
+    それができないとき、右辺について試みます。
+    ゴールが積のとき、最初に[intros]を呼びます。 *)
 
 Ltac apply_to_head_of E cont :=
   let go E :=
@@ -1915,8 +2301,10 @@ Ltac unfolds_base :=
 Tactic Notation "unfolds" :=
   unfolds_base.
 
-(** [unfolds in H] unfolds the head definition of hypothesis [H], i.e. if
+(* [unfolds in H] unfolds the head definition of hypothesis [H], i.e. if
     [H] has type [P x1 ... xN] then it calls [unfold P in H]. *)
+(** [unfolds in H] は仮定[H]の冒頭の定義を展開します。
+    つまり[H]が型 [P x1 ... xN] ならば、[unfold P in H] を呼びます。*)
 
 Ltac unfolds_in_base H :=
   match type of H with ?G =>
@@ -1925,7 +2313,8 @@ Ltac unfolds_in_base H :=
 Tactic Notation "unfolds" "in" hyp(H) :=
   unfolds_in_base H.
 
-(** [unfolds P1,..,PN] is a shortcut for [unfold P1,..,PN in *]. *)
+(* [unfolds P1,..,PN] is a shortcut for [unfold P1,..,PN in *]. *)
+(** [unfolds P1,..,PN] は [unfold P1,..,PN in *] の略記法です。 *)
 
 Tactic Notation "unfolds" reference(F1) :=
   unfold F1 in *.
@@ -1952,7 +2341,8 @@ Tactic Notation "unfolds" reference(F1) "," reference(F2)
  "," reference(F6) "," reference(F7) "," reference(F8) :=
   unfold F1,F2,F3,F4,F5,F6,F7,F8 in *.
 
-(** [folds P1,..,PN] is a shortcut for [fold P1 in *; ..; fold PN in *]. *)
+(* [folds P1,..,PN] is a shortcut for [fold P1 in *; ..; fold PN in *]. *)
+(** [folds P1,..,PN] は [fold P1 in *; ..; fold PN in *] の略記法です。 *)
 
 Tactic Notation "folds" constr(H) :=
   fold H in *.
@@ -1969,15 +2359,19 @@ Tactic Notation "folds" constr(H1) "," constr(H2) "," constr(H3)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Simplification *)
+(* ** Simplification *)
+(** ** 単純化(Simplification) *)
 
-(** [simpls] is a shortcut for [simpl in *]. *)
+(* [simpls] is a shortcut for [simpl in *]. *)
+(** [simpls] は [simpl in *] の略記法です。 *)
 
 Tactic Notation "simpls" :=
   simpl in *.
 
-(** [simpls P1,..,PN] is a shortcut for
+(* [simpls P1,..,PN] is a shortcut for
     [simpl P1 in *; ..; simpl PN in *]. *)
+(** [simpls P1,..,PN] は [simpl P1 in *; ..; simpl PN in *]
+    の略記法です。 *)
 
 Tactic Notation "simpls" reference(F1) :=
   simpl F1 in *.
@@ -1990,52 +2384,68 @@ Tactic Notation "simpls" reference(F1) "," reference(F2)
  "," reference(F3) "," reference(F4) :=
   simpls F1; simpls F2; simpls F3; simpls F4.
 
-(** [unsimpl E] replaces all occurence of [X] by [E], where [X] is
+(* [unsimpl E] replaces all occurence of [X] by [E], where [X] is
    the result which the tactic [simpl] would give when applied to [E].
    It is useful to undo what [simpl] has simplified too far. *)
+(** [unsimpl E] は[X]のすべての出現を[E]に置き換えます。
+   ここで[X]は[E]に[simpl]を適用すると得られるであろう結果です。
+   [simpl]が単純化し過ぎたときに undo をするのに便利です。 *)
 
 Tactic Notation "unsimpl" constr(E) :=
   let F := (eval simpl in E) in change F with E.
 
-(** [unsimpl E in H] is similar to [unsimpl E] but it applies
+(* [unsimpl E in H] is similar to [unsimpl E] but it applies
     inside a particular hypothesis [H]. *)
+(** [unsimpl E in H] は [unsimpl E] と同様ですが、
+   特定の仮定[H]の中だけに適用されます。 *)
 
 Tactic Notation "unsimpl" constr(E) "in" hyp(H) :=
   let F := (eval simpl in E) in change F with E in H.
 
-(** [unsimpl E in *] applies [unsimpl E] everywhere possible.
+(* [unsimpl E in *] applies [unsimpl E] everywhere possible.
     [unsimpls E] is a synonymous. *)
+(** [unsimpl E in *] は [unsimpl E] を可能なすべての場所に適用します。
+    [unsimpls E] はその別名です。 *)
 
 Tactic Notation "unsimpl" constr(E) "in" "*" :=
   let F := (eval simpl in E) in change F with E in *.
 Tactic Notation "unsimpls" constr(E) :=
   unsimpl E in *.
 
-(** [nosimpl t] protects the Coq term[t] against some forms of
+(* [nosimpl t] protects the Coq term[t] against some forms of
     simplification. See Gonthier's work for details on this trick. *)
+(** [nosimpl t] はCoqの項[t]について、ある形の単純化が適用されないようにします。
+    このからくりの詳細は Gonthier の仕事を見てください。 *)
 
 Notation "'nosimpl' t" := (match tt with tt => t end)
   (at level 10).
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Evaluation *)
+(* ** Evaluation *)
+(** ** 評価(Evaluation) *)
 
 Tactic Notation "hnfs" := hnf in *.
 
 (* ---------------------------------------------------------------------- *)
-(** ** Substitution *)
+(* ** Substitution *)
+(** ** 置換(Substitution) *)
 
-(** [substs] does the same as [subst], except that it does not fail
+(* [substs] does the same as [subst], except that it does not fail
     when there are circular equalities in the context. *)
+(** [substs]は[subst]は同様にはたらきますが、違いは、
+    [substs]はコンテキストに循環する等式があっても失敗しないことです。 *)
 
 Tactic Notation "substs" :=
   repeat (match goal with H: ?x = ?y |- _ =>
             first [ subst x | subst y ] end).
 
-(** Implementation of [substs below], which allows to call
+(* Implementation of [substs below], which allows to call
     [subst] on all the hypotheses that lie beyond a given
     position in the proof context. *)
+(** 次は[substs below]の実装です。これは、
+    証明コンテキストの指定されたポジションより下のすべての仮定に[subst]
+    を呼ぶことを可能にするものです。 *)
 
 Ltac substs_below limit :=
   match goal with H: ?T |- _ =>
@@ -2047,25 +2457,36 @@ Ltac substs_below limit :=
           | generalizes H; substs_below limit; intro ]
   end end.
 
-(** [substs below body E] applies [subst] on all equalities that appear
+(* [substs below body E] applies [subst] on all equalities that appear
     in the context below the first hypothesis whose body is [E].
     If there is no such hypothesis in the context, it is equivalent
     to [subst]. For instance, if [H] is an hypothesis, then
     [substs below H] will substitute equalities below hypothesis [H]. *)
+(** [substs below body E] は、
+    コンテキストの中で本体が[E]である最初の仮定より下に現れるすべての等式に
+    [subst]を適用します。
+    もしコンテキストにそのような仮定がないときには、[subst]と同値です。
+    例えば、[H]が仮定のとき、[substs below H] は仮定[H]より下のすべての等式を置換します。 
+    *)
 
 Tactic Notation "substs" "below" "body" constr(M) :=
   substs_below M.
 
-(** [substs below H] applies [subst] on all equalities that appear
+(* [substs below H] applies [subst] on all equalities that appear
     in the context below the hypothesis named [H]. Note that
     the current implementation is technically incorrect since it
     will confuse different hypotheses with the same body. *)
+(** [substs below H] はコンテキストで[H]で指定された仮定より下に現れるすべての等式に
+    [subst]を適用します。なお、現在の実装は技術的に間違いがあります。
+    それは、同じ本体を持つ違う仮定を区別できないからです。 *)
 
 Tactic Notation "substs" "below" hyp(H) :=
   match type of H with ?M => substs below body M end.
 
-(** [subst_hyp H] substitutes the equality contained in [H].
+(* [subst_hyp H] substitutes the equality contained in [H].
     The behaviour is extended in LibData --TODO *)
+(** [subst_hyp H] は[H]に含まれる等式を置換します。
+    このふるまいは LibDataで拡張されます。 --(今後の課題) *)
 
 Ltac subst_hyp_base H :=
   match type of H with
@@ -2074,20 +2495,25 @@ Ltac subst_hyp_base H :=
 
 Tactic Notation "subst_hyp" hyp(H) := subst_hyp_base H.
 
-(** [intro_subst] is a shorthand for [intro H; subst_hyp H]:
+(* [intro_subst] is a shorthand for [intro H; subst_hyp H]:
     it introduces and substitutes the equality at the head
     of the current goal. *)
+(** [intro_subst]は [intro H; subst_hyp H] の略記法です。
+   現在のゴールの先頭の等式を導入し置換します。 *)
 
 Tactic Notation "intro_subst" :=
   let H := fresh "TEMP" in intros H; subst_hyp H.
 
-(** [subst_local] substitutes all local definition from the context *)
+(* [subst_local] substitutes all local definition from the context *)
+(** [subst_local]はコンテキストのすべてのローカル定義を置換します。*)
 
 Ltac subst_local :=
   repeat match goal with H:=_ |- _ => subst H end.
 
-(** [subst_eq E] takes an equality [x = t] and replace [x]
+(* [subst_eq E] takes an equality [x = t] and replace [x]
     with [t] everywhere in the goal *)
+(** [subst_eq E] は等式 [x = t] をとり、ゴールのすべての場所で
+    [x]を[t]に置き換えます。 *)
 
 Ltac subst_eq_base E :=
   let H := fresh "TEMP" in lets H: E; subst_hyp H.
@@ -2097,15 +2523,23 @@ Tactic Notation "subst_eq" constr(E) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Tactics to work with proof irrelevance *)
+(* ** Tactics to work with proof irrelevance *)
+(** ** proof irrelevance を扱うタクティック *)
 
 Require Import ProofIrrelevance.
 
-(** [pi_rewrite E] replaces [E] of type [Prop] with a fresh
+(* [pi_rewrite E] replaces [E] of type [Prop] with a fresh
     unification variable, and is thus a practical way to
     exploit proof irrelevance, without writing explicitly
     [rewrite (proof_irrelevance E E')]. Particularly useful
     when [E'] is a big expression. *)
+(** [pi_rewrite E] は型[Prop]の[E]を新しい単一化変数に置き換えます。
+    これから、proof irrelevance を利用する現実的な方法になります。
+    明示的に [rewrite (proof_irrelevance E E')] と書く必要はありません。
+    [E']が大きな式であるとき特に有効です。 
+    (訳注: Proof Irrelevance は、言ってみれば、
+     同じ命題の証明オブジェクトをすべて同一視してしまうもの。)
+    *)
 
 Ltac pi_rewrite_base E rewrite_tac :=
   let E' := fresh in let T := type of E in evar (E':T);
@@ -2118,10 +2552,12 @@ Tactic Notation "pi_rewrite" constr(E) "in" hyp(H) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Proving equalities *)
+(* ** Proving equalities *)
+(** ** 等式を証明する *)
 
-(** [fequal] is a variation on [f_equal] which has a better behaviour
+(* [fequal] is a variation on [f_equal] which has a better behaviour
     on equalities between n-ary tuples. *)
+(** [fequal]は[f_equal]の変種で、n個組の間の等式をよりうまく扱います。 *)
 
 Ltac fequal_base :=
   let go := f_equal; [ fequal_base | ] in
@@ -2136,11 +2572,15 @@ Ltac fequal_base :=
 Tactic Notation "fequal" :=
   fequal_base.
 
-(** [fequals] is the same as [fequal] except that it tries and solve
+(* [fequals] is the same as [fequal] except that it tries and solve
     all trivial subgoals, using [reflexivity] and [congruence]
     (as well as the proof-irrelevance principle).
     [fequals] applies to goals of the form [f x1 .. xN = f y1 .. yN]
     and produces some subgoals of the form [xi = yi]). *)
+(** [fequals]は[fequal]と同様ですが、違う点は、すべての簡単なサブゴールを
+    [reflexivity]と[congruence](および proof-irrelevance 原理)を使って解こうとします。
+    [fequals]は [f x1 .. xN = f y1 .. yN] という形のゴールに適用することができ、
+    [xi = yi] という形のサブゴールをいくつか生成します。 *)
 
 Ltac fequal_post :=
   first [ reflexivity | congruence | apply proof_irrelevance | idtac ].
@@ -2148,8 +2588,10 @@ Ltac fequal_post :=
 Tactic Notation "fequals" :=
   fequal; fequal_post.
 
-(** [fequals_rec] calls [fequals] recursively.
+(* [fequals_rec] calls [fequals] recursively.
     It is equivalent to [repeat (progress fequals)]. *)
+(** [fequals_rec]は[fequals]を再帰的に呼び出します。
+    これは [repeat (progress fequals)] と同値です。 *)
 
 Tactic Notation "fequals_rec" :=
   repeat (progress fequals).
@@ -2157,22 +2599,30 @@ Tactic Notation "fequals_rec" :=
 
 
 (* ********************************************************************** *)
-(** * Inversion *)
+(* * Inversion *)
+(** * 反転(Inversion) *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** Basic inversion *)
+(* ** Basic inversion *)
+(** ** 基本反転(Basic inversion) *)
 
-(** [invert keep H] is same to [inversion H] except that it puts all the
+(* [invert keep H] is same to [inversion H] except that it puts all the
     facts obtained in the goal. The keyword [keep] means that the
     hypothesis [H] should not be removed. *)
+(** [invert keep H] は [inversion H] と同様ですが、
+    得られた事実をすべてゴールに置く点が違います。キーワード[keep]
+    は仮定[H]を除去しないでおくことを意味します。 *)
 
 Tactic Notation "invert" "keep" hyp(H) :=
   pose ltac_mark; inversion H; gen_until_mark.
 
-(** [invert keep H as X1 .. XN] is the same as [inversion H as ...] except
+(* [invert keep H as X1 .. XN] is the same as [inversion H as ...] except
     that only hypotheses which are not variable need to be named
     explicitely, in a similar fashion as [introv] is used to name
     only hypotheses. *)
+(** [invert keep H as X1 .. XN] は [inversion H as ...] と同様ですが、
+    明示的に名前を付けなければならないのが変数ではない仮定だけである点が違います。
+    これは、[introv]が仮定だけに名前を付けるのと同じ流儀です。 *)
 
 Tactic Notation "invert" "keep" hyp(H) "as" simple_intropattern(I1) :=
   invert keep H; introv I1.
@@ -2183,15 +2633,20 @@ Tactic Notation "invert" "keep" hyp(H) "as" simple_intropattern(I1)
  simple_intropattern(I2) simple_intropattern(I3) :=
   invert keep H; introv I1 I2 I3.
 
-(** [invert H] is same to [inversion H] except that it puts all the
+(* [invert H] is same to [inversion H] except that it puts all the
     facts obtained in the goal and clears hypothesis [H].
     In other words, it is equivalent to [invert keep H; clear H]. *)
+(** [invert H] は [inversion H] と同様ですが、得られた事実をすべてゴールに置き、
+    仮定[H]をクリアする点が違います。
+    言い換えると、これは [invert keep H; clear H] と同値です。 *)
 
 Tactic Notation "invert" hyp(H) :=
   invert keep H; clear H.
 
-(** [invert H as X1 .. XN] is the same as [invert keep H as X1 .. XN]
+(* [invert H as X1 .. XN] is the same as [invert keep H as X1 .. XN]
     but it also clears hypothesis [H]. *)
+(** [invert H as X1 .. XN] は [invert keep H as X1 .. XN] と同様ですが、
+    仮定[H]もクリアする点が違います。*)
 
 Tactic Notation "invert_tactic" hyp(H) tactic(tac) :=
   let H' := fresh in rename H into H'; tac H'; clear H'.
@@ -2206,10 +2661,13 @@ Tactic Notation "invert" hyp(H) "as" simple_intropattern(I1)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Inversion with substitution *)
+(* ** Inversion with substitution *)
+(** ** 置換(substitution)を伴う反転(inversion) *)
 
-(** Our inversion tactics is able to get rid of dependent equalities
+(* Our inversion tactics is able to get rid of dependent equalities
     generated by [inversion], using proof irrelevance. *)
+(** ここで定義する反転タクティックは、[inversion]によって生成される依存等式を
+    proof irrelevance を使って除去できます。 *)
 
 (* --we do not import Eqdep because it imports nasty hints automatically
     Require Import Eqdep. *)
@@ -2235,16 +2693,21 @@ Ltac inverts_tactic H i1 i2 i3 i4 i5 i6 :=
   generalize ltac_mark; invert keep H; go i1 i2 i3 i4 i5 i6;
   unfold eq' in *.
 
-(** [inverts keep H] is same to [invert keep H] except that it
+(* [inverts keep H] is same to [invert keep H] except that it
     applies [subst] to all the equalities generated by the inversion. *)
+(** [inverts keep H] は [invert keep H] と同様ですが、
+    inversion によって生成されたすべての等式に[subst]を適用する点が違います。 *)
 
 Tactic Notation "inverts" "keep" hyp(H) :=
   inverts_tactic H ltac:(intro) ltac:(intro) ltac:(intro)
                    ltac:(intro) ltac:(intro) ltac:(intro).
 
-(** [inverts keep H as X1 .. XN] is the same as
+(* [inverts keep H as X1 .. XN] is the same as
     [invert keep H as X1 .. XN] except that it applies [subst] to all the
     equalities generated by the inversion *)
+(** [inverts keep H as X1 .. XN] は [invert keep H as X1 .. XN] 
+    と同様ですが、inversion によって生成されたすべての等式に[subst]を適用する点が違います。*)
+
 
 Tactic Notation "inverts" "keep" hyp(H) "as" simple_intropattern(I1) :=
   inverts_tactic H ltac:(intros I1)
@@ -2272,14 +2735,18 @@ Tactic Notation "inverts" "keep" hyp(H) "as" simple_intropattern(I1)
   inverts_tactic H ltac:(intros I1) ltac:(intros I2) ltac:(intros I3)
    ltac:(intros I4) ltac:(intros I5) ltac:(intros I6).
 
-(** [inverts H] is same to [inverts keep H] except that it
+(* [inverts H] is same to [inverts keep H] except that it
     clears hypothesis [H]. *)
+(** [inverts H] は [inverts keep H] と同様ですが、
+    仮定[H]をクリアする点が違います。 *)
 
 Tactic Notation "inverts" hyp(H) :=
   inverts keep H; clear H.
 
-(** [inverts H as X1 .. XN] is the same as [inverts keep H as X1 .. XN]
+(* [inverts H as X1 .. XN] is the same as [inverts keep H as X1 .. XN]
     but it also clears the hypothesis [H]. *)
+(** [inverts H as X1 .. XN] は [inverts keep H as X1 .. XN] と同様ですが、
+    仮定[H]もクリアする点が違います。 *) 
 
 Tactic Notation "inverts_tactic" hyp(H) tactic(tac) :=
   let H' := fresh in rename H into H'; tac H'; clear H'.
@@ -2303,11 +2770,15 @@ Tactic Notation "inverts" hyp(H) "as" simple_intropattern(I1)
  simple_intropattern(I5) simple_intropattern(I6) :=
   invert_tactic H (fun H => inverts keep H as I1 I2 I3 I4 I5 I6).
 
-(** [inverts H as] performs an inversion on hypothesis [H], substitutes
+(* [inverts H as] performs an inversion on hypothesis [H], substitutes
     generated equalities, and put in the goal the other freshly-created
     hypotheses, for the user to name explicitly.
     [inverts keep H as] is the same except that it does not clear [H].
     --TODO: reimplement [inverts] above using this one *)
+(** [inverts H as] は仮定[H]に対して inversion を行ない、生成された等式を置換し、
+    そして、別の新しく生成された仮定を、ユーザが明示的に名前を付けられるようにゴールに置きます。
+    [inverts keep H as] は同様ですが、[H]をクリアしない点が違います。
+    --TODO: 上述の[inverts]をこれを使って再実装すること *)
 
 Ltac inverts_as_tactic H :=
   let rec go tt :=
@@ -2346,9 +2817,11 @@ Tactic Notation "inverts" hyp(H) "as" simple_intropattern(I1)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Injection with substitution *)
+(* ** Injection with substitution *)
+(** ** 置換を伴う注入(Injection) *)
 
-(** Underlying implementation of [injects] *)
+(* Underlying implementation of [injects] *)
+(** [injects]の背後の実装 *)
 
 Ltac injects_tactic H :=
   let rec go _ :=
@@ -2360,21 +2833,27 @@ Ltac injects_tactic H :=
     end in
   generalize ltac_mark; injection H; go tt.
 
-(** [injects keep H] takes an hypothesis [H] of the form
+(* [injects keep H] takes an hypothesis [H] of the form
     [C a1 .. aN = C b1 .. bN] and substitute all equalities
     [ai = bi] that have been generated. *)
+(** [injects keep H] は [C a1 .. aN = C b1 .. bN] の形の仮定[H]をとって、
+    生成されたすべての等式 [ai = bi] を置換します。 *)
 
 Tactic Notation "injects" "keep" hyp(H) :=
   injects_tactic H.
 
-(** [injects H] is similar to [injects keep H] but clears
+(* [injects H] is similar to [injects keep H] but clears
     the hypothesis [H]. *)
+(** [injects H] は [injects keep H] と同様ですが、
+    仮定[H]をクリアする点が違います。 *)
 
 Tactic Notation "injects" hyp(H) :=
   injects_tactic H; clear H.
 
-(** [inject H as X1 .. XN] is the same as [injection]
+(* [inject H as X1 .. XN] is the same as [injection]
     followed by [intros X1 .. XN] *)
+(** [inject H as X1 .. XN] は[injection]に続けて [intros X1 .. XN] 
+    を行うのと同様です。 *)
 
 Tactic Notation "inject" hyp(H) :=
   injection H.
@@ -2393,56 +2872,84 @@ Tactic Notation "inject" hyp(H) "as" ident(X1) ident(X2) ident(X3)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Inversion and injection with substitution --rough implementation *)
+(* ** Inversion and injection with substitution --rough implementation *)
+(** ** 置換を伴う反転と注入 -- おおざっぱな実装 *)
 
-(** The tactics [inversions] and [injections] provided in this section
+(* The tactics [inversions] and [injections] provided in this section
     are similar to [inverts] and [injects] except that they perform
     substitution on all equalities from the context and not only
     the ones freshly generated. The counterpart is that they have
     simpler implementations. *)
+(** この節で提供するタクティック[inversions]および[injections]は
+    それぞれ[inverts]および[injects]と同様ですが、
+    置換する等式は、新しく生成されたものに限らずすべてのコンテキストの等式である点が違います。
+    対応する実装は、より簡単になっています。 *)
 
-(** [inversions keep H] is the same as [inversions H] but it does
+(* [inversions keep H] is the same as [inversions H] but it does
     not clear hypothesis [H]. *)
+(** [inversions keep H] は [inversions H] と同様ですが、
+    仮定[H]をクリアしません。 *)
 
 Tactic Notation "inversions" "keep" hyp(H) :=
   inversion H; subst.
 
-(** [inversions H] is a shortcut for [inversion H] followed by [subst]
+(* [inversions H] is a shortcut for [inversion H] followed by [subst]
     and [clear H].
     It is a rough implementation of [inverts keep H] which behave
     badly when the proof context already contains equalities.
     It is provided in case the better implementation turns out to be
     too slow. *)
+(** [inversions H] は [inversion H] に続いて [subst] と [clear H] 
+    を行うことの略記法です。
+    これは [inverts H] のおおざっぱな実装で、
+    証明コンテキストが既に等式を含んでいるときには、問題のある振る舞いをします。
+    これは、より良い実装([inverts H])が遅すぎる場合のために用意してあります。 *)
+(* 訳注: 原文の [inverts keep H] は [inverts H] の間違いと判断 *)
 
 Tactic Notation "inversions" hyp(H) :=
   inversion H; subst; clear H.
 
-(** [injections keep H] is the same as [injection H] followed
+(* [injections keep H] is the same as [injection H] followed
     by [intros] and [subst]. It is a rough implementation of
     [injects keep H] which behave
     badly when the proof context already contains equalities,
     or when the goal starts with a forall or an implication. *)
+(** [injections keep H] は [injection H] に続いて [intros] と [subst]
+    を行うことの略記法です。これは [injects keep H] のおおざっぱな実装で、
+    証明コンテキストが既に等式を含んでいるとき、
+    あるいはゴールが[forall]または含意で始まるときには、問題のある振る舞いをします。*)
+(* 訳注: forall は[forall]にすべきと判断 *)
 
 Tactic Notation "injections" "keep" hyp(H) :=
   injection H; intros; subst.
 
-(** [injections H] is the same as [injection H] followed
+(* [injections H] is the same as [injection H] followed
     by [intros] and [clear H] and [subst]. It is a rough
     implementation of [injects keep H] which behave
     badly when the proof context already contains equalities,
     or when the goal starts with a forall or an implication. *)
+(** [injections H] は [injection H] に続いて [intros]、[clear H]、[subst]
+    を順に行うのと同じです。これは [injects H] のおおざっぱな実装で、
+    証明コンテキストが既に等式を含んでいるとき、
+    あるいはゴールが[forall]または含意で始まるときには、問題のある振る舞いをします。*)
+(* 訳注: [injects keep H] は [injects H] の間違い、
+   forall は[forall]にすべきと判断 *)
 
 Tactic Notation "injections" "keep" hyp(H) :=
   injection H; clear H; intros; subst.
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Case analysis *)
+(* ** Case analysis *)
+(** ** 場合分け *)
 
-(** [cases] is similar to [case_eq E] except that it generates the
+(* [cases] is similar to [case_eq E] except that it generates the
     equality in the context and not in the goal, and generates the
     equality the other way round. The syntax [cases E as H]
     allows specifying the name [H] of that hypothesis. *)
+(** [cases] は [case_eq E] と同様ですが、
+    等式をゴールではなくコンテキストに作る点と、作る等式の右辺と左辺が逆であることが
+    違います。構文 [cases E as H] が可能で、仮定の名前[H]を特定します。 *)
 
 Tactic Notation "cases" constr(E) "as" ident(H) :=
   let X := fresh "TEMP" in
@@ -2452,18 +2959,27 @@ Tactic Notation "cases" constr(E) "as" ident(H) :=
 Tactic Notation "cases" constr(E) :=
   let x := fresh "Eq" in cases E as H.
 
-(** [case_if_post] is to be defined later as a tactic to clean
+(* [case_if_post] is to be defined later as a tactic to clean
     up goals. *)
+(** [case_if_post]はゴールをかたづけるタクティックとして後で定義されるものです。*)
 
 Ltac case_if_post := idtac.
 
-(** [case_if] looks for a pattern of the form [if ?B then ?E1 else ?E2]
+(* [case_if] looks for a pattern of the form [if ?B then ?E1 else ?E2]
     in the goal, and perform a case analysis on [B] by calling
     [destruct B]. It looks in the goal first, and otherwise in the
     first hypothesis that contains and [if] statement.
     [case_if in H] can be used to specify which hypothesis to consider.
     Syntaxes [case_if as Eq] and [case_if in H as Eq] allows to name
     the hypothesis coming from the case analysis. *)
+(** [case_if]はコンテキスト内の [if ?B then ?E1 else ?E2] という形のパターンを探し、
+    [B]について [destruct B] を呼んで場合分けをします。
+    最初にゴールを見て、そこになければ、[if]文を含む最初の仮定を見ます。
+    [case_if in H] は考慮対象の仮定を指定するのに使えます。
+    構文 [case_if as Eq] と [case_if in H as Eq] は、
+    場合分けによって生成される仮定に名前を付けるのに使えます。 *)
+(* 訳注： 2行目は、"in the goal" でなく "in the context" 
+    でないと意味が通らないと思われる。 *)
 
 Ltac case_if_on_tactic E Eq :=
   match type of E with
@@ -2493,9 +3009,12 @@ Tactic Notation "case_if" "in" hyp(H) :=
   let Eq := fresh in case_if in H as Eq.
 
 
-(** [cases_if] is similar to [case_if] with two main differences:
+(* [cases_if] is similar to [case_if] with two main differences:
     if it creates an equality of the form [x = y] or [x == y],
      it substitutes it in the goal *)
+(** [cases_if] は [case_if] と同様ですが、主に2つの違いがあります:
+    もし [x = y] または [x == y] という形の等式が生成されたなら、
+    ゴールでこの等式にもとづく置換をします。 *)
 
 Ltac cases_if_on_tactic E Eq :=
   match type of E with
@@ -2525,10 +3044,15 @@ Tactic Notation "cases_if" "in" hyp(H) :=
   let Eq := fresh in cases_if in H as Eq.
 
 
-(** [destruct_if] looks for a pattern of the form [if ?B then ?E1 else ?E2]
+(* [destruct_if] looks for a pattern of the form [if ?B then ?E1 else ?E2]
     in the goal, and perform a case analysis on [B] by calling
     [destruct B]. It looks in the goal first, and otherwise in the
     first hypothesis that contains and [if] statement. *)
+(** [destruct_if] はコンテキストから [if ?B then ?E1 else ?E2] 
+    という形のパターンを探し、[B]について [destruct B] を呼ぶことで場合分けをします。
+    まずゴールを見て、そこになければ[if]文を含む最初の仮定を見ます。 *)
+(* 訳注： 2行目は、"in the goal" でなく "in the context" 
+    でないと意味が通らないと思われる。 *)
 
 Ltac destruct_if_post := tryfalse.
 
@@ -2557,13 +3081,19 @@ Tactic Notation "destruct_if" "in" hyp(H) :=
   let Eq := fresh "C" in destruct_if in H as Eq Eq.
 
 
-(** [destruct_head_match] performs a case analysis on the argument
+(* [destruct_head_match] performs a case analysis on the argument
     of the head pattern matching when the goal has the form
     [match ?E with ...] or [match ?E with ... = _] or
     [_ = match ?E with ...]. Due to the limits of Ltac, this tactic
     will not fail if a match does not occur. Instead, it might
     perform a case analysis on an unspecified subterm from the goal.
     --- Warning: experimental. *)
+(** [destruct_head_match]は、ゴールが [match ?E with ...] 
+    または [match ?E with ... = _] または [_ = match ?E with ...]
+    という形のとき、先頭パターンマッチの引数で場合分けをします。
+    Ltacの制約により、マッチするものがないときでもこのタクティックは失敗しません。
+    その代わり、ゴールの不特定の部分項について、場合分けします。
+    --- 注意: 実験的です。 *)
 
 Ltac find_head_match T :=
   match T with context [?E] =>
@@ -2588,11 +3118,15 @@ Tactic Notation "destruct_head_match" :=
   destruct_head_match_core ltac:(fun E => destruct E).
 
 
-(**--provided for compatibility with [remember] *)
+(*--provided for compatibility with [remember] *)
+(**--[remember]とのコンパチビリティのために提供します *)
 
-(** [cases' E] is similar to [case_eq E] except that it generates the
+(* [cases' E] is similar to [case_eq E] except that it generates the
     equality in the context and not in the goal. The syntax [cases E as H]
     allows specifying the name [H] of that hypothesis. *)
+(** [cases' E] は [case_eq E] と同様ですが、等式をゴールではなくコンテキストに作ります。
+    構文 [cases E as H] も可能で、その仮定の名前 [H] を指定します。 *)
+(* 訳注: [cases E as H] は [cases' E as H] の間違いと思われる。 *)
 
 Tactic Notation "cases'" constr(E) "as" ident(H) :=
   let X := fresh "TEMP" in
@@ -2602,8 +3136,9 @@ Tactic Notation "cases'" constr(E) "as" ident(H) :=
 Tactic Notation "cases'" constr(E) :=
   let x := fresh "Eq" in cases' E as H.
 
-(** [cases_if'] is similar to [cases_if] except that it generates
+(* [cases_if'] is similar to [cases_if] except that it generates
     the symmetric equality. *)
+(** [cases_if']は[cases_if]と同様ですが、生成される等式が鏡像になっている点が違います。*)
 
 Ltac cases_if_on' E Eq :=
   match type of E with
@@ -2624,11 +3159,15 @@ Tactic Notation "cases_if'" :=
 
 
 (* ********************************************************************** *)
-(** * Induction *)
+(* * Induction *)
+(** * 帰納法(Induction) *)
 
-(** [inductions E] is a shorthand for [dependent induction E].
+(* [inductions E] is a shorthand for [dependent induction E].
     [inductions E gen X1 .. XN] is a shorthand for
     [dependent induction E generalizing X1 .. XN]. *)
+(** [inductions E] は [dependent induction E] の略記法です。
+    [inductions E gen X1 .. XN] は
+    [dependent induction E generalizing X1 .. XN] の略記法です。 *)
 
 Require Import Coq.Program.Equality.
 
@@ -2660,7 +3199,7 @@ Tactic Notation "inductions" ident(E) "gen" ident(X1) ident(X2)
  ident(X3) ident(X4) ident(X5) ident(X6) ident(X7) ident(X8) :=
   dependent induction E generalizing X1 X2 X3 X4 X5 X6 X7 X8; inductions_post.
 
-(** [induction_wf IH: E X] is used to apply the well-founded induction
+(* [induction_wf IH: E X] is used to apply the well-founded induction
     principle, for a given well-founded relation. It applies to a goal
     [PX] where [PX] is a proposition on [X]. First, it sets up the
     goal in the form [(fun a => P a) X], using [pattern X], and then
@@ -2668,6 +3207,14 @@ Tactic Notation "inductions" ident(E) "gen" ident(X1) ident(X2)
     where [E] is a term of type [well_founded R], and [R] is a binary
     relation.
     Syntaxes [induction_wf: E X] and [induction_wf E X]. *)
+(** [induction_wf IH: E X] は、与えられた整礎関係(well-founded relation)
+    についての整礎帰納法原理(well-founded induction principle)
+    を適用するために使われます。
+    これはゴール[PX]に対して適用されます。ここで[PX]は[X]の上の命題です。
+    最初に、[pattern X] を使って [(fun a => P a) X] という形のゴールを用意します。
+    そして次に、[E]について具体化された整礎帰納法原理を適用します。
+    ここで[E]は型 [well_founded R] の項で、[R]は二項関係です。
+    構文は [induction_wf: E X] と [induction_wf E X] です。 *)
 
 Tactic Notation "induction_wf" ident(IH) ":" constr(E) ident(X) :=
   pattern X; apply (well_founded_ind E); clear X; intros X IH.
@@ -2678,10 +3225,13 @@ Tactic Notation "induction_wf" ":" constr(E) ident(X) :=
 
 
 (* ********************************************************************** *)
-(** * Decidable equality *)
+(* * Decidable equality *)
+(** * 決定可能な等式 *)
 
-(** [decides_equality] is the same as [decide equality] excepts that it
+(* [decides_equality] is the same as [decide equality] excepts that it
     is able to unfold definitions at head of the current goal. *)
+(** [decides_equality] は [decide equality] と同様ですが、
+    現在のゴールの先頭の定義を展開できる点が違います。 *)
 
 Ltac decides_equality_tactic :=
   first [ decide equality | progress(unfolds); decides_equality_tactic ].
@@ -2691,12 +3241,18 @@ Tactic Notation "decides_equality" :=
 
 
 (* ********************************************************************** *)
-(** * Equivalence *)
+(* * Equivalence *)
+(** * 同値(Equivalence) *)
 
-(** [iff H] can be used to prove an equivalence [P <-> Q] and name [H]
+(* [iff H] can be used to prove an equivalence [P <-> Q] and name [H]
     the hypothesis obtained in each case. The syntaxes [iff] and [iff H1 H2]
     are also available to specify zero or two names. The tactic [iff <- H]
     swaps the two subgoals, i.e. produces (Q -> P) as first subgoal. *)
+(** [iff H] は同値 [P <-> Q] を証明し、
+    それぞれの場合に得られる仮定に名前[H]を付けることができます。
+    構文 [iff] と [iff H1 H2] も可能で、それぞれ0個、2個の名前を付けます。
+    タクティック [iff <- H] は2つのサブゴールを交換します。つまり、(Q -> P) 
+    が最初のゴールになります。 *)
 
 Lemma iff_intro_swap : forall (P Q : Prop),
   (Q -> P) -> (P -> Q) -> (P <-> Q).
@@ -2718,12 +3274,15 @@ Tactic Notation "iff" "<-" :=
 
 
 (* ********************************************************************** *)
-(** * N-ary Conjunctions and Disjunctions *)
+(* * N-ary Conjunctions and Disjunctions *)
+(** * N個の連言と選言 *)
 
 (* ---------------------------------------------------------------------- *)
-(** N-ary Conjunctions Splitting in Goals *)
+(* N-ary Conjunctions Splitting in Goals *)
+(** ゴールに分割されるN-連言 *)
 
-(** Underlying implementation of [splits]. *)
+(* Underlying implementation of [splits]. *)
+(** [splits] の背後の実装。 *)
 
 Ltac splits_tactic N :=
   match N with
@@ -2760,25 +3319,33 @@ Ltac get_term_conjunction_arity T :=
 Ltac get_goal_conjunction_arity :=
   match goal with |- ?T => get_term_conjunction_arity T end.
 
-(** [splits] applies to a goal of the form [(T1 /\ .. /\ TN)] and
+(* [splits] applies to a goal of the form [(T1 /\ .. /\ TN)] and
     destruct it into [N] subgoals [T1] .. [TN]. If the goal is not a
     conjunction, then it unfolds the head definition. *)
+(** [splits] は [(T1 /\ .. /\ TN)] という形のゴールに適用され、
+    [N]個のサブゴール [T1] .. [TN] に分解します。
+    ゴールが連言ではない場合、先頭の定義を展開します。 *)
 
 Tactic Notation "splits" :=
   unfold_goal_until_conjunction;
   let N := get_goal_conjunction_arity in
   splits_tactic N.
 
-(** [splits N] is similar to [splits], except that it will unfold as many
+(* [splits N] is similar to [splits], except that it will unfold as many
     definitions as necessary to obtain an [N]-ary conjunction. *)
+(** [splits N] は[splits]と同様ですが、
+    [N]-連言を得るのに必要なだけ定義を展開する点が違います。 *)
 
 Tactic Notation "splits" constr(N) :=
   let N := nat_from_number N in
   splits_tactic N.
 
-(** [splits_all] will recursively split any conjunction, unfolding
+(* [splits_all] will recursively split any conjunction, unfolding
     definitions when necessary. Warning: this tactic will loop
     on goals of the form [well_founded R]. Todo: fix this *)
+(** [splits_all] は必要なときに定義を展開しながら、任意の連言を再帰的に分解します。
+    注意: このタクティックは [well_founded R] という形のゴールに対してループします。
+    Todo: この問題を解決すること *)
 
 Ltac splits_all_base := repeat split.
 
@@ -2787,9 +3354,11 @@ Tactic Notation "splits_all" :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** N-ary Conjunctions Deconstruction *)
+(* N-ary Conjunctions Deconstruction *)
+(** N-連言の分解 *)
 
-(** Underlying implementation of [destructs]. *)
+(* Underlying implementation of [destructs]. *)
+(** [destructs]の背後の実装。 *)
 
 Ltac destructs_conjunction_tactic N T :=
   match N with
@@ -2801,19 +3370,25 @@ Ltac destructs_conjunction_tactic N T :=
   | 7 => destruct T as [? [? [? [? [? [? ?]]]]]]
   end.
 
-(** [destructs T] allows destructing a term [T] which is a N-ary
+(* [destructs T] allows destructing a term [T] which is a N-ary
     conjunction. It is equivalent to [destruct T as (H1 .. HN)],
     except that it does not require to manually specify N different
     names. *)
+(** [destructs T] は N-連言の項[T]を分解します。
+    [destruct T as (H1 .. HN)] と同様ですが、
+    N個の異なる名前を手動で指定しなくて良い点が違います。 *)
 
 Tactic Notation "destructs" constr(T) :=
   let TT := type of T in
   let N := get_term_conjunction_arity TT in
   destructs_conjunction_tactic N T.
 
-(** [destructs N T] is equivalent to [destruct T as (H1 .. HN)],
+(* [destructs N T] is equivalent to [destruct T as (H1 .. HN)],
     except that it does not require to manually specify N different
     names. Remark that it is not restricted to N-ary conjunctions. *)
+(** [destructs N T] は [destruct T as (H1 .. HN)] と同様ですが、
+    N個の異なる名前を手動で指定しなくて良い点が違います。
+    N-引数の連言に限らないことに注意します。 *)
 
 Tactic Notation "destructs" constr(N) constr(T) :=
   let N := nat_from_number N in
@@ -2821,9 +3396,11 @@ Tactic Notation "destructs" constr(N) constr(T) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** Proving goals which are N-ary disjunctions *)
+(* Proving goals which are N-ary disjunctions *)
+(** N-選言であるゴールを証明する *)
 
-(** Underlying implementation of [branch]. *)
+(* Underlying implementation of [branch]. *)
+(** [branch]の背後の実装。 *)
 
 Ltac branch_tactic K N :=
   match constr:(K,N) with
@@ -2861,11 +3438,15 @@ Ltac get_term_disjunction_arity T :=
 Ltac get_goal_disjunction_arity :=
   match goal with |- ?T => get_term_disjunction_arity T end.
 
-(** [branch N] applies to a goal of the form
+(* [branch N] applies to a goal of the form
     [P1 \/ ... \/ PK \/ ... \/ PN] and leaves the goal [PK].
     It only able to unfold the head definition (if there is one),
     but for more complex unfolding one should use the tactic
     [branch K of N]. *)
+(** [branch N] は [P1 \/ ... \/ PK \/ ... \/ PN] 
+    という形のゴールに適用され、ゴール[PK]を残します。
+    これは先頭の定義(もし存在すれば)だけを展開することができます。
+    より複雑な展開のためには、タクティック [branch K of N] を使うべきです。 *)
 
 Tactic Notation "branch" constr(K) :=
   let K := nat_from_number K in
@@ -2873,11 +3454,15 @@ Tactic Notation "branch" constr(K) :=
   let N := get_goal_disjunction_arity in
   branch_tactic K N.
 
-(** [branch K of N] is similar to [branch K] except that the
+(* [branch K of N] is similar to [branch K] except that the
     arity of the disjunction [N] is given manually, and so this
     version of the tactic is able to unfold definitions.
     In other words, applies to a goal of the form
     [P1 \/ ... \/ PK \/ ... \/ PN] and leaves the goal [PK]. *)
+(** [branch K of N] は [branch K] と同様ですが、
+    選言の数[N]が手動で与えられ、このため定義を展開できます。
+    言い換えると、[P1 \/ ... \/ PK \/ ... \/ PN]
+    という形のゴールに適用され、ゴール[PK]を残します。 *)
 
 Tactic Notation "branch" constr(K) "of" constr(N) :=
   let N := nat_from_number N in
@@ -2886,9 +3471,11 @@ Tactic Notation "branch" constr(K) "of" constr(N) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** N-ary Disjunction Deconstruction *)
+(* N-ary Disjunction Deconstruction *)
+(** N-選言の分解 *)
 
-(** Underlying implementation of [branches]. *)
+(* Underlying implementation of [branches]. *)
+(** [branches] の背後の実装。 *)
 
 Ltac destructs_disjunction_tactic N T :=
   match N with
@@ -2898,18 +3485,24 @@ Ltac destructs_disjunction_tactic N T :=
   | 5 => destruct T as [? | [? | [? | [? | ?]]]]
   end.
 
-(** [branches T] allows destructing a term [T] which is a N-ary
+(* [branches T] allows destructing a term [T] which is a N-ary
     disjunction. It is equivalent to [destruct T as [ H1 | .. | HN ] ],
     and produces [N] subgoals corresponding to the [N] possible cases. *)
+(** [branches T] はN-選言である項[T]を分解します。
+    これは [destruct T as [ H1 | .. | HN ] ] と同値で、
+    [N]個の可能な場合に対応する[N]個のサブゴールを生成します。 *)
 
 Tactic Notation "branches" constr(T) :=
   let TT := type of T in
   let N := get_term_disjunction_arity TT in
   destructs_disjunction_tactic N T.
 
-(** [branches N T] is the same as [branches T] except that the arity is
+(* [branches N T] is the same as [branches T] except that the arity is
     forced to [N]. This version is useful to unfold definitions
     on the fly. *)
+(** [branches N T] は [branches T] と同様ですが、
+    選言の個数が[N]に強制される点が違います。この形は定義をその場で展開したいときに便利です。
+    *)
 
 Tactic Notation "branches" constr(N) constr(T) :=
   let N := nat_from_number N in
@@ -2917,7 +3510,8 @@ Tactic Notation "branches" constr(N) constr(T) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** N-ary Existentials *)
+(* N-ary Existentials *)
+(** N-変数存在限量 *)
 
 (* Underlying implementation of [exists]. *)
 
@@ -2943,11 +3537,16 @@ Ltac get_term_existential_arity T :=
 Ltac get_goal_existential_arity :=
   match goal with |- ?T => get_term_existential_arity T end.
 
-(** [exists T1 ... TN] is a shorthand for [exists T1; ...; exists TN].
+(* [exists T1 ... TN] is a shorthand for [exists T1; ...; exists TN].
     It is intended to prove goals of the form [exist X1 .. XN, P].
     If an argument provided is [__] (double underscore), then an
     evar is introduced. [exists T1 .. TN ___] is equivalent to
     [exists T1 .. TN __ __ __] with as many [__] as possible. *)
+(** [exists T1 ... TN] は [exists T1; ...; exists TN] の略記法です。
+    これは [exist X1 .. XN, P] という形のゴールを証明することを意図したものです。
+    もし与えられた引数が [__] (二連アンダースコア)ならば、存在変数が導入されます。
+    [exists T1 .. TN ___] は、任意個の [__] についての
+    [exists T1 .. TN __ __ __] と同値です。 *)
 
 Tactic Notation "exists_original" constr(T1) :=
   exists T1.
@@ -2977,6 +3576,13 @@ Tactic Notation "exists" constr(T1) constr(T2) constr(T3) constr(T4)
    at the head of the goal. The behaviour of [exists___] differs
    from that of [exists ___] is the case where the goal is a
    definition which yields an existential only after unfolding. *)
+(** タクティック [exists___ N] は [N]個の二連アンダースコアの
+   [exists __ ... __] の略記法です。
+   タクティック [exists_] は、ゴールの先頭の構文的な存在限量の数[N]について
+   [exists___ N] を呼ぶのと同値です。
+   [exists___] の振る舞いが [exists ___] と違うのは、
+   ゴールの定義を展開してはじめて存在限量になる場合です。 *)
+(* 訳注: 二重** の間違いだと思われるので訳す。*)
 
 Tactic Notation "exists___" constr(N) :=
   let rec aux N :=
@@ -2992,9 +3598,11 @@ Tactic Notation "exists___" :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** Existentials and conjunctions in hypotheses *)
+(* Existentials and conjunctions in hypotheses *)
+(** 仮定内の存在限量と連言 *)
 
-(** todo: doc *)
+(* todo: doc *)
+(** todo: ドキュメンテーション *)
 
 Ltac intuit_core :=
   repeat match goal with
@@ -3013,35 +3621,50 @@ Tactic Notation "intuit" constr(H) :=
 
 
 (* ********************************************************************** *)
-(** * Tactics to prove typeclass instances *)
+(* * Tactics to prove typeclass instances *)
+(** * タイプクラスのインスタンスを証明するためのタクティック *)
 
-(** [typeclass] is an automation tactic specialized for finding
+(* [typeclass] is an automation tactic specialized for finding
     typeclass instances. *)
+(** [typeclass]
+    はタイプクラスのインスタンスを発見することに特化された自動化タクティックです。*)
 
 Tactic Notation "typeclass" :=
   let go _ := eauto with typeclass_instances in
   solve [ go tt | constructor; go tt ].
 
-(** [solve_typeclass] is a simpler version of [typeclass], to use
+(* [solve_typeclass] is a simpler version of [typeclass], to use
     in hint tactics for resolving instances *)
+(** [solve_typeclass]は[typeclass]の簡易版です。
+    インスタンスを再度解くヒントタクティックで使われます。 *)
 
 Tactic Notation "solve_typeclass" :=
   solve [ eauto with typeclass_instances ].
 
 
 (* ********************************************************************** *)
-(** * Tactics to invoke automation *)
+(* * Tactics to invoke automation *)
+(** * 自動化起動のタクティック *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** [jauto], a new automation tactics *)
+(* ** [jauto], a new automation tactics *)
+(** ** [jauto], 新しい自動化タクティック *)
 
-(** [jauto] is better at [intuition eauto] because it can open existentials
+(* [jauto] is better at [intuition eauto] because it can open existentials
     from the context. In the same time, [jauto] can be faster than
     [intuition eauto] because it does not destruct disjunctions from the
     context. The strategy of [jauto] can be summarized as follows:
     - open all the existentials and conjunctions from the context
     - call esplit and split on the existentials and conjunctions in the goal
     - call eauto. *)
+(** [jauto] は [intuition eauto] と比べて、
+    コンテキストから存在限量を展開できる点が優れています。
+    同時に、[jauto] はコンテキストから選言を分解しないため、
+    [intuition eauto] より速い場合があります。
+    [jauto]の戦略は以下のようにまとめられます:
+    - コンテキストからすべての存在限量と連言を開きます
+    - ゴールの存在限量と連言に対して esplit と split を呼びます
+    - eauto を呼びます。 *)
 
 Ltac jauto_set_hyps :=
   repeat match goal with H: ?T |- _ =>
@@ -3069,34 +3692,45 @@ Tactic Notation "jauto" :=
 Tactic Notation "jauto_fast" :=
   try solve [ auto | eauto | jauto ].
 
-(** [iauto] is a shorthand for [intuition eauto] *)
+(* [iauto] is a shorthand for [intuition eauto] *)
+(** [iauto]は [intuition eauto] の略記法です *)
 
 Tactic Notation "iauto" := try solve [intuition eauto].
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Definitions of automation tactics *)
+(* ** Definitions of automation tactics *)
+(** ** 自動化タクティックの定義 *)
 
-(** The two following tactics defined the default behaviour of
+(* The two following tactics defined the default behaviour of
     "light automation" and "strong automation". These tactics
     may be redefined at any time using the syntax [Ltac .. ::= ..]. *)
+(** 以下の2つのタクティックは、「軽い自動化」("light automation")と
+    「強力な自動化」("strong automation")のデフォルトの振る舞いを定義します。
+    これらのタクティックは、構文 [Ltac .. ::= ..] を使うことでいつでも再定義できます。 *)
 
-(** [auto_tilde] is the tactic which will be called each time a symbol
+(* [auto_tilde] is the tactic which will be called each time a symbol
     [~] is used after a tactic. *)
+(** [auto_tilde] は、
+    タクティックの後に記号[~]が使われたときにいつでも呼ばれるタクティックです。 *)
 
 Ltac auto_tilde_default := auto.
 Ltac auto_tilde := auto_tilde_default.
 
-(** [auto_star] is the tactic which will be called each time a symbol
+(* [auto_star] is the tactic which will be called each time a symbol
     [*] is used after a tactic. *)
+(** [auto_star] は、
+    タクティックの後に記号[*]が使われたときにいつでも呼ばれるタクティックです。 *)
 
 Ltac auto_star_default := try solve [ auto | eauto | intuition eauto ].
   (* TODO: should be jauto *)
 Ltac auto_star := auto_star_default.
 
-(** [auto~] is a notation for tactic [auto_tilde]. It may be followed
+(* [auto~] is a notation for tactic [auto_tilde]. It may be followed
     by lemmas (or proofs terms) which auto will be able to use
     for solving the goal. *)
+(** [auto~]はタクティック[auto_tilde]の記法です。この後に、
+    ゴールを解くために auto が使う補題(または証明項)を付記することができます。 *)
 
 Tactic Notation "auto" "~" :=
   auto_tilde.
@@ -3107,9 +3741,11 @@ Tactic Notation "auto" "~" constr(E1) constr(E2) :=
 Tactic Notation "auto" "~" constr(E1) constr(E2) constr(E3) :=
   lets: E1; lets: E2; lets: E3; auto_tilde.
 
-(** [auto*] is a notation for tactic [auto_star]. It may be followed
+(* [auto*] is a notation for tactic [auto_star]. It may be followed
     by lemmas (or proofs terms) which auto will be able to use
     for solving the goal. *)
+(** [auto*]はタクティック[auto_star]の記法です。この後に、
+    ゴールを解くために auto が使う補題(または証明項)を付記することができます。 *)
 
 Tactic Notation "auto" "*" :=
   auto_star.
@@ -3120,8 +3756,10 @@ Tactic Notation "auto" "*" constr(E1) constr(E2) :=
 Tactic Notation "auto" "*" constr(E1) constr(E2) constr(E3) :=
   lets: E1; lets: E2; lets: E3; auto_star.
 
-(** [auto_false] is a version of [auto] able to spot some contradictions.
+(* [auto_false] is a version of [auto] able to spot some contradictions.
     [auto_false~] and [auto_false*] are also available. *)
+(** [auto_false]は、ある種の矛盾を発見できる[auto]の一種です。
+    [auto_false~] および [auto_false*] も可能です。 *)
 
 Ltac auto_false_base cont :=
   try solve [ cont tt | tryfalse by congruence/
@@ -3136,7 +3774,8 @@ Tactic Notation "auto_false" "*" :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Definitions for parsing compatibility *)
+(* ** Definitions for parsing compatibility *)
+(** ** コンパチビリティを構文解析するための定義  *)
 
 Tactic Notation "f_equal" :=
   f_equal.
@@ -3146,9 +3785,10 @@ Tactic Notation "simple" :=
   simpl.
 
 (* ---------------------------------------------------------------------- *)
-(** ** Parsing for light automation *)
+(* ** Parsing for light automation *)
+(** ** 軽い自動化の構文解析 *)
 
-(** Any tactic followed by the symbol [~] will have [auto_tilde] called
+(* Any tactic followed by the symbol [~] will have [auto_tilde] called
     on all of its subgoals. Three exceptions:
     - [cuts] and [asserts] only call [auto] on their first subgoal,
     - [apply~] relies on [sapply] rather than [apply],
@@ -3157,6 +3797,15 @@ Tactic Notation "simple" :=
    Some builtin tactics are not defined using tactic notations
    and thus cannot be extended, e.g. [simpl] and [unfold].
    For these, notation such as [simpl~] will not be available. *)
+(** 任意のタクティックに記号[~]を付けると、すべてのサブゴールに対して
+    [auto_tilde]が呼ばれます。例外が3つあります:
+    - [cuts]と[asserts]は最初のサブゴールに[auto]だけを呼びます
+    - [apply~]は[apply]ではなく[sapply]を使います
+    - [tryfalse~]は [tryfalse by auto_tilde] と定義されています。
+
+   いくつかのビルトイン・タクティックはタクティック記法を使って定義されていないため、
+   拡張できません。例えば[simpl]と[unfold]です。
+   これらに対して、[simpl~]のような記法は使えません。 *)
 
 Tactic Notation "equates" "~" constr(E) :=
    equates E; auto~.
@@ -3490,14 +4139,20 @@ Tactic Notation "exists" "~" constr(T1) constr(T2) constr(T3) constr(T4)
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Parsing for strong automation *)
+(* ** Parsing for strong automation *)
+(** ** 強力な自動化の構文解析 *)
 
-(** Any tactic followed by the symbol [*] will have [auto*] called
+(* Any tactic followed by the symbol [*] will have [auto*] called
     on all of its subgoals. The exceptions to these rules are the
     same as for light automation.
 
     Exception: use [subs*] instead of [subst*] if you
     import the library [Coq.Classes.Equivalence]. *)
+(** 任意のタクティックに記号[*]を付けると、すべてのサブゴールに対して[auto*]が呼ばれます。
+    例外は、軽い自動化と同じです。
+
+    例外: ライブラリ [Coq.Classes.Equivalence] を import したいときは、
+    [subst*]ではなく[subs*]を使ってください。 *)
 
 Tactic Notation "equates" "*" constr(E) :=
    equates E; auto_star.
@@ -3836,10 +4491,12 @@ Tactic Notation "exists" "*" constr(T1) constr(T2) constr(T3) constr(T4)
 
 
 (* ********************************************************************** *)
-(** * Tactics to sort out the proof context *)
+(* * Tactics to sort out the proof context *)
+(** * 証明コンテキストを整理するためのタクティック *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** Hiding hypotheses *)
+(* ** Hiding hypotheses *)
+(** ** 仮定の隠蔽 *)
 
 (* Implementation *)
 
@@ -3860,8 +4517,9 @@ Lemma ltac_something_show : forall (e:Type),
   (@ltac_something _ e) -> e.
 Proof. auto. Qed.
 
-(** [hide_def x] and [show_def x] can be used to hide/show
+(* [hide_def x] and [show_def x] can be used to hide/show
     the body of the definition [x]. *)
+(** [hide_def x] と [show_def x] によって、定義[x]の本体を隠蔽/明示化できます。 *)
 
 Tactic Notation "hide_def" hyp(x) :=
   let x' := constr:(x) in
@@ -3874,7 +4532,8 @@ Tactic Notation "show_def" hyp(x) :=
   match U with @ltac_something _ ?T =>
     change U with T in x end.
 
-(** [show_def] unfolds [Something] in the goal *)
+(* [show_def] unfolds [Something] in the goal *)
+(** [show_def] はゴールの [Something] を展開します *)
 
 Tactic Notation "show_def" :=
   unfold ltac_something.
@@ -3882,7 +4541,8 @@ Tactic Notation "show_def" :=
 Tactic Notation "show_def" "in" "*" :=
   unfold ltac_something in *.
 
-(** [hide_defs] and [show_defs] applies to all definitions *)
+(* [hide_defs] and [show_defs] applies to all definitions *)
+(** [hide_defs] と [show_defs] はすべての定義に適用されます *)
 
 Tactic Notation "hide_defs" :=
   repeat match goal with H := ?T |- _ =>
@@ -3897,9 +4557,12 @@ Tactic Notation "show_defs" :=
     change (@ltac_something _ T) with T in H end.
 
 
-(** [hide_hyp H] replaces the type of [H] with the notation [Something]
+(* [hide_hyp H] replaces the type of [H] with the notation [Something]
     and [show_hyp H] reveals the type of the hypothesis. Note that the
     hidden type of [H] remains convertible the real type of [H]. *)
+(** [hide_hyp H] は[H]の型の表記を [Something] に変え、
+    [show_hyp H] は仮定の型を明示します。なお、[H]の隠された型でも
+    [H]の実際の型と同様にはたらきます。 *)
 
 Tactic Notation "show_hyp" hyp(H) :=
   apply ltac_something_show in H.
@@ -3907,8 +4570,9 @@ Tactic Notation "show_hyp" hyp(H) :=
 Tactic Notation "hide_hyp" hyp(H) :=
   apply ltac_something_hide in H.
 
-(** [hide_hyps] and [show_hyps] can be used to hide/show all hypotheses
+(* [hide_hyps] and [show_hyps] can be used to hide/show all hypotheses
     of type [Prop]. *)
+(** [hide_hyps] と [show_hyps] は、型[Prop]のすべての仮定を隠蔽/明示化します。 *)
 
 Tactic Notation "show_hyps" :=
   repeat match goal with
@@ -3926,9 +4590,12 @@ Tactic Notation "hide_hyps" :=
     end
   end.
 
-(** [hide H] and [show H] automatically select between
+(* [hide H] and [show H] automatically select between
     [hide_hyp] or [hide_def], and [show_hyp] or [show_def].
     Similarly [hide_all] and [show_all] apply to all. *)
+(** [hide H] と [show H] はそれぞれ、[hide_hyp] または [hide_def] を、
+    あるいは、[show_hyp] または [show_def] を自動的に選択します。
+    同様に、[hide_all] と [show_all] はすべてに適用されます。 *)
 
 Tactic Notation "hide" hyp(H) :=
   first [hide_def H | hide_hyp H].
@@ -3942,9 +4609,12 @@ Tactic Notation "hide_all" :=
 Tactic Notation "show_all" :=
   unfold ltac_something in *.
 
-(** [hide_term E] can be used to hide a term from the goal.
+(* [hide_term E] can be used to hide a term from the goal.
     [show_term] or [show_term E] can be used to reveal it.
     [hide_term E in H] can be used to specify an hypothesis. *)
+(** [hide_term E] はゴールから項を隠すのに使います。
+    [show_term] または [show_term E] は隠された項を明示化するために使います。
+    [hide_term E in H] は仮定を指定するときに使います。 *)
 
 Tactic Notation "hide_term" constr(E) :=
   change E with (@ltac_something _ E).
@@ -3962,10 +4632,13 @@ Tactic Notation "show_term" "in" hyp(H) :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Sorting hypotheses *)
+(* ** Sorting hypotheses *)
+(** ** 仮定のソーティング *)
 
-(** [sort] sorts out hypotheses from the context by moving all the
+(* [sort] sorts out hypotheses from the context by moving all the
     propositions (hypotheses of type Prop) to the bottom of the context. *)
+(** [sort] はコンテキストの仮定を並び変えて、
+    すべての命題(型 Prop の仮定)がコンテキストの下部に来るようにします。 *)
 
 Ltac sort_tactic :=
   try match goal with H: ?T |- _ =>
@@ -3978,11 +4651,15 @@ Tactic Notation "sort" :=
 
 
 (* ---------------------------------------------------------------------- *)
-(** ** Clearing hypotheses *)
+(* ** Clearing hypotheses *)
+(** ** 仮定のクリア *)
 
-(** [clears X1 ... XN] is a variation on [clear] which clears
+(* [clears X1 ... XN] is a variation on [clear] which clears
     the variables [X1]..[XN] as well as all the hypotheses which
     depend on them. Contrary to [clear], it never fails. *)
+(** [clears X1 ... XN] は[clear]の変種で、変数
+    [X1]..[XN] とそれらに依存するすべての仮定をクリアします。
+    [clear]と対照的に、失敗することはありません。 *)
 
 Tactic Notation "clears" ident(X1) :=
   let rec doit _ :=
@@ -4003,10 +4680,13 @@ Tactic Notation "clears" ident(X1) ident(X2) ident(X3) ident(X4)
  ident(X5) ident(X6) :=
   clears X1; clears X2; clear X3; clear X4; clear X5; clear X6.
 
-(** [clears] (without any argument) clears all the unused variables
+(* [clears] (without any argument) clears all the unused variables
     from the context. In other words, it removes any variable
     which is not a proposition (i.e. not of type Prop) and which
     does not appear in another hypothesis nor in the goal. *)
+(** [clears] (引数なし)は使われていないすべての変数をコンテキストからクリアします。
+    言い換えると、命題(型 Prop を持つもの)でもなく、
+    別の仮定にもゴールにも現れないすべての変数を除去します。 *)
 
 Ltac clears_tactic :=
   match goal with H: ?T |- _ =>
@@ -4019,15 +4699,19 @@ Ltac clears_tactic :=
 Tactic Notation "clears" :=
   clears_tactic.
 
-(** [clears_all] clears all the hypotheses from the context
+(* [clears_all] clears all the hypotheses from the context
     that can be cleared. It leaves only the hypotheses that
     are mentioned in the goal. *)
+(** [clears_all]は消すことができるすべての仮定をゴールからクリアします。
+    残るのは、ゴールで言及されている仮定だけです。 *)
 
 Tactic Notation "clears_all" :=
   repeat match goal with H: _ |- _ => clear H end.
 
-(** [clears_last] clears the last hypothesis in the context.
+(* [clears_last] clears the last hypothesis in the context.
     [clears_last N] clears the last [N] hypotheses in the context. *)
+(** [clears_last]はコンテキストから最後の仮定をクリアします。
+    [clears_last N] は最後の[N]個の仮定をコンテキストからクリアします。 *)
 
 Tactic Notation "clears_last" :=
   match goal with H: ?T |- _ => clear H end.
@@ -4043,12 +4727,14 @@ Tactic Notation "clears_last" constr(N) :=
 
 
 (* ********************************************************************** *)
-(** * Tactics for development purposes *)
+(* * Tactics for development purposes *)
+(** * 開発目的のタクティック *)
 
 (* ---------------------------------------------------------------------- *)
-(** ** Skipping subgoals *)
+(* ** Skipping subgoals *)
+(** ** サブゴールのスキップ *)
 
-(** The [skip] tactic can be used at any time to admit the current
+(* The [skip] tactic can be used at any time to admit the current
     goal. Using [skip] is much more efficient than using the [Focus]
     top-level command to reach a particular subgoal.
 
@@ -4073,6 +4759,29 @@ Tactic Notation "clears_last" constr(N) :=
     suits you best. By default [skip'] uses the first implementation, and
     [skip] uses the second implementation.
 *)
+(** [skip]タクティックは現在のゴールをいつでも admit するために使います。
+    [skip]を使うことは、トップレベルのコマンド[Focus]を使うより、
+    特定のサブゴールに到達するのには、はるかに効率的です。
+
+    [skip]には2つの可能な実装があります。1つは存在変数を利用するもの、
+    もう1つは型[False]についての公理に依存するものです。
+    なお、現在のゴールが具体化されない変数を含んでいるときにはビルトイン・タクティック
+    [admit]は適用できないことに注意します。
+
+    1つ目の方法の優れた点は、[skip]を使った証明は[Admitted]
+    で終わらなければならなくなることです。なぜなら、[Qed]を使っても
+    "[uninstantiated existential variables]"(具体化されていない存在変数)
+    というメッセージが出て受理されないからです。
+    このことで証明が未完であることが明確になります。
+
+    2つ目の方法の優れた点は、ちょうど逆になります。証明を[Qed]で締めることができ、
+    これから、[Qed]を[Admitted]に直したり、その逆をしたりをやり続ける苦労をしなくて済みます。
+    なお、それでも、[Qed]が受理されるためには、
+    他のタクティックによって導入された存在変数は、すべて具体化しなければなりません。
+
+    2つの実装を提供しますので、自分に合う方を選んでください。
+    デフォルトでは、[skip']は1つ目の実装を使い、[skip]は2つ目の実装を使います。
+*)
 
 Ltac skip_with_existential :=
   match goal with |- ?G =>
@@ -4088,13 +4797,18 @@ Tactic Notation "skip" :=
 Tactic Notation "skip'" :=
    skip_with_existential.
 
-(** [skip H: T] adds an assumption named [H] of type [T] to the
+(* [skip H: T] adds an assumption named [H] of type [T] to the
     current context, blindly assuming that it is true.
     [skip: T] and [skip H_asserts: T] and [skip_asserts: T]
     are other possible syntax.
     Note that H may be an intro pattern.
     The syntax [skip H1 .. HN: T] can be used when [T] is a
     conjunction of [N] items. *)
+(** [skip H: T] は現在のコンテキストに型[T]の仮定[H]を追加します。
+    このときに[H]は無批判に真と仮定されます。
+    [skip: T] と [skip H_asserts: T] と [skip_asserts: T] も構文として可能です。
+    なお、H は intro パターンでも構いません。
+    [T]が[N]個の連言のとき、構文 [skip H1 .. HN: T] も可能です。 *)
 
 Tactic Notation "skip" simple_intropattern(I) ":" constr(T) :=
   asserts I: T; [ skip | ].
@@ -4126,15 +4840,20 @@ Tactic Notation "skip_asserts" simple_intropattern(I) ":" constr(T) :=
 Tactic Notation "skip_asserts" ":" constr(T) :=
   skip: T.
 
-(** [skip_cuts T] simply replaces the current goal with [T]. *)
+(* [skip_cuts T] simply replaces the current goal with [T]. *)
+(** [skip_cuts T] は単に現在のゴールを[T]に置きかえます。 *)
 
 Tactic Notation "skip_cuts" constr(T) :=
   cuts: T; [ skip | ].
 
-(** [skip_goal H] applies to any goal. It simply assumes
+(* [skip_goal H] applies to any goal. It simply assumes
     the current goal to be true. The assumption is named "H".
     It is useful to set up proof by induction or coinduction.
     Syntax [skip_goal] is also accepted.*)
+(** [skip_goal H] は任意のゴールに適用できます。単に現在のゴールを真と仮定します。
+    その仮定に "H" という名前を付けます。
+    帰納法(induction)や余帰納法(coinduction)による証明の準備のときに便利です。
+    構文 [skip_goal] も可能です。 *)
 
 Tactic Notation "skip_goal" ident(H) :=
   match goal with |- ?G => skip H: G end.
@@ -4142,31 +4861,42 @@ Tactic Notation "skip_goal" ident(H) :=
 Tactic Notation "skip_goal" :=
   let IH := fresh "IH" in skip_goal IH.
 
-(** [skip_rewrite T] can be applied when [T] is an equality.
+(* [skip_rewrite T] can be applied when [T] is an equality.
     It blindly assumes this equality to be true, and rewrite it in
     the goal. *)
+(** [skip_rewrite T] は[T]が等式のときに適用できます。
+    この等式を無批判に成立するものとし、ゴールをこの等式について書き換えします。*)
 
 Tactic Notation "skip_rewrite" constr(T) :=
   let M := fresh in skip_asserts M: T; rewrite M; clear M.
 
-(** [skip_rewrite T in H] is similar as [rewrite_skip], except that
+(* [skip_rewrite T in H] is similar as [rewrite_skip], except that
     it rewrites in hypothesis [H]. *)
+(** [skip_rewrite T in H] は[rewrite_skip]と同様ですが、
+    仮定[H]を書き換える点が違います。 *)
 
 Tactic Notation "skip_rewrite" constr(T) "in" hyp(H) :=
   let M := fresh in skip_asserts M: T; rewrite M in H; clear M.
 
-(** [skip_rewrites_all T] is similar as [rewrite_skip], except that
+(* [skip_rewrites_all T] is similar as [rewrite_skip], except that
     it rewrites everywhere (goal and all hypotheses). *)
+(** [skip_rewrites_all T] は[rewrite_skip]と同様ですが、
+    すべての場所(ゴールとすべての仮定)を書き換える点が違います。 *)
 
 Tactic Notation "skip_rewrite_all" constr(T) :=
   let M := fresh in skip_asserts M: T; rewrite_all M; clear M.
 
-(** [skip_induction E] applies to any goal. It simply assumes
+(* [skip_induction E] applies to any goal. It simply assumes
     the current goal to be true (the assumption is named "IH" by
     default), and call [destruct E] instead of [induction E].
     It is useful to try and set up a proof by induction
     first, and fix the applications of the induction hypotheses
     during a second pass on the proof.  *)
+(** [skip_induction E] は任意のゴールに適用できます。
+    現在のゴールを無批判に成立するものと仮定し(この仮定はデフォルトでは"IH"
+    と名付けられます)、[induction E] ではなく [destruct E] を呼びます。
+    これは、最初に帰納法による証明の準備を整え、
+    証明の第2パスで帰納法の仮定の適用を調整していくときに便利です。 *)
 
 Tactic Notation "skip_induction" constr(E) :=
   let IH := fresh "IH" in skip_goal IH; destruct E.
@@ -4176,13 +4906,20 @@ Tactic Notation "skip_induction" constr(E) "as" simple_intropattern(I) :=
 
 
 (* ********************************************************************** *)
-(** * Compatibility with standard library *)
+(* * Compatibility with standard library *)
+(** * 標準ライブラリとのコンパチビリティ *)
 
-(** The module [Program] contains definitions that conflict with the
+(* The module [Program] contains definitions that conflict with the
     current module. If you import [Program], either directly or indirectly
     (e.g. through [Setoid] or [ZArith]), you will need to import the
     compability definitions through the top-level command:
     [Require Import LibTacticsCompatibility]. *)
+(** モジュール [Program] は現在のモジュールと衝突する定義を含んでいます。
+    [Program] を直接または間接的に import するときには
+    ([Program] を間接的に import するのは、例えば [Setoid] や [ZArith] 
+    を利用するときです)、トップレベルのコマンド
+    [Require Import LibTacticsCompatibility]
+    を行って、コンパチビリティの定義を import する必要があります。 *)
 
 Module LibTacticsCompatibility.
   Tactic Notation "apply" "*" constr(H) :=

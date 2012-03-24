@@ -19,4 +19,5 @@
 (** printing <~~> #<span style="font-family: arial;">&#8660;</span># *)
 (** printing |- #<span style="font-family: arial;">&#8866;</span># *)
 (** printing Gamma #<span style="font-family: serif; font-size:85%;">&Gamma;</span># *)
-
+(* The following are added by Japanese translators *)
+(** printing Gamma' #<span style="font-family: serif; font-size:85%;">&Gamma;'</span># *)
