@@ -805,7 +805,7 @@ Proof.
     propositions are equivalent. *)
 (*  さらなる挑戦を求める人のために、 Coq'Art book (p. 123) から一つ練習問題を
     取り上げてみます。次の五つの文は、よく「古典論理の特性」と考えられている
-    ものです。 (Coqにビルトインされている構成的論理の対極にあるものです。)
+    もの（Coqにビルトインされている構成的論理の対極にあるもの）です。
     これらをCoqで証明することはできませんが、古典論理を使うことが必要なら、
     矛盾なく「証明されていない公理」として道具に加えることができます。
     これら五つの命題が等価であることを証明しなさい。 *)
@@ -826,10 +826,10 @@ Definition implies_to_or := forall P Q:Prop,
 
 (* ########################################################## *)
 (*  ** Inequality *)
-(** ** Inequality *)
+(** ** 不等であるということ*)
 
 (*  Saying [x <> y] is just the same as saying [~(x = y)]. *)
-(** Saying [x <> y] is just the same as saying [~(x = y)]. *)
+(** [x <> y] というのは、[~(x = y)] と同じことです。 *)
 
 Notation "x <> y" := (~ (x = y)) : type_scope.
 
@@ -841,14 +841,13 @@ Notation "x <> y" := (~ (x = y)) : type_scope.
     [False].  This makes it easier to use assumptions of the form
     [~P] that are available in the context -- in particular,
     assumptions of the form [x<>y]. *)
-(** Since inequality involves a negation, it again requires
-    a little practice to be able to work with it fluently.  Here
-    is one very useful trick.  If you are trying to prove a goal
-    that is nonsensical (e.g., the goal state is [false = true]),
-    apply the lemma [ex_falso_quodlibet] to change the goal to
-    [False].  This makes it easier to use assumptions of the form
-    [~P] that are available in the context -- in particular,
-    assumptions of the form [x<>y]. *)
+(** 不等性は、その中に「否定」を含んでいるため、やはりその扱いには
+    ある程度の慣れが必要です。ここで一つ有用なトリックをお見せしましょう。
+    もし、証明すべきゴールがあり得ない式（例えば[false = true]というような文）
+    であった場合は、[ex_falso_quodlibet] という補題をapplyで適用すると、ゴールを
+    [False]にすることができます。このことを覚えておけば、コンテキストの中の [~P]
+    という形の仮定を使うことがとても簡単になります。特に、[x<>y] という形の仮定の
+    場合はに有用です。 *)
 
 Theorem not_false_then_true : forall b : bool,
   b <> false -> b = true.
@@ -861,7 +860,7 @@ Proof.
     apply H. reflexivity.   Qed.
 
 (*  **** Exercise: 2 stars, recommended (not_eq_beq_false) *)
-(** **** Exercise: 2 stars, recommended (not_eq_beq_false) *)
+(** **** 練習問題: ★★, recommended (not_eq_beq_false) *)
 Theorem not_eq_beq_false : forall n n' : nat,
      n <> n' ->
      beq_nat n n' = false.
@@ -870,7 +869,7 @@ Proof.
 (** [] *)
 
 (*  **** Exercise: 2 stars, optional (beq_false_not_eq) *)
-(** **** Exercise: 2 stars, optional (beq_false_not_eq) *)
+(** **** 練習問題: ★★, optional (beq_false_not_eq) *)
 Theorem beq_false_not_eq : forall n m,
   false = beq_nat n m -> n <> m.
 Proof.
@@ -879,14 +878,14 @@ Proof.
 
 (* ############################################################ *)
 (*  * Existential Quantification *)
-(** * Existential Quantification *)
+(** * 存在量化子 *)
 
 (*  Another critical logical connective is _existential
     quantification_.  We can capture what this means with the
     following definition: *)
-(** Another critical logical connective is _existential
-    quantification_.  We can capture what this means with the
-    following definition: *)
+(** もう一つの論理的接続詞は、存在量化子（ _existential
+    quantification_ ）です。これは、次のような定義でその意味を
+    とらえることができます。 *)
 
 Inductive ex (X:Type) (P : X->Prop) : Prop :=
   ex_intro : forall (witness:X), P witness -> ex X P.
@@ -899,14 +898,14 @@ Inductive ex (X:Type) (P : X->Prop) : Prop :=
     property [P].
 
     For example, consider this existentially quantified proposition: *)
-(** That is, [ex] is a family of propositions indexed by a type [X]
-    and a property [P] over [X].  In order to give evidence for the
-    assertion "there exists an [x] for which the property [P] holds"
-    we must actually name a _witness_ -- a specific value [x] -- and
-    then give evidence for [P x], i.e., evidence that [x] has the
-    property [P].
 
-    For example, consider this existentially quantified proposition: *)
+(** この [ex] は、型引数 [X] とそれに関する属性 [P] によって決まる命題です。
+    「 [P] を満たす [x] が存在する」という主張に根拠を与えるため、
+    ある特定の値 [x] （「証拠」と呼ぶことにします）を具体的に示すことで
+     [P x] の根拠を得ることができます。つまりこれは、 [x] が性質  [P] を
+     持っていることの根拠です。
+
+    例として、このような存在量化子を持つ命題を見てみましょう。: *)
 
 Definition some_nat_is_even : Prop :=
   ex nat ev.
@@ -914,9 +913,9 @@ Definition some_nat_is_even : Prop :=
 (*  To prove this proposition, we need to choose a particular number
     as witness -- say, 4 -- and give some evidence that that number is
     even. *)
-(** To prove this proposition, we need to choose a particular number
-    as witness -- say, 4 -- and give some evidence that that number is
-    even. *)
+(** この、命題を証明するためには、証拠として特定の値（この場合4）を
+    与え、それが偶数である根拠を示す必要があります。 
+ *)
 
 Definition snie : some_nat_is_even :=
   ex_intro _ ev 4 (ev_SS 2 (ev_SS 0 ev_0)).
@@ -929,14 +928,13 @@ Definition snie : some_nat_is_even :=
     is even, for example, we can write [exists x:nat, ev x].  (It is
     not necessary to understand exactly how the [Notation] definition
     works.) *)
-(** Coq's notation definition facility can be used to introduce
-    more familiar notation for writing existentially quantified
-    propositions, exactly parallel to the built-in syntax for
-    universally quantified propositions.  Instead of writing [ex nat
-    ev] to express the proposition that there exists some number that
-    is even, for example, we can write [exists x:nat, ev x].  (It is
-    not necessary to understand exactly how the [Notation] definition
-    works.) *)
+(** Coqの容易な表記法の定義は、存在量化された命題を記述するための、より
+    馴染みやすい表記を、ビルトインされたを全称量化子と同レベルで実現しています。
+    そのおかげで、「偶数となる自然数が存在する」ことを示す命題を [ex nat ev] と
+    書く代わりに、たとえば [exists x:nat, ev x] のように書くことができます。
+    （これを理解するためにCoqの「表記法」がどのように作用しているかを完全に
+    理解しないといけない、ということではありません。）
+ *)
 
 Notation "'exists' x , p" := (ex _ (fun x => p))
   (at level 200, x ident, right associativity) : type_scope.
@@ -949,12 +947,11 @@ Notation "'exists' x : X , p" := (ex _ (fun x:X => p))
     premise of [ex_intro] involves a variable ([witness]) that does
     not appear in its conclusion, we need to explicitly give its value
     when we use [apply]. *)
-(** We can use the same set of tactics as always for
-    manipulating existentials.  For example, if to prove an
-    existential, we [apply] the constructor [ex_intro].  Since the
-    premise of [ex_intro] involves a variable ([witness]) that does
-    not appear in its conclusion, we need to explicitly give its value
-    when we use [apply]. *)
+(** 存在を示す必要がある場合には、だいたいいつも同じようなタクティックの
+    組み合わせが使われます。例えば、ある値の存在を証明する場合には、その値を
+    コンストラクタ [ex_intro] に [apply] すればいいのです。[ex_intro] の前提
+    はその結論に現れないうような変数（これが「証拠」となります）を必要とするため、
+    [apply] を使用する際にはその値をきちんと提示することが必要になります。 *)
 
 Example exists_example_1 : exists n, n + (n * n) = 6.
 Proof.
@@ -962,14 +959,13 @@ Proof.
   reflexivity.  Qed.
 
 (*  Note, again, that we have to explicitly give the witness. *)
-(** Note, again, that we have to explicitly give the witness. *)
+(** もう一度書きますが、ここでは具体的な値を証拠として用意する必要があります。 *)
 
 (*  Or, instead of writing [apply ex_intro with (witness:=e)] all the
     time, we can use the convenient shorthand [exists e], which means
     the same thing. *)
-(** Or, instead of writing [apply ex_intro with (witness:=e)] all the
-    time, we can use the convenient shorthand [exists e], which means
-    the same thing. *)
+(** [apply ex_intro with (witness:=e)] と書く代わりに、短縮形として [exists e]
+    と記述することもできます。どちらも同じ意味です。 *)
 
 Example exists_example_1' : exists n,
      n + (n * n) = 6.
@@ -984,13 +980,13 @@ Proof.
     the hypothesis holds for the witness.  (If we don't
     explicitly choose one, Coq will just call it [witness], which
     makes proofs confusing.) *)
-(** Conversely, if we have an existential hypothesis in the
-    context, we can eliminate it with [inversion].  Note the use
-    of the [as...] pattern to name the variable that Coq
-    introduces to name the witness value and get evidence that
-    the hypothesis holds for the witness.  (If we don't
-    explicitly choose one, Coq will just call it [witness], which
-    makes proofs confusing.) *)
+(** 逆に、コンテキストに置かれた仮定の中に存在を示すものがある場合は、
+    それを [inversion] タクティックで取り除くことができます。
+    変数に名前を付けるため [as...] パターンを使っていることに注目
+    してください。Coqはそれを「証拠」につける名前とし、仮定が証拠を保持する
+    根拠をそこから得ます。 （名前をきちんと選ばないと、Coqはそれを単なる
+    証拠としか考えることができず、その先の証明で混乱してしまいます。）
+ *)
 
 Theorem exists_example_2 : forall n,
      (exists m, n = 4 + m) ->
@@ -1002,33 +998,33 @@ Proof.
   apply Hm.  Qed.
 
 (*  **** Exercise: 1 star (english_exists) *)
-(** **** Exercise: 1 star (english_exists) *)
+(** **** 練習問題: ★ (english_exists) *)
 (*  In English, what does the proposition
 [[
       ex nat (fun n => ev (S n))
 ]]
     mean? *)
-(** In English, what does the proposition
+(** 英語では、以下の命題は何を意味しているでしょうか？
 [[
       ex nat (fun n => ev (S n))
 ]]
-    mean? *)
+ *)
 
 (* FILL IN HERE *)
 
 (*  Complete the definition of the following proof object: *)
-(** Complete the definition of the following proof object: *)
+(** 次の証明オブジェクトの定義を完成させなさい *)
 
 Definition p : ex nat (fun n => ev (S n)) :=
 (* FILL IN HERE *) admit.
 (** [] *)
 
 (*  **** Exercise: 1 star (dist_not_exists) *)
-(** **** Exercise: 1 star (dist_not_exists) *)
+(** **** 練習問題: ★ (dist_not_exists) *)
 (*  Prove that "[P] holds for all [x]" and "there is no [x] for
     which [P] does not hold" are equivalent assertions. *)
-(** Prove that "[P] holds for all [x]" and "there is no [x] for
-    which [P] does not hold" are equivalent assertions. *)
+(** "全ての [x] について[P] が成り立つ" ということと " [P] を満たさない [x] は
+    存在しない" ということが等価であることを証明しなさい。 *)
 
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
@@ -1037,11 +1033,11 @@ Proof.
 (** [] *)
 
 (*  **** Exercise: 3 stars, optional (not_exists_dist) *)
-(** **** Exercise: 3 stars, optional (not_exists_dist) *)
+(** **** 練習問題: ★★★, optional (not_exists_dist) *)
 (*  The other direction requires the classical "law of the excluded
     middle": *)
-(** The other direction requires the classical "law of the excluded
-    middle": *)
+(** 一方、古典論理の「排中律（law of the excluded middle）」が必要とされる
+    場合もあります。 *)
 
 Theorem not_exists_dist :
   excluded_middle ->
@@ -1052,11 +1048,10 @@ Proof.
 (** [] *)
 
 (*  **** Exercise: 2 stars (dist_exists_or) *)
-(** **** Exercise: 2 stars (dist_exists_or) *)
+(** **** 練習問題: ★★ (dist_exists_or) *)
 (*  Prove that existential quantification distributes over
     disjunction. *)
-(** Prove that existential quantification distributes over
-    disjunction. *)
+(** 存在量化子が論理和において分配法則を満たすことを証明しなさい。 *)
 
 Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
   (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
@@ -1070,36 +1065,44 @@ Proof.
 
 (* ###################################################### *)
 (*  * Equality *)
-(** * Equality *)
+(** * 等しいということ（同値性） *)
 
 (*  Even Coq's equality relation is not built in.  It has the
     following inductive definition.  (We enclose the definition in a
     module to avoid confusion with the standard library equality,
     which we have used extensively already.) *)
-(** Even Coq's equality relation is not built in.  It has the
-    following inductive definition.  (We enclose the definition in a
-    module to avoid confusion with the standard library equality,
-    which we have used extensively already.) *)
+(** Coqには、等価という関係すら組み込まれていませんから、次のように帰納的に定義
+    してやります（ここではこれまで散々使った標準ライブラリでの定義と衝突すること
+    を防ぐために、モジュールの中で定義することにします。） *)
 
 Module MyEquality.
 
 Inductive eq (X:Type) : X -> X -> Prop :=
   refl_equal : forall x, eq X x x.
 
-(** Standard infix notation (using Coq's type argument synthesis): *)
+(*  Standard infix notation (using Coq's type argument synthesis): *)
+(** 次に定義するのは、標準的な中置記法です（Coqの型引数合成を使用しています）。 *)
 
 Notation "x = y" := (eq _ x y)
                     (at level 70, no associativity) : type_scope.
 
-(** This is a bit subtle.  The way to think about it is that, given a
+(*  This is a bit subtle.  The way to think about it is that, given a
     set [X], it defines a _family_ of propositions "[x] is equal to
     [y]," indexed by pairs of values ([x] and [y]) from [X].  There is
     just one way of constructing evidence for members of this family:
     applying the constructor [refl_equal] to a type [X] and a value [x
     : X] yields evidence that [x] is equal to [x]. *)
-
-(** Here is a slightly different definition -- the one that actually
+(** この例は少し難解かもしれません。これがどういうものかを考えると、
+    集合 [X] が与えられると、「集合 [X] に属する値 ([x] and [y]) にインデックス
+    された、[x] は [y] に等しい」というような命題の _集団_ を定義してくれる
+    ということです。この集団に属する命題に根拠を与えるためには、一つの
+    方法しかありません。それは、コンストラクタ [refl_equal] に型 [X] とその値
+    [x : X] を適用し、[x] が [x] と等しいという根拠を生成することです。
+ *)
+(*  Here is a slightly different definition -- the one that actually
     appears in the Coq standard library. *)
+(** 次の定義は少し違った形になっています。 -- Coqの標準ライブラリでは
+    こちらの定義が採用されています。 *)
 
 Inductive eq' (X:Type) (x:X) : X -> Prop :=
     refl_equal' : eq' X x x.
@@ -1107,8 +1110,10 @@ Inductive eq' (X:Type) (x:X) : X -> Prop :=
 Notation "x =' y" := (eq' _ x y)
                      (at level 70, no associativity) : type_scope.
 
-(** **** Exercise: 3 stars, optional (two_defs_of_eq_coincide) *)
-(** Verify that the two definitions of equality are equivalent. *)
+(*  **** Exercise: 3 stars, optional (two_defs_of_eq_coincide) *)
+(** **** 練習問題: ★★★, optional (two_defs_of_eq_coincide) *)
+(*  Verify that the two definitions of equality are equivalent. *)
+(** これら二つの定義が等価であることを確認しなさい。 *)
 
 Theorem two_defs_of_eq_coincide : forall (X:Type) (x y : X),
   x = y <-> x =' y.
@@ -1116,17 +1121,22 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** The advantage of the second definition is that the induction
+(*  The advantage of the second definition is that the induction
     principle that Coq derives for it is precisely the familiar
     principle of _Leibniz equality_: what we mean when we say "[x] and
     [y] are equal" is that every property on [P] that is true of [x]
     is also true of [y]. *)
+(** 二つ目の定義の優れたところは、Coqが生成する帰納法の公理が正確に
+    「ライプニッツの同値関係（ _Leibniz equality_ ）」と親和している点です。
+    それはつまり、「[x] と [y] が等しいということは、 任意の命題 [P] が
+     [x] でtrueとなるならば [y] でもtrueとなる」ということです。
+ *)
 
 Check eq'_ind.
 (* ===>  forall (X : Type) (x : X) (P : X -> Prop),
              P x -> forall y : X, x =' y -> P y *)
 
-(** One important consideration remains.  Clearly, we can use
+(*  One important consideration remains.  Clearly, we can use
     [refl_equal] to construct evidence that, for example, [2 = 2].
     Can we also use it to construct evidence that [1 + 1 = 2]?  Yes.
     Indeed, it is the very same piece of evidence!  The reason is that
@@ -1140,6 +1150,19 @@ Check eq'_ind.
     normally hidden in uses of [simpl] (either explicit or implicit in
     other tactics such as [reflexivity]).  But you can see them
     directly at work in the following explicit proof objects: *)
+(** 一つ大事なことが残っています。確かに [refl_equal] は [2 = 2] というような
+    証明に根拠を与えることに使えます。 [1 + 1 = 2] はどうでしょうか？
+    答えは Yes です。実際、これらは証明としてはほとんど同じようなものだと
+    言えます。 その理由は Coq が二つの式がシンプルな計算ルールによって交換可能である
+    ことをを示し、それを"同値である"として処理しているからです。
+    このルールは [Eval simpl] と同じものです。ただしこれには、
+    関数適用の評価、定義のインライン化、[match] の簡約が含まれています。
+
+    タクティックを使った同値性の証明では、 [simpl] を使うことで暗黙的にこの
+    交換ルールに触れています（[reflexivity] のような他のタクティックでも、明示的に、
+    もしくは暗黙的に含まれています）。このことは、次のような明示的な証明オブジェクトで
+    確認することができます。
+ *)
 
 Definition four : 2 + 2 = 1 + 3 :=
   refl_equal nat 4.
