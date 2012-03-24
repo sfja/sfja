@@ -1,13 +1,22 @@
-(** * Imp: 単純な命令型プログラム *)
+(** * Imp_J: 単純な命令型プログラム *)
 
 (* $Date: 2011-06-22 14:56:13 -0400 (Wed, 22 Jun 2011) $ *)
 
-(** In this chapter, we begin a new direction that we'll
+(* In this chapter, we begin a new direction that we'll
     continue for the rest of the course: up to now we've been mostly
     studying Coq itself, but from now on we'll mostly be using Coq to
     formalize other things.
     
-    はじめの例は、Imp と呼ばれる _単純な命令型プログラミング言語_ です。
+    ...
+    This chapter looks at how to define the _syntax_ and _semantics_
+    of Imp; the chapters that follow develop a theory of _program
+    equivalence_ and introduce _Hoare Logic_, the best known logic for
+    reasoning about imperative programs. *)
+(** この章では、コースの残りに続く新しい方向へ進み始めます。
+    ここまではもっぱらCoq自身について学習してきましたが、ここからは、
+    主として別のものを形式化するためにCoqを使います。
+    
+    はじめの例は、Imp と呼ばれる単純な命令型プログラミング言語です。
     下の例は、おなじみの数学的関数を Imp で書いたものです。
 [[
      Z ::= X;
@@ -17,15 +26,16 @@
        Z ::= Z - 1
      END
 ]]
-    This chapter looks at how to define the _syntax_ and _semantics_
-    of Imp; the chapters that follow develop a theory of _program
-    equivalence_ and introduce _Hoare Logic_, the best known logic for
-    reasoning about imperative programs. *)
+    この章ではImpの構文(_syntax_)と意味(_semantics_)をどのように定義するかを見ます。
+    続く章では、プログラムの同値性(_program equivalence_)の理論を展開し、
+    命令型プログラムについての推論のための論理として一番知られているホーア論理
+    (_Hoare Logic_)を紹介します。 *)
 
 (* ####################################################### *)
+(* *** Sflib *)
 (** *** Sflib *)
 
-(** A minor technical point: Instead of asking Coq to import our
+(* A minor technical point: Instead of asking Coq to import our
     earlier definitions from [Logic.v], we import a small library
     called [Sflib.v], containing just a few definitions and theorems
     from earlier chapters that we'll actually use in the rest of the
@@ -34,24 +44,38 @@
     library.  The main reason for doing this is to tidy the global Coq
     environment so that, for example, it is easier to search for
     relevant theorems. *)
+(** マイナーな技術的ポイント: ここまでの定義を[Logic_J.v]からインポートする代わりに、
+    [Sflib_J.v]という小さなライブラリをインポートします。
+    このライブラリは、前の章の定義や定理のうち、残りの章で実際に使うものだけを集めたものです。
+    読者はそれほど違うものとは感じないでしょう。というのは、
+    Sflib で抜けているもののほとんどは、Coqの標準ライブラリの定義と同じものだからです。
+    こうする主な理由は、Coqのグローバルな環境を整理して、例えば、
+    関係する定理を探すのを容易にするためです。 *)
 
 Require Export SfLib_J.
 
 (* ####################################################### *)
-(** * Arithmetic and Boolean Expressions *)
+(* * Arithmetic and Boolean Expressions *)
+(** * 算術式とブール式 *)
 
-(** We'll present Imp in three parts: first a core language of
+(* We'll present Imp in three parts: first a core language of
     _arithmetic and boolean expressions_, then an extension of these
     expressions with _variables_, and finally a language of _commands_
     including assignment, conditions, sequencing, and loops. *)
+(** Impを三つの部分に分けて示します: 最初に算術式(_arithmetic expressions_)
+    とブール式(_boolean expressions_)、次にこれらの式に変数(_variables_)を加えたもの、
+    そして最後に代入(assignment)、条件分岐(conditions)、コマンド合成(sequencing)、
+    ループ(loops)を持つコマンド(_commands_)の言語です。*)
 
 Module AExp.
 
 (* ####################################################### *)
-(** ** Syntax *)
+(* ** Syntax *)
+(** ** 構文 *)
 
-(** These two definitions specify the _abstract syntax_ of
+(* These two definitions specify the _abstract syntax_ of
     arithmetic and boolean expressions. *)
+(** 次の2つの定義は、算術式とブール式の抽象構文(_abstract syntax_)を定めます。*)
 
 Inductive aexp : Type :=
   | ANum : nat -> aexp
@@ -67,7 +91,7 @@ Inductive bexp : Type :=
   | BNot : bexp -> bexp
   | BAnd : bexp -> bexp -> bexp.
 
-(** In this chapter, we'll elide the translation from the
+(* In this chapter, we'll elide the translation from the
     concrete syntax that a programmer would actually write to these
     abstract syntax trees -- the process that, for example, would
     translate the string ["1+2*3"] to the AST [APlus (ANum
@@ -77,8 +101,15 @@ Inductive bexp : Type :=
     file to understand this one, but if you haven't taken a course
     where these techniques are covered (e.g., a compilers course) you
     may want to skim it. *)
+(** この章では、プログラマが実際に書く具象構文から抽象構文木への変換は省略します。
+    例えば、文字列["1+2*3"]をAST(Abstract Syntax Tree, 抽象構文木) 
+    [APlus (ANum 1) (AMult (ANum 2) (ANum 3))] にする変換のことです。
+    この変換ができる字句解析器と構文解析器をファイル[ImpParser_J.v]で簡単に実装します。
+    このファイル([Imp_J.v])を理解するには[ImpParser_J.v]の理解は必要ではありませんが、
+    もしそれらの技術についてのコース(例えばコンパイラコース)を受講していないならば、
+    ざっと見てみるのも良いでしょう。 *)
 
-(** For comparison, here's a conventional BNF (Backus-Naur Form)
+(* For comparison, here's a conventional BNF (Backus-Naur Form)
     grammar defining the same abstract syntax:
 [[
     aexp ::= nat
@@ -94,8 +125,24 @@ Inductive bexp : Type :=
            | 'not' bexp
 ]]
 *)
+(** 比較のため、同じ抽象構文を定義する慣習的なBNF(Backus-Naur Form)
+    文法を以下に示します:
+[[
+    aexp ::= nat
+           | aexp '+' aexp
+           | aexp '-' aexp
+           | aexp '*' aexp
 
-(** Compared to the Coq version above...
+    bexp ::= true
+           | false
+           | aexp '=' aexp
+           | aexp '<=' aexp
+           | bexp 'and' bexp
+           | 'not' bexp
+]]
+*)
+
+(* Compared to the Coq version above...
 
        - The BNF is more informal -- for example, it gives some
          suggestions about the surface syntax of expressions (like the
@@ -121,16 +168,42 @@ Inductive bexp : Type :=
          form of BNF they're using because there is no need to: a
          rough-and-ready informal understanding is all that's
          needed. *)
+(** 上述のCoq版と比較して...
 
-(** It's good to be comfortable with both sorts of notations: informal
+       - BNFはより非形式的です。例えば、
+         BNFは式の表面的な構文についていくらかの情報を与えています
+         (可算は[+]と記述され、それは中置記号であるという事実などです)が、
+         字句解析と構文解析の他の面は定めないままになっています([+]、[-]、[*]
+         の相対的優先順位などです)。
+         (例えばコンパイラを実装するときに)この記述を形式的定義にするためには、
+         追加の情報、および人間の知性が必要でしょう。
+
+         Coq版はこれらの情報を整合的に省略し、抽象構文だけに集中します。
+
+       - 一方、BNF版はより軽くて、おそらく読むのがより簡単です。
+         非形式的であることで柔軟性を持っているので、
+         黒板を使って議論する場面などでは特段に有効です。
+         そういう場面では、細部をいちいち正確に確定させていくことより、
+         全体的アイデアを伝えることが重要だからです。
+
+         実際、BNFのような記法は山ほどあり、人は皆、それらの間を自由に行き来しますし、
+         通常はそれらのうちのどのBNFを使っているかを気にしません。
+         その必要がないからです。おおざっぱな非形式的な理解だけが必要なのです。 *)
+
+(* It's good to be comfortable with both sorts of notations: informal
     ones for communicating between humans and formal ones for carrying
     out implementations and proofs. *)
+(** 両方の記法に通じているのは良いことです。
+    非形式的なものは人間とのコミュニケーションのために、
+    形式的なものは実装と証明のためにです。 *)
 
 
 (* ####################################################### *)
-(** ** Evaluation *)
+(* ** Evaluation *)
+(** ** 評価 *)
 
-(** _Evaluating_ an arithmetic expression reduces it to a single number. *)
+(* _Evaluating_ an arithmetic expression reduces it to a single number. *)
+(** 算術式を評価する(_evaluating_)とその式を1つの数に簡約します。 *)
 
 Fixpoint aeval (e : aexp) : nat :=
   match e with
@@ -144,7 +217,8 @@ Example test_aeval1:
   aeval (APlus (ANum 2) (ANum 2)) = 4.
 Proof. reflexivity. Qed.
 
-(** Similarly, evaluating a boolean expression yields a boolean. *)
+(* Similarly, evaluating a boolean expression yields a boolean. *)
+(** 同様に、ブール式を評価するとブール値になります。*)
 
 Fixpoint beval (e : bexp) : bool :=
   match e with
@@ -157,13 +231,17 @@ Fixpoint beval (e : bexp) : bool :=
   end.
 
 (* ####################################################### *)
-(** ** Optimization *)
+(* ** Optimization *)
+(** ** 最適化(Optimization) *)
 
-(** We haven't defined very much yet, but we can already get
+(* We haven't defined very much yet, but we can already get
     some mileage out of the definitions.  Suppose we define a function
     that takes an arithmetic expression and slightly simplifies it,
     changing every occurrence of [0+e] (i.e., [(APlus (ANum 0) e])
     into just [e]. *)
+(** ここまで定義したものはわずかですが、その定義から既にいくらかのものを得ることができます。
+    算術式をとって、それを少し簡単化する関数を定義するとします。
+    すべての [0+e] (つまり [(APlus (ANum 0) e)])を単に[e]にするものです。 *)
 
 Fixpoint optimize_0plus (e:aexp) : aexp :=
   match e with
@@ -179,8 +257,10 @@ Fixpoint optimize_0plus (e:aexp) : aexp :=
       AMult (optimize_0plus e1) (optimize_0plus e2)
   end.
 
-(** To make sure our optimization is doing the right thing we
+(* To make sure our optimization is doing the right thing we
     can test it on some examples and see if the output looks OK. *)
+(** この最適化が正しいことをすることを確認するために、
+    いくつかの例についてテストして出力がよさそうかを見てみることができます。 *)
 
 Example test_optimize_0plus:
   optimize_0plus (APlus (ANum 2)
@@ -189,9 +269,12 @@ Example test_optimize_0plus:
   = APlus (ANum 2) (ANum 1).
 Proof. reflexivity. Qed.
 
-(** But if we want to be sure the optimization is correct --
+(* But if we want to be sure the optimization is correct --
     i.e., that evaluating an optimized expression gives the same
     result as the original -- we should prove it. *)
+(** しかし、もし最適化が正しいことを確認したいならば、
+    -- つまり、最適化した式がオリジナルの式と同じ評価結果を返すことを確認したいならば、
+    証明すべきです。 *)
 
 Theorem optimize_0plus_sound: forall e,
   aeval (optimize_0plus e) = aeval e.
@@ -217,9 +300,10 @@ Proof.
     simpl. rewrite IHe1. rewrite IHe2. reflexivity.  Qed.
 
 (* ####################################################### *)
-(** * Coq Automation *)
+(* * Coq Automation *)
+(** * Coq の自動化 *)
 
-(** The repetition in this last proof is starting to be a little
+(* The repetition in this last proof is starting to be a little
     annoying.  It's still just about bearable, but if either the
     language of arithmetic expressions or the optimization being
     proved sound were significantly more complex, it would begin to be
@@ -234,24 +318,45 @@ Proof.
     scale up our efforts to more complex definitions and more
     interesting properties without becoming overwhelmed by boring,
     repetitive, or low-level details. *)
+(** 前の証明の最後の繰り返しはちょっと面倒です。今のところまだ耐えられますが、
+    証明対象の言語や算術式や最適化が今に比べて著しく複雑だったら、現実的に問題になるでしょう。
+
+    ここまで、Coq のタクティックのほんのひとつかみだけですべての証明をしてきていて、
+    証明を自動的に構成する非常に強力な機構を完全に無視してきました。
+    このセクションではこれらの機構のいくつかを紹介します。
+    それ以上のものを、以降のいくつかの章で次第に見ることになるでしょう。
+    それらに慣れるには多少エネルギーが必要でしょう。
+    -- Coq の自動化は電動工具です。--
+    しかし自動化機構を使うことで、より複雑な定義や、より興味深い性質について、
+    退屈で繰り返しの多いローレベルな詳細に飲み込まれることなく、
+    作業をスケールアップできます。 *)
 
 (* ####################################################### *)
-(** ** Tacticals *)
+(* ** Tacticals *)
+(** ** タクティカル(Tacticals) *)
 
-(** _Tactical_ is Coq's term for tactics that take other tactics as
+(* _Tactical_ is Coq's term for tactics that take other tactics as
     arguments -- "higher-order tactics," if you will.  *)
+(** タクティカル(_tactical_)は Coq の用語で、
+    他のタクティックを引数に取るタクティックのことです。
+    「高階タクティック」("higher-order tactics")と言っても良いでしょう。 *)
 
 (* ####################################################### *)
-(** *** The [try] Tactical *)
+(* *** The [try] Tactical *)
+(** *** [try]タクティカル *)
 
-(** One very simple tactical is [try]: If [T] is a tactic, then [try
+(* One very simple tactical is [try]: If [T] is a tactic, then [try
     T] is a tactic that is just like [T] except that, if [T] fails,
     [try T] does nothing at all (instead of failing). *)
+(** 非常にシンプルなタクティカルの1つが[try]です。[T]がタクティックのとき、
+    タクティック [try T] は[T]と同様ですが、[T]が失敗するとき
+    [try T] は(失敗せずに)何もしない点が違います。 *)
 
 (* ####################################################### *)
-(** *** The [;] Tactical *)
+(* *** The [;] Tactical *)
+(** *** [;]タクティカル *)
 
-(** Another very basic tactical is written [;].  If [T], [T1], ...,
+(* Another very basic tactical is written [;].  If [T], [T1], ...,
     [Tn] are tactics, then
 [[
       T; [T1 | T2 | ... | Tn]
@@ -269,8 +374,27 @@ Proof.
    first performs [T] and then performs [T'] on _each subgoal_
    generated by [T].  This is the form of [;] that is used most often
    in practice. *)
+(** 別の非常に基本的なタクティカルは[;]と書かれます。
+    [T], [T1], ..., [Tn] がタクティックのとき、
+[[
+      T; [T1 | T2 | ... | Tn]
+]]
+   はタクティックで、最初に[T]を行ない、
+   [T]によって生成された最初のサブゴールに[T1]を行ない、
+   二番目のサブゴールに[T2]を行ない、... という処理をします。
 
-(** For example, consider the following trivial lemma: *)
+   すべての[Ti]が同じタクティック[T']であるという特別な場合、
+[[
+      T; [T' | T' | ... | T']
+]]
+   と書く代わりに [T;T'] と書くだけで済ますことができます。
+   つまり、[T]と[T']がタクティックのとき、
+   [T;T'] はタクティックで、最初に[T]を行ない、
+   [T]が生成したそれぞれのサブゴールに[T']を行ないます。
+   これが[;]の実際に一番よく使われる形です。*)
+
+(* For example, consider the following trivial lemma: *)
+(** 例えば、次の簡単な補題を考えます: *)
 
 Lemma foo : forall n, ble_nat 0 n = true.
 Proof.
@@ -282,7 +406,8 @@ Proof.
     (* ... which are discharged similarly *)
 Qed.
 
-(** We can simplify the proof above using the [;] tactical. *)
+(* We can simplify the proof above using the [;] tactical. *)
+(** 上の証明を[;]タクティカルを使って簡単化できます。 *)
 
 Lemma foo' : forall n, ble_nat 0 n = true.
 Proof.
@@ -295,8 +420,10 @@ Proof.
   reflexivity.
 Qed.
 
-(** Using [try] and [;] together, we can get rid of the repetition in
+(* Using [try] and [;] together, we can get rid of the repetition in
     the proof that was bothering us a little while ago. *)
+(** [try]と[;]の両方を使うと、
+    ちょっと前に悩まされた証明の繰り返しを取り除くことができます。 *)
 
 Theorem optimize_0plus_sound': forall e,
   aeval (optimize_0plus e) = aeval e.
@@ -317,11 +444,14 @@ Proof.
     SCase "e1 = ANum n". destruct n;
       simpl; rewrite IHe2; reflexivity.   Qed.
 
-(** In practice, Coq experts often use [try] with a tactic like
+(* In practice, Coq experts often use [try] with a tactic like
     [induction] to take care of many similar "straightforward" cases
     all at once.  Naturally, this practice has an analog in informal
     proofs. *)
-(** Here is an informal proof of this theorem that
+(** 実際的にはCoqの専門家は、[try]を[induction]のようなタクティックと一緒に使うことで、
+    多くの似たような「簡単な」場合を一度に処理します。
+    これは自然に非形式的な証明に対応します。*)
+(* Here is an informal proof of this theorem that
     matches the structure of the formal one:
 
     _Theorem_: For all arithmetic expressions [e],
@@ -358,8 +488,44 @@ Proof.
         hand, if [n = S n'] for some [n'], then again [optimize_0plus]
         simply calls itself recursively, and the result follows from
         the IH.  [] *)
+(** この定理の形式的な証明の構造にマッチする非形式的な証明は次の通りです:
 
-(** This proof can still be improved: the first case (for [e = ANum
+    「定理」: すべての算術式[e]について
+[[
+       aeval (optimize_0plus e) = aeval e.
+]]
+    「証明」: [e]についての帰納法を使う。
+    [AMinus]と[AMult]の場合は帰納仮定から直接得られる。
+    残るのは以下の場合である:
+
+      - ある[n]について [e = ANum n] とする。示すべきことは次の通りである:
+[[
+          aeval (optimize_0plus (ANum n)) = aeval (ANum n).
+]]
+        これは[optimize_0plus]の定義からすぐに得られる。
+
+      - ある[e1]と[e2]について [e = APlus e1 e2] とする。
+        示すべきことは次の通りである:
+[[
+          aeval (optimize_0plus (APlus e1 e2))
+        = aeval (APlus e1 e2).
+]]
+        [e1]のとり得る形を考える。そのほとんどの場合、
+        [optimize_0plus]は部分式について単に自分自身を再帰的に呼び出し、
+        [e1]と同じ形の新しい式を再構成する。
+        これらの場合、結果は帰納仮定からすぐに得られる。
+
+        興味深い場合は、ある[n]について [e1 = ANum n] であるときである。
+        このとき [n = ANum 0] ならば次が成立する:
+[[
+          optimize_0plus (APlus e1 e2) = optimize_0plus e2
+]]
+        そして[e2]についての帰納仮定がまさに求めるものである。
+        一方、ある[n']について [n = S n'] ならば、
+        [optimize_0plus]はやはり自分自身を再帰的に呼び出し、
+        結果は帰納仮定から得られる。 [] *)
+
+(* This proof can still be improved: the first case (for [e = ANum
     n]) is very trivial -- even more trivial than the cases that we
     said simply followed from the IH -- yet we have chosen to write it
     out in full.  It would be better and clearer to drop it and just
@@ -367,6 +533,13 @@ Proof.
     the IH.  The only interesting case is the one for [APlus]..."  We
     can make the same improvement in our formal proof too.  Here's how
     it looks: *)
+(** この証明はさらに改良できます。最初の場合([e = ANum n] のとき)はかなり自明です。
+    帰納仮定からすぐに得られると言ったものより自明でしょう。
+    それなのに完全に記述しています。
+    これを消して、単に最初に「ほとんどの場合、すぐに、あるいは帰納仮定から直接得られる。
+    興味深いのは[APlus]の場合だけである...」
+    と言った方がより良く、より明快でしょう。
+    同じ改良を形式的な証明にも行うことができます。以下のようになります: *)
 
 Theorem optimize_0plus_sound'': forall e,
   aeval (optimize_0plus e) = aeval e.
@@ -385,9 +558,10 @@ Proof.
       simpl; rewrite IHe2; reflexivity.  Qed.
 
 (* ####################################################### *)
-(** ** Defining New Tactic Notations *)
+(* ** Defining New Tactic Notations *)
+(** ** 新しいタクティック記法を定義する *)
 
-(** Coq also provides several ways of "programming" tactic scripts.
+(* Coq also provides several ways of "programming" tactic scripts.
 
       - The [Tactic Notation] command gives a handy way to define
         "shorthand tactics" that, when invoked, apply several tactics
@@ -410,24 +584,52 @@ Proof.
 The [Tactic Notation] mechanism is the easiest to come to grips with,
 and it offers plenty of power for many purposes.  Here's an example.
 *)
+(** Coqはまた、タクティックスクリプトを「プログラミングする」いろいろな方法も提供します。
+
+      - [Tactic Notation] コマンドは、「略記法タクティック」("shorthand tactics")
+        を定義する簡単な方法を提供します。
+       「略記法タクティック」は呼ばれると、いろいろなタクティックを一度に適用します。
+
+      - より洗練されたプログラミングのために、
+        Coqは[Ltac]と呼ばれる小さなビルトインのプログラミング言語と、
+        証明状態を調べ、変更するための、[Ltac]のプリミティブを提供します。
+        その詳細はここで説明するにはちょっと複雑過ぎます
+        (しかも、[Ltac]がCoqの設計の一番美しくない部分だというのは共通見解です!)。
+        しかし、詳細はリファレンスマニュアルにありますし、
+        Coqの標準ライブラリには、読者が参考にできる[Ltac]の定義のたくさんの例があります。
+
+      - Coqの内部構造のより深いレベルにアクセスする新しいタクティックを作ることができる
+        OCaml API も存在します。しかしこれは、普通のCoqユーザにとっては、
+        苦労が報われることはほとんどありません。
+
+[Tactic Notation] 機構は取り組むのに一番簡単で、多くの目的に十分なパワーを発揮します。
+例を挙げます。
+*)
 
 Tactic Notation "simpl_and_try" tactic(c) :=
   simpl;
   try c.
 
-(** This defines a new tactical called [simpl_and_try] which
+(* This defines a new tactical called [simpl_and_try] which
     takes one tactic [c] as an argument, and is defined to be
     equivalent to the tactic [simpl; try c].  For example, writing
     "[simpl_and_try reflexivity.]" in a proof would be the same as
     writing "[simpl; try reflexivity.]" *)
+(** これは1つのタクティック[c]を引数としてとる[simpl_and_try]
+    という新しいタクティカルを定義しています。
+    そして、タクティック [simpl; try c] と同値なものとして定義されます。
+    例えば、証明内で"[simpl_and_try reflexivity.]"と書くことは
+    "[simpl; try reflexivity.]"と書くことと同じでしょう。 *)
 
-(** The next subsection gives a more sophisticated use of this
+(* The next subsection gives a more sophisticated use of this
     feature... *)
+(** 次のサブセクションでは、この機構のより洗練された使い方を見ます... *)
 
 (* ####################################################### *)
-(** *** Bulletproofing Case Analyses *)
+(* *** Bulletproofing Case Analyses *)
+(** *** 場合分けを万全にする *)
 
-(** Being able to deal with most of the cases of an [induction] or
+(* Being able to deal with most of the cases of an [induction] or
     [destruct] all at the same time is very convenient, but it can
     also be a little confusing.  One problem that often comes up is
     that _maintaining_ proofs written in this style can be difficult.
@@ -441,17 +643,32 @@ Tactic Notation "simpl_and_try" tactic(c) :=
     saying "I was expecting the [AFoo] case at this point, but the
     proof script is talking about [APlus]."  Here's a nice little
     trick that smoothly achieves this. *)
+(** [induction]や[destruct]で、ほとんどの場合を一度に扱えるのはとても便利ですが、
+    またちょっと混乱もします。よく起こる問題は、
+    このスタイルで記述された証明をメンテナンスすることが難しいということです。
+    例えば、後で、[aexp]の定義を拡張して、
+    やはり特別な引数をとるコンストラクタを追加したとします。
+    このとき上述の証明は成立しなくなっているでしょう。
+    なぜなら、
+    Coqは[APlus]についてのサブゴールの前にこのコンストラクタに対応するサブゴールを生成し、
+    その結果、[APlus]の場合に取りかかる時には、
+    Coqは実際にはまったく別のコンストラクタを待っていることになるからです。
+    ここで欲しいのは、「この場所で[AFoo]の場合を期待していましたが、
+    証明スクリプトは[APlus]について話しています。」という賢いエラーメッセージです。
+    以下は、これを難なく可能にするちょっとしたトリックです。 *)
 
 Tactic Notation "aexp_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "ANum" | Case_aux c "APlus"
   | Case_aux c "AMinus" | Case_aux c "AMult" ].
 
-(** ([Case_aux] implements the common functionality of [Case],
+(* ([Case_aux] implements the common functionality of [Case],
     [SCase], [SSCase], etc.  For example, [Case "foo"] is defined as
     [Case_aux Case "foo".) *)
+(** ([Case_aux]は[Case]、[SCase]、[SSCase]等の共通機能を実装します。
+    例えば、[Case "foo"]は [Case_aux Case "foo"] と定義されます。) *)
 
-(** For example, if [e] is a variable of type [aexp], then doing
+(* For example, if [e] is a variable of type [aexp], then doing
 [[
       aexp_cases (induction e) Case
 ]]
@@ -460,6 +677,14 @@ Tactic Notation "aexp_cases" tactic(first) ident(c) :=
     generated by the [induction], labeling which constructor it comes
     from.  For example, here is yet another proof of
     optimize_0plus_sound, using [aexp_cases]: *)
+(** 例えば、[e]が型[aexp]の変数のとき、
+[[
+      aexp_cases (induction e) Case
+]]
+    と書くと[e]についての帰納法を実行し(単に [induction e] と書いたのと同じです)、
+    そして、「その上に」、[induction]によって生成されたそれぞれのサブゴールに[Case]
+    タグを付加します。このタグは、そのサブゴールがどのコンストラクタから来たかのラベルです。
+    例えば、[aexp_cases]を使った、[optimize_0plus_sound]のさらに別証です: *)
 
 Theorem optimize_0plus_sound''': forall e,
   aeval (optimize_0plus e) = aeval e.
@@ -482,31 +707,46 @@ Proof.
     SCase "ANum". destruct n;
       simpl; rewrite IHe2; reflexivity.  Qed.
 
-(** **** Exercise: 3 stars (optimize_0plus_b) *)
-(** Since the [optimize_0plus] tranformation doesn't change the value
+(* **** Exercise: 3 stars (optimize_0plus_b) *)
+(** **** 練習問題: ★★★ (optimize_0plus_b) *)
+(* Since the [optimize_0plus] tranformation doesn't change the value
     of [aexp]s, we should be able to apply it to all the [aexp]s that
     appear in a [bexp] without changing the [bexp]'s value.  Write a
     function which performs that transformation on [bexp]s, and prove
     it is sound.  Use the tacticals we've just seen to make the proof
     as elegant as possible. *)
+(** [optimize_0plus]の変換が[aexp]の値を変えないことから、
+    [bexp]の値を変えずに、[bexp]に現れる[aexp]をすべて変換するために
+    [optimize_0plus]が適用できるべきでしょう。
+    [bexp]についてこの変換をする関数を記述しなさい。そして、
+    それが健全であることを証明しなさい。
+    ここまで見てきたタクティカルを使って証明を可能な限りエレガントにしなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (optimizer) *)
-(** _Design exercise_: The optimization implemented by our
+(* **** Exercise: 4 stars, optional (optimizer) *)
+(** **** 練習問題: ★★★★, optional (optimizer) *)
+(* _Design exercise_: The optimization implemented by our
     [optimize_0plus] function is only one of many imaginable
     optimizations on arithmetic and boolean expressions.  Write a more
     sophisticated optimizer and prove it correct.
 
 (* FILL IN HERE *)
 *)
+(** 設計練習: 定義した[optimize_0plus]関数で実装された最適化は、
+    算術式やブール式に対して考えられるいろいろな最適化の単なる1つに過ぎません。
+    より洗練された最適化関数を記述し、その正しさを証明しなさい。
+
+(* FILL IN HERE *)
+*)
 (** [] *)
 
 (* ####################################################### *)
-(** ** The [omega] Tactic *)
+(* ** The [omega] Tactic *)
+(** ** [omega]タクティック *)
 
-(** The [omega] tactic implements a decision procedure for a subset of
+(* The [omega] tactic implements a decision procedure for a subset of
     first-order logic called _Presburger arithmetic_.  It is based on
     the Omega algorithm invented in 1992 by William Pugh.
 
@@ -522,6 +762,22 @@ Proof.
 
     then invoking [omega] will either solve the goal or tell you that
     it is actually false. *)
+(** [omega]タクティックは「プレスバーガー算術」
+    (_Presburger arithmetic_、「プレスブルガー算術」とも)
+    と呼ばれる一階述語論理のサブセットの決定手続き(decision procedure)を実装します。
+    William Pugh が1992年に発明したOmegaアルゴリズムに基いています。
+
+    ゴールが以下の要素から構成された全称限量された論理式とします。以下の要素とは:
+
+      - 数値定数、加算([+]と[S])、減算([-]と[pred])、
+        定数の積算(これがプレスバーガー算術である条件です)、
+
+      - 等式([=]と[<>])および不等式([<=])、
+
+      - 論理演算子[/\], [\/], [~], [->]
+
+    です。このとき、[omega]を呼ぶと、ゴールを解くか、
+    そのゴールが偽であると告げるか、いずれかになります。 *)
 
 Example silly_presburger_example : forall m n o p,
   m + n <= n + o /\ o + 3 = p + 3 ->
@@ -530,12 +786,14 @@ Proof.
   intros. omega.
 Qed.
 
-(** Andrew Appel calls this the "Santa Claus tactic." *)
+(* Andrew Appel calls this the "Santa Claus tactic." *)
+(** Andrew Appel は[omega]を「サンタクロース・タクティック」と呼んでいます。 *)
 
 (* ####################################################### *)
-(** ** A Few More Handy Tactics *)
+(* ** A Few More Handy Tactics *)
+(** ** 便利なタクティックをさらにいくつか *)
 
-(** Finally, here are some miscellaneous tactics that you may find
+(* Finally, here are some miscellaneous tactics that you may find
     convenient.
 
      - [clear H]: Delete hypothesis [H] from the context.
@@ -566,6 +824,31 @@ Qed.
        like [apply c].
 
     We'll see many examples of these in the proofs below. *)
+(** 最後に、役に立ちそうないろいろなタクティックをいくつか紹介します。
+
+     - [clear H]: 仮定[H]をコンテキストから消去します。
+
+     - [subst x]: コンテキストから仮定 [x = e] または [e = x] を発見し、
+       [x]をコンテキストおよび現在のゴールのすべての場所で[e]に置き換え、
+       この仮定を消去します。
+
+     - [subst]: [x = e] および [e = x] の形のすべての仮定を置換します。
+
+     - [rename... into...]: 証明コンテキストの仮定の名前を変更します。
+       例えば、コンテキストが[x]という名前の変数を含んでいるとき、
+       [rename x into y] は、すべての[x]の出現を[y]に変えます。
+
+     - [assumption]: ゴールにちょうどマッチする仮定[H]をコンテキストから探そうとします。
+       発見されたときは [apply H] と同様に振る舞います。
+
+     - [contradiction]: [False]と同値の仮定[H]をコンテキストから探そうとします。
+       発見されたときはゴールを解きます。
+
+     - [constructor]: 現在のゴールを解くのに使えるコンストラクタ[c]を
+       (現在の環境の[Inductive]による定義から)探そうとします。
+       発見されたときは [apply c] と同様に振る舞います。
+
+    以降の証明でこれらのたくさんの例を見るでしょう。 *)
 
 (* ####################################################### *)
 (** * Evaluation as a Relation *)
