@@ -588,11 +588,11 @@ and it offers plenty of power for many purposes.  Here's an example.
 
       - [Tactic Notation] コマンドは、「略記法タクティック」("shorthand tactics")
         を定義する簡単な方法を提供します。
-       「略記法タクティック」は呼ばれると、いろいろなタクティックを一度に適用します。
+       「略記法タクティック」は、呼ばれると、いろいろなタクティックを一度に適用します。
 
       - より洗練されたプログラミングのために、
         Coqは[Ltac]と呼ばれる小さなビルトインのプログラミング言語と、
-        証明状態を調べ、変更するための、[Ltac]のプリミティブを提供します。
+        証明の状態を調べたり変更したりするための[Ltac]のプリミティブを提供します。
         その詳細はここで説明するにはちょっと複雑過ぎます
         (しかも、[Ltac]がCoqの設計の一番美しくない部分だというのは共通見解です!)。
         しかし、詳細はリファレンスマニュアルにありますし、
@@ -851,14 +851,20 @@ Qed.
     以降の証明でこれらのたくさんの例を見るでしょう。 *)
 
 (* ####################################################### *)
-(** * Evaluation as a Relation *)
+(* * Evaluation as a Relation *)
+(** * 関係としての評価 *)
 
-(** We have presented [aeval] and [beval] as functions defined by
+(* We have presented [aeval] and [beval] as functions defined by
     [Fixpoints]. An alternative way to think about evaluation is as a
     _relation_ between expressions and their values.
 
     This leads naturally to Coq [Inductive] definitions like the
     following one for arithmetic expressions... *)
+(** [aeval]と[beval]を[Fixpoints]によって定義された関数として示しました。
+    評価について考える別の方法は、それを式と値との間の関係(_relation_)と見ることです。
+
+    この考えに立つと、
+    算術式についてCoqの[Inductive]による以下の定義が自然に出てきます... *)
 
 Module aevalR_first_try.
 
@@ -878,7 +884,7 @@ Inductive aevalR : aexp -> nat -> Prop :=
       aevalR e2 n2 ->
       aevalR (AMult e1 e2) (n1 * n2).
 
-(** As is often the case with relations, we'll find it
+(* As is often the case with relations, we'll find it
     convenient to define infix notation for [aevalR].  We'll write [e
     || n] to mean that arithmetic expression [e] evaluates to value
     [n].  (This notation is one place where the limitation to ascii
@@ -886,12 +892,17 @@ Inductive aevalR : aexp -> nat -> Prop :=
     the evaluation relation is a double down-arrow.  We'll typeset it
     like this in the HTML version of the notes and use a double
     vertical bar as the closest approximation in ascii .v files.)  *)
+(** 関係についてよく行うように、[aevalR]の中置記法を定義するのが便利です。
+    算術式[e]が値[n]に評価されることを [e || n] と書きます。
+    (この記法は煩わしいascii記号の限界の1つです。評価関係の標準記法は二重の下向き矢印です。
+    HTML版ではそのようにタイプセットしますが、ascii の
+    .v ファイルでは可能な近似として縦棒二本を使います。) *)
 
 Notation "e '||' n" := (aevalR e n) : type_scope.
 
 End aevalR_first_try.
 
-(** In fact, Coq provides a way to use this notation in the definition
+(* In fact, Coq provides a way to use this notation in the definition
     of [aevalR] itself.  This avoids situations where we're working on
     a proof involving statements in the form [e || n] but we have to
     refer back to a definition written using the form [aevalR e n].
@@ -899,6 +910,12 @@ End aevalR_first_try.
     We do this by first "reserving" the notation, then giving the
     definition together with a declaration of what the notation
     means. *)
+(** 実際は、Coqでは[aevalR]自身の定義中でこの記法を使うことができます。
+    これにより、[e || n] の形の主張を含む証明で、[aevalR e n] 
+    という形の定義に戻らなければならない状況にならずに済みます。
+
+    このためには、最初に記法を「予約」し、
+    それから定義と、記法が何を意味するかの宣言とを一緒に行います。*)
 
 Reserved Notation "e '||' n" (at level 50, left associativity).
 
@@ -919,9 +936,11 @@ Tactic Notation "aevalR_cases" tactic(first) ident(c) :=
   [ Case_aux c "E_ANum" | Case_aux c "E_APlus"
   | Case_aux c "E_AMinus" | Case_aux c "E_AMult" ].
 
-(** It is straightforward to prove that the relational and functional
+(* It is straightforward to prove that the relational and functional
     definitions of evaluation agree on all possible arithmetic
     expressions... *)
+(** 評価の、関係による定義と関数による定義が、
+    すべての算術式について一致することを証明するのは簡単です... *)
 
 Theorem aeval_iff_aevalR : forall a n,
   (a || n) <-> aeval a = n.
@@ -958,7 +977,8 @@ Proof.
       apply IHa2. reflexivity.
 Qed.
 
-(** A shorter proof making more aggressive use of tacticals: *)
+(* A shorter proof making more aggressive use of tacticals: *)
+(** タクティカルをより積極的に使ったより短い証明です: *)
 
 Theorem aeval_iff_aevalR' : forall a n,
   (a || n) <-> aeval a = n.
@@ -973,9 +993,12 @@ Proof.
        try apply IHa1; try apply IHa2; reflexivity.
 Qed.
 
-(** **** Exercise: 2 stars, optional (bevalR) *)
-(** Write a relation [bevalR] in the same style as
+(* **** Exercise: 2 stars, optional (bevalR) *)
+(** **** 練習問題: ★★, optional (bevalR) *)
+(* Write a relation [bevalR] in the same style as
     [aevalR], and prove that it is equivalent to [beval].*)
+(** 関係[bevalR]を[aevalR]と同じスタイルで記述し、
+    それが[beval]と同値であることを証明しなさい。 *)
 
 (*
 Inductive bevalR:
@@ -983,7 +1006,7 @@ Inductive bevalR:
 (** [] *)
 *)
 
-(** For the definitions of evaluation for arithmetic and boolean
+(* For the definitions of evaluation for arithmetic and boolean
     expressions, the choice of whether to use functional or relational
     definitions is mainly a matter of taste.  In general, Coq has
     somewhat better support for working with relations; in particular,
@@ -996,11 +1019,23 @@ Inductive bevalR:
     However, there are circumstances where relational definitions of
     evaluation are greatly preferable to functional ones, as we'll see
     shortly. *)
+(** 算術式とブール式の評価の定義について、関数を使うか関係を使うかはほとんど趣味の問題です。
+    一般に、Coqは関係を扱う方がいくらかサポートが厚いです。
+    特に帰納法についてはそうです。一方、
+    ある意味で関数による定義の方がより多くの情報を持っています。
+    なぜなら、関数は決定的でなければならず、
+    またすべての引数について定義されていなければなりません。
+    関数については、必要ならばこれらの性質を明示的に示さなければなりません。
+
+    しかしながら、評価の定義として、
+    関係による定義が関数による定義よりはるかに望ましい状況があります。
+    以下で簡単に見ます。 *)
 
 (* ####################################################### *)
-(** ** Inference Rule Notation *)
+(* ** Inference Rule Notation *)
+(** ** 推論規則記法 *)
 
-(** In informal discussions, it is convenient write the rules for
+(* In informal discussions, it is convenient write the rules for
     [aevalR] and similar relations in a more readable "graphical" form
     called _inference rules_, where the premises above the line allow
     you to derive the conclusion below the line.  For example, the
@@ -1052,21 +1087,75 @@ Inductive bevalR:
                          AMult e1 e2 || n1*n2
 ]]]
 *)
+(** 非形式的な議論には、[aevalR]や似たような関係についての規則を、
+    推論規則(_inference rules_)と呼ばれる、
+    より読みやすいグラフィカルな形で書くのが便利です。
+    推論規則は、横線の上の前提から、横線の下の結論を導出できることを述べます。
+    例えば、コンストラクタ[E_APlus]...
+[[
+      | E_APlus : forall (e1 e2: aexp) (n1 n2: nat),
+          aevalR e1 n1 ->
+          aevalR e2 n2 ->
+          aevalR (APlus e1 e2) (n1 + n2)
+]]
+    ...は推論規則として次のように書けるでしょう:
+[[
+                               e1 || n1
+                               e2 || n2
+                         --------------------                         (E_APlus)
+                         APlus e1 e2 || n1+n2
+]]
+    形式的には、推論規則について何も深いものはありません。単なる含意です。
+    右に書かれた規則名はコンストラクタで、
+    横線より上の前提の間の各改行と横線自体は[->]と読むことができます。
+    規則で言及されるすべての変数([e1]、[n1]等)
+    は暗黙のうちに冒頭で全称限量子に束縛されています。
+    規則の集合全体は[Inductive]宣言で囲われていると理解されます
+    (これは完全に暗黙のまま置かれるか、非形式的に
+    「[aevalR]は以下の規則について閉じた最小の関係とします...」
+    などと述べられるかします)。
+
+    例えば、[||]は以下の規則について閉じた最小の関係です:
+[[
+                             -----------                               (E_ANum)
+                             ANum n || n
+
+                               e1 || n1
+                               e2 || n2
+                         --------------------                         (E_APlus)
+                         APlus e1 e2 || n1+n2
+
+                               e1 || n1
+                               e2 || n2
+                        ---------------------                        (E_AMinus)
+                        AMinus e1 e2 || n1-n2
+
+                               e1 || n1
+                               e2 || n2
+                         --------------------                         (E_AMult)
+                         AMult e1 e2 || n1*n2
+]]
+*)
 
 End AExp.
 
 (* ####################################################### *)
-(** * Expressions With Variables *)
+(* * Expressions With Variables *)
+(** * 変数を持つ式 *)
 
-(** Now let's turn our attention back to defining Imp.  The next thing
+(* Now let's turn our attention back to defining Imp.  The next thing
     we need to do is to enrich our arithmetic and boolean expressions
     with variables.  To keep things simple, we'll assume that all
     variables are global and that they only hold numbers. *)
+(** さて、Impの定義に戻りましょう。次にしなければならないことは、
+    算術式とブール式に変数を拡張することです。
+    話を単純にするため、すべての変数はグローバルで、数値だけを持つとしましょう。 *)
 
 (* ##################################################### *)
-(** ** Identifiers *)
+(* ** Identifiers *)
+(** ** 識別子 *)
 
-(** To begin, we'll need to formalize _identifiers_, such as program
+(* To begin, we'll need to formalize _identifiers_, such as program
     variables.  We could use strings for this, or (in a real compiler)
     some kind of fancier structures like pointers into a symbol table.
     But for simplicity let's just use natural numbers as identifiers.
@@ -1074,11 +1163,19 @@ End AExp.
     (We hide this section in a module because these definitions are
     actually in [SfLib.v], but we want to repeat them here so that we
     can explain them.) *)
+(** 始めに、プログラム変数などの識別子(_identifiers_)を形式化しなければなりません。
+    このために文字列を使うこともできるでしょうし、(実際のコンパイラでは)
+    シンボルテーブルへのポインタのようなある種の特別な構造を使うこともできるでしょう。
+    しかし、簡単にするため、識別子に単に自然数を使います。
+
+    (このセクションをモジュールに隠します。それは、これらの定義が実際には[SfLib_J.v]
+    にあるからです。しかし説明のためにここで繰り返します。) *)
 
 Module Id.
 
-(** We define a new inductive datatype [Id] so that we won't confuse
+(* We define a new inductive datatype [Id] so that we won't confuse
     identifiers and numbers. *)
+(** 新しいデータタイプ[Id]を定義して、識別子と数値を混乱しないようにします。 *)
 
 Inductive id : Type :=
   Id : nat -> id.
@@ -1088,13 +1185,19 @@ Definition beq_id X1 X2 :=
     (Id n1, Id n2) => beq_nat n1 n2
   end.
 
-(** Now, having "wrapped" numbers as identifiers in this way, it
+(* Now, having "wrapped" numbers as identifiers in this way, it
     is convenient to recapitulate a few properties of numbers as
     analogous properties of identifiers, so that we can work with
     identifiers in definitions and proofs abstractly, without
     unwrapping them to expose the underlying numbers.  Since all we
     need to know about identifiers is whether they are the same or
     different, just a few basic facts are all we need. *)
+(** さて、この方法で「覆った」数値を識別子としたので、
+    数値のいくつかの性質を、対応する識別子の性質として繰り返しておくのが便利です。
+    そうすると、定義や証明の中の識別子を、
+    覆いを開いて中の数値を晒すことなく抽象的に扱うことができます。
+    識別子について知らなければならないことは、識別子同士が同じか違うかだけなので、
+    本当に2、3のことだけが必要です。 *)
 
 Theorem beq_id_refl : forall X,
   true = beq_id X X.
@@ -1102,10 +1205,14 @@ Proof.
   intros. destruct X.
   apply beq_nat_refl.  Qed.
 
-(** **** Exercise: 1 star, optional (beq_id_eq) *)
-(** For this and the following exercises, do not use induction, but
+(* **** Exercise: 1 star, optional (beq_id_eq) *)
+(** **** 練習問題: ★, optional (beq_id_eq) *)
+(* For this and the following exercises, do not use induction, but
     rather apply similar results already proved for natural numbers.
     Some of the tactics mentioned above may prove useful. *)
+(** この問題とそれに続く練習問題では、帰納法を使わずに、
+    既に証明した自然数の同様の結果を適用しなさい。
+    上述したいくつかのタクティックが使えるかもしれません。 *)
 
 Theorem beq_id_eq : forall i1 i2,
   true = beq_id i1 i2 -> i1 = i2.
@@ -1113,21 +1220,24 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (beq_id_false_not_eq) *)
+(* **** Exercise: 1 star, optional (beq_id_false_not_eq) *)
+(** **** 練習問題: ★, optional (beq_id_false_not_eq) *)
 Theorem beq_id_false_not_eq : forall i1 i2,
   beq_id i1 i2 = false -> i1 <> i2.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (not_eq_beq_id_false) *)
+(* **** Exercise: 1 star, optional (not_eq_beq_id_false) *)
+(** **** 練習問題: ★, optional (not_eq_beq_id_false) *)
 Theorem not_eq_beq_id_false : forall i1 i2,
   i1 <> i2 -> beq_id i1 i2 = false.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 1 star, optional (beq_id_sym) *)
+(* **** Exercise: 1 star, optional (beq_id_sym) *)
+(** **** 練習問題: ★, optional (beq_id_sym) *)
 Theorem beq_id_sym: forall i1 i2,
   beq_id i1 i2 = beq_id i2 i1.
 Proof.
@@ -1137,13 +1247,18 @@ Proof.
 End Id.
 
 (* ####################################################### *)
-(** ** States *)
+(* ** States *)
+(** ** 状態 *)
 
-(** A _state_ represents the current values of all the variables at
+(* A _state_ represents the current values of all the variables at
     some point in the execution of a program. *)
-(** For simplicity (to avoid dealing with partial functions), we
+(** 状態(_state_)はプログラムの実行のある時点のすべての変数の現在値を表します。 *)
+(* For simplicity (to avoid dealing with partial functions), we
     let the state be defined for _all_ variables, even though any
     given program is only going tomention a finite number of them. *)
+(** 簡単にするため(部分関数を扱うのを避けるため)、
+    どのようなプログラムも有限個の変数しか使わないにもかかわらず、
+    状態はすべての変数について値を定義しているものとします。 *)
 
 Definition state := id -> nat.
 
@@ -1153,16 +1268,19 @@ Definition empty_state : state :=
 Definition update (st : state) (X:id) (n : nat) : state :=
   fun X' => if beq_id X X' then n else st X'.
 
-(** We'll need a few simple properties of [update]. *)
+(* We'll need a few simple properties of [update]. *)
+(** [update]についての単純な性質が必要です。 *)
 
-(** **** Exercise: 2 stars, optional (update_eq) *)
+(* **** Exercise: 2 stars, optional (update_eq) *)
+(** **** 練習問題: ★★, optional (update_eq) *)
 Theorem update_eq : forall n X st,
   (update st X n) X = n.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (update_neq) *)
+(* **** Exercise: 2 stars, optional (update_neq) *)
+(** **** 練習問題: ★★, optional (update_neq) *)
 Theorem update_neq : forall V2 V1 n st,
   beq_id V2 V1 = false ->
   (update st V2 n) V1 = (st V1).
@@ -1170,9 +1288,12 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (update_example) *)
-(** Before starting to play with tactics, make sure you understand
+(* **** Exercise: 2 stars, optional (update_example) *)
+(** **** 練習問題: ★★, optional (update_example) *)
+(* Before starting to play with tactics, make sure you understand
     exactly what the theorem is saying! *)
+(** タクティックを使って遊び始める前に、
+    定理が言っていることを正確に理解していることを確認しなさい! *)
 
 Theorem update_example : forall (n:nat),
   (update empty_state (Id 2) n) (Id 3) = 0.
@@ -1180,14 +1301,16 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars (update_shadow) *)
+(* **** Exercise: 2 stars (update_shadow) *)
+(** **** 練習問題: ★★ (update_shadow) *)
 Theorem update_shadow : forall x1 x2 k1 k2 (f : state),
    (update  (update f k2 x1) k2 x2) k1 = (update f k2 x2) k1.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (update_same) *)
+(* **** Exercise: 2 stars, optional (update_same) *)
+(** **** 練習問題: ★★, optional (update_same) *)
 Theorem update_same : forall x1 k1 k2 (f : state),
   f k1 = x1 ->
   (update f k1 x1) k2 = f k2.
@@ -1195,7 +1318,8 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (update_permute) *)
+(* **** Exercise: 2 stars, optional (update_permute) *)
+(** **** 練習問題: ★★, optional (update_permute) *)
 Theorem update_permute : forall x1 x2 k1 k2 k3 f,
   beq_id k2 k1 = false ->
   (update (update f k2 x1) k1 x2) k3 = (update (update f k1 x2) k2 x1) k3.
@@ -1204,10 +1328,12 @@ Proof.
 (** [] *)
 
 (* ################################################### *)
-(** ** Syntax  *)
+(* ** Syntax  *)
+(** ** 構文  *)
 
-(** We can add variables to the arithmetic expressions we had before by
+(* We can add variables to the arithmetic expressions we had before by
     simply adding one more constructor: *)
+(** 前に定義した算術式に、単にもう1つコンストラクタを追加することで変数を追加できます: *)
 
 Inductive aexp : Type :=
   | ANum : nat -> aexp
@@ -1221,19 +1347,24 @@ Tactic Notation "aexp_cases" tactic(first) ident(c) :=
   [ Case_aux c "ANum" | Case_aux c "AId" | Case_aux c "APlus"
   | Case_aux c "AMinus" | Case_aux c "AMult" ].
 
-(** Shorthands for variables: *)
+(* Shorthands for variables: *)
+(** 変数の略記法: *)
 
 Definition X : id := Id 0.
 Definition Y : id := Id 1.
 Definition Z : id := Id 2.
 
-(** (This convention for naming program variables ([X], [Y],
+(* (This convention for naming program variables ([X], [Y],
     [Z]) clashes a bit with our earlier use of uppercase letters for
     types.  Since we're not using polymorphism heavily in this part of
     the course, this overloading should not cause confusion.) *)
+(** (プログラム変数のこの慣習([X], [Y], [Z])は、
+    型に大文字の記号を使うという以前の使用法と衝突します。
+    コースのこの部分では多相性を多用はしないので、このことが混乱を招くことはないはずです。) *)
 
-(** The definition of [bexp]s is the same as before (using the new
+(* The definition of [bexp]s is the same as before (using the new
     [aexp]s): *)
+(** [bexp]の定義は前と同じです(ただし新しい[aexp]を使います): *)
 
 Inductive bexp : Type :=
   | BTrue : bexp
@@ -1249,10 +1380,12 @@ Tactic Notation "bexp_cases" tactic(first) ident(c) :=
   | Case_aux c "BLe" | Case_aux c "BNot" | Case_aux c "BAnd" ].
 
 (* ################################################### *)
-(** ** Evaluation  *)
+(* ** Evaluation  *)
+(** ** 評価  *)
 
-(** The arith and boolean evaluators are extended to handle
+(* The arith and boolean evaluators are extended to handle
     variables in the obvious way: *)
+(** 算術とブールの評価器は、自明な方法で変数を扱うように拡張されます: *)
 
 Fixpoint aeval (st : state) (e : aexp) : nat :=
   match e with
