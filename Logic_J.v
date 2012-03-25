@@ -550,7 +550,7 @@ Proof.
 (*  * Falsehood *)
 (** * 偽であるということ *)
 
-(*  Logical falsehood can be represented in Coq as an inductively
+(*  Logical falsehood can be represented in Coq as an inductively *)
 (** 論理学でいうところの「偽」は、Coqでは帰納的に定義されてはいるが
     コンストラクタを一つも持たない命題として定義さてています。
  *)
