@@ -1,4 +1,4 @@
-(** * Logic_J : Coqにおける論理 *)
+(** * Logic_J: Coqにおける論理 *)
 (* * Logic: Logic in Coq *)
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
@@ -12,8 +12,8 @@ Require Export "Prop_J".
     even equality -- can be defined using just these. *)
 (**
    Coqの組み込み論理は非常に小さく、帰納的定義([Inductive])、
-   全称記号([forall])、ならば([->])だけです。しかしそれ以外の論理演算子(
-   かつ、または、否定、存在量化子、等号など)はこれら組み込みのものから
+   全称記号([forall])、ならば([->])だけです。しかしそれ以外の論理演算子（
+   かつ、または、否定、存在量化子、等号など）はこれら組み込みのものから
    定義できます。
 *)
 
@@ -46,7 +46,7 @@ Definition funny_prop1 := forall n, forall (E : ev n), ev (n+4).
    もしもこの命題を含む証明項があったら、その中でこの命題は二つの引数
    （一つは、数字[n]、もう一つは[n]が偶数であることの根拠[E]）を持つ
    関数になっているはずです。
-   しかし根拠となる[E]は[funny_prop1]の中では使われていませから、これに
+   しかし根拠となる[E]は[funny_prop1]の中では使われていませんから、これに
    わざわざ [E] という名前をつけることはちょっと無意味です。
    このような場合は、次のように書くこともできます。
 *)
@@ -71,8 +71,7 @@ Definition funny_prop1'' := forall n, ev n -> ev (n+4).
 (*  The logical conjunction of propositions [P] and [Q] is
     represented using an [Inductive] definition with one
     constructor. *)
-(** 
-    命題 [P] と [Q] の論理積（ [logical conjunction] ）は、コンストラクタを
+(** 命題 [P] と [Q] の論理積（ [logical conjunction] ）は、コンストラクタを
     一つしか持たない [Inductive] を使った定義で表せます。 *)
 
 Inductive and (P Q : Prop) : Prop :=
@@ -127,7 +126,7 @@ Check conj.
 (*  Notice that it takes 4 inputs -- namely the propositions [P]
     and [Q] and evidence for [P] and [Q] -- and returns as output the
     evidence of [P /\ Q]. *)
-(** conjが四つの引数 -- [P] 、[Q] という命題と、[P] 、[Q] の根拠 -- をとることに注目して下さい。 *)
+(** conjが四つの引数（ [P] 、[Q] という命題と、[P] 、[Q] の根拠）をとることに注目して下さい。 *)
 
 (*  Besides the elegance of building everything up from a tiny
     foundation, what's nice about defining conjunction this way is
@@ -235,7 +234,7 @@ Print and_commut.
                end in H0
      : forall P Q : Prop, P /\ Q -> Q /\ P *)
 
-(** **** Exercise: 2 stars (and_assoc) *)
+(*  **** Exercise: 2 stars (and_assoc) *)
 (** **** 練習問題: ★★ (and_assoc) *)
 (*  In the following proof, notice how the _nested pattern_ in the
     [inversion] breaks [H : P /\ (Q /\ R)] down into [HP: P], [HQ :
@@ -383,7 +382,7 @@ Inductive or (P Q : Prop) : Prop :=
 Notation "P \/ Q" := (or P Q) : type_scope.
 
 (* Consider the "type" of the constructor [or_introl]: *)
-(** コンストラクタ [or_introl] の型紙が何か考えてください。 *)
+(** コンストラクタ [or_introl] の型が何か考えてください。 *)
 
 Check or_introl.
 (* ===>  forall P Q : Prop, P -> P \/ Q *)
@@ -420,9 +419,9 @@ Check or_intror.
 
     - [Q] の根拠をコンストラクタ [or_intror] に与える。 *)
 
-(** Since [P \/ Q] has two constructors, doing [inversion] on a
+(* Since [P \/ Q] has two constructors, doing [inversion] on a
     hypothesis of type [P \/ Q] yields two subgoals. *)
-(*  [P \/ Q] は二つのコンストラクタを持っているので、 [P \/ Q] の形の仮定に
+(**  [P \/ Q] は二つのコンストラクタを持っているので、 [P \/ Q] の形の仮定に
     [inversion] を適用すると二つのサブゴールが生成されます。
  *)
 
@@ -436,7 +435,7 @@ Proof.
 
 (*  From here on, we'll use the shorthand tactics [left] and [right]
     in place of [apply or_introl] and [apply or_intror]. *)
-(** このように、[apply or_introl] 、 [apply or_intror] の代わりに [left] 、
+(** 次のように、[apply or_introl] 、 [apply or_intror] の代わりに [left] 、
      [right] という短縮版のタクティックを使うこともできます。
  *)
 
@@ -501,7 +500,7 @@ Proof.
     [andb] and [orb]'s behaviors on certain inputs into propositional
     facts about those inputs. *)
 (** 我々はすでに、Coqの計算における型([Type]) と論理の命題 ([Prop]) との
-    類似性について見てきました。ここではもう一つ、bool型を扱う [andb] と
+    類似性について見てきました。ここではもう一つ、bool 型を扱う [andb] と
     [orb] が、[/\] と [\/] とのつながりともいうべきある種の類似性を
     持っていることに触れましょう。
     この類似性は、次の定理を見ればもっとはっきりします。これは、
@@ -551,8 +550,8 @@ Proof.
 (** * 偽であるということ *)
 
 (*  Logical falsehood can be represented in Coq as an inductively *)
-(** 論理学でいうところの「偽」は、Coqでは帰納的に定義されてはいるが
-    コンストラクタを一つも持たない命題として定義さてています。
+(** 論理学でいうところの「偽」は、Coqでは「帰納的に定義されてはいるが
+    コンストラクタを一つも持たない命題」として定義されています。
  *)
 
 Inductive False : Prop := .
@@ -589,7 +588,7 @@ Proof.
     hence, there are no possible subgoals and the proof is done. *)
 (** これはどういうことでしょうか？ [inversion] タクティックは仮定 [contra] を
     その取りうるケースに分解し、それぞれにサブゴールを生成します。ここで
-     [contra] が [False] の根拠をとなっているため、そこから取りうるケースは
+     [contra] が [False] の根拠となっているため、そこから取りうるケースは
      存在しません。このため、証明に値するサブゴールがなくなり、そこで
      証明が終わってしまうのです。
  *)
@@ -723,14 +722,14 @@ Proof.
 (* FILL IN HERE *)
    []
 *)
-(** Write an informal proof of [double_neg]:
+(** [double_neg] の非形式的な証明を書きなさい。: 
+
 
    _Theorem_: [P] implies [~~P], for any proposition [P].
 
    _Proof_:
 (* FILL IN HERE *)
-   []
-*)
+   [] *)
 
 (*  **** Exercise: 2 stars, recommended (contrapositive) *)
 (** **** 練習問題: ★★, recommended (contrapositive) *)
@@ -795,7 +794,7 @@ Proof.
 
 (*  **** Exercise: 5 stars, optional (classical_axioms) *)
 (** **** 練習問題: ★★★★★, optional (classical_axioms) *)
-(** For those who like a challenge, here is an exercise
+(* For those who like a challenge, here is an exercise
     taken from the Coq'Art book (p. 123).  The following five
     statements are often considered as characterizations of
     classical logic (as opposed to constructive logic, which is
@@ -803,7 +802,7 @@ Proof.
     we can consistently add any one of them as an unproven axiom
     if we wish to work in classical logic.  Prove that these five
     propositions are equivalent. *)
-(*  さらなる挑戦を求める人のために、 Coq'Art book (p. 123) から一つ練習問題を
+(**  さらなる挑戦を求める人のために、 Coq'Art book (p. 123) から一つ練習問題を
     取り上げてみます。次の五つの文は、よく「古典論理の特性」と考えられている
     もの（Coqにビルトインされている構成的論理の対極にあるもの）です。
     これらをCoqで証明することはできませんが、古典論理を使うことが必要なら、
@@ -1172,9 +1171,10 @@ Definition singleton : forall (X:Set) (x:X), []++[x] = x::[]  :=
 End MyEquality.
 
 (* ####################################################### *)
-(** ** Inversion, Again *)
+(* ** Inversion, Again *)
+(** ** Inversion 再び *)
 
-(** We've seen [inversion] used with both equality hypotheses and
+(*  We've seen [inversion] used with both equality hypotheses and
     hypotheses about inductively defined propositions.  Now that we've
     seen that these are actually the same thing, we're in a position
     to take a closer look at how [inversion] behaves...
@@ -1221,28 +1221,86 @@ End MyEquality.
    some extra information: it tells us that the two arguments to [eq]
    must be the same!  The [inversion] tactic adds this fact to the
    context.  *)
+(** これまでにも [inversion] が等値性にからむ仮定や帰納的に定義された命題に対して
+    使われるところを見てきました。今度もやることは変わりませんが、もう少し近くまで
+    寄って [inversion] の振る舞いを観察してみましょう。
+
+    一般的に [inversion] タクティックは、
+
+    - 帰納的に定義された型 [P] の命題 [H] をとる。
+
+    - その型 [P] の定義にある各コンストラクタ [C] が、
+
+      - [H] が [C] から成っていると仮定するような新しいサブゴールを作る。
+
+      - [C] の引数（前提）を、追加の仮定としてサブゴールのコンテキストに加える。
+
+      - [C] の結論（戻り値の型）を現在のゴールとmatchして、 [C] を適用できるような一連の等式算出する。
+
+      - そしてこれらの等式をサブゴールのコンテキストに加えてから、
+
+      - もしこの等式が充足可能でない場合（[S n = O] というような式を含むなど）は、
+        即座にサブゴールを解決する。
+
+   例 :  [or] で構築された仮定を反転（ invert ）すると、[or] に二つのコンストラクタが
+   あるため二つのサブゴールが生成されます。コンストラクタ ([P \/ Q]) の結果
+   （戻り値の型）は [P] や [Q] の形からくる制約を付けません。そのため追加の等式が
+   サブゴールのコンテキストに加えられることはありません。
+
+
+   例 : [and] で構築された仮定を反転（ invert ）すると、[and] にはコンストラクタが
+   一つしかないため、サブゴールも一つしか生成されません。やはり、コンストラクタ 
+   ([P /\ Q]) の結果（戻り値の型）は [P] や [Q] の形からくる制約を付けず、追加の等式が
+   サブゴールのコンテキストに加えられることはありません。このコンストラクタは引数を二つ
+   とりますが、それらはサブゴールのコンテキストに現れます。
+
+
+   例 : [eq] で構築された仮定を反転（ invert ）すると、これにもやはりコンストラクタが
+   一つしかないため、サブゴールも一つしか生成されません。しかしこの場合 
+   コンストラクタ [refl_equal] の形は我々にもう少し情報を与えてくれます。
+   それは、[eq] の二つの引数は同じでなければならないという点です。
+    [inversion] タクティックはこの事実をコンテキストに加えてくれます。
+ *)
 
 (* ####################################################### *)
-(** * Relations as Propositions *)
+(*  * Relations as Propositions *)
+(** * 命題としての関係 *)
 
-(** A proposition parameterized numbers (such as [ev]) can be
+(*  A proposition parameterized numbers (such as [ev]) can be
     thought of as a _property_ -- i.e., it defines a subset of [nat],
     namely those numbers for which the proposition is provable.  In
     the same way, a two-argument proposition can be thought of as a
     _relation_ -- i.e., it defines a set of pairs for which the
     proposition is provable. *)
+(** [ev] のように数値でパラメータ化された命題は、属性（ _property_ ）と
+    見なすこともできます。つまり、それに属する値についてその命題が証明可能である
+    ような [nat] の部分集合の定義と見ることができるということです。
+    同様に、引数（パラメータ）を二つ持つ命題は、その二つの「関係」を表していると
+    考えられます。つまり、その命題について証明可能な値のペアの集合の定義、
+    というわけです。
+ *)
 
 Module LeFirstTry.
 
-(** We've already seen an inductive definition of one
+(*  We've already seen an inductive definition of one
     fundamental relation: equality.  Another useful one is the "less
     than or equal to" relation on numbers: *)
+(** これまでにもすでに、帰納的に定義された関係の基本的なものは出てきていました。
+    等値性がそれです。他にも、よく使われるものとして「等しいかまたは小さい」
+    という関係があります。
+ *)
 
-(** This definition should be fairly intuitive.  It says that
+(*  This definition should be fairly intuitive.  It says that
     there are two ways to give evidence that one number is less than
     or equal to another: either observe that they are the same number,
     or give evidence that the first is less than or equal to the
     predecessor of the second. *)
+(** この定義はかなり直観的なものになります。これは、ある数値がもう一つの
+    数値より小さいかまたは等しい、ということを示すには二つの方法があることを
+    示しています。一つはそれらが同じ数であるかどうかを確認すること。もう
+    一つは最初の数が。二つ目の数の一つ前の数より小さいかまたは等しい、
+    ということの根拠を得ることです。
+ *)
 
 Inductive le : nat -> nat -> Prop :=
   | le_n : forall n, le n n
@@ -1250,13 +1308,19 @@ Inductive le : nat -> nat -> Prop :=
 
 End LeFirstTry.
 
-(** This is a reasonable definition of the [<=] relation, but we
+(*  This is a reasonable definition of the [<=] relation, but we
     can streamline it a little by observing that the left-hand
     argument [n] is the same everywhere in the definition, so we can
     actually make it a "general parameter" to the whole definition,
     rather than an argument to each constructor.  This is similar to
     what we did in our second definition of the [eq] relation,
     above. *)
+(** これはこれで [<=] という関係の妥当なな定義だと言えます。しかし少し観察してみると
+    定義の左側のに現れる [n] は全て同じだということがわかります。ということは、
+    個々のコンストラクタにではなく定義全体に全称量化子を使うことが
+    できるということです。このことは先程 [eq] という関係の二番目の定義でやったことと
+    同じです。
+ *)
 
 Inductive le (n:nat) : nat -> Prop :=
   | le_n : le n n
@@ -1264,9 +1328,13 @@ Inductive le (n:nat) : nat -> Prop :=
 
 Notation "m <= n" := (le m n).
 
-(** The second one is better, even though it looks less symmetric.
+(*  The second one is better, even though it looks less symmetric.
     Why?  Because it gives us a simpler induction principle.
     (The same was true of our second version of [eq].) *)
+(** 少し対称性が損なわれたようにも見えますが、この二番目の定義の方がいいのです。
+    なぜでしょうか？それは、こちらのほうがよりシンプルな帰納法の原理を
+    生成してくれるからです（ [eq] の二番目の定義にも同じことが言えます）。
+ *)
 
 Check le_ind.
 (* ===>  forall (n : nat) (P : nat -> Prop),
@@ -1274,10 +1342,14 @@ Check le_ind.
            (forall m : nat, n <= m -> P m -> P (S m)) ->
            forall n0 : nat, n <= n0 -> P n0 *)
 
-(** By contrast, the induction principle that Coq calculates for the
+(*  By contrast, the induction principle that Coq calculates for the
     first definition has a lot of extra quantifiers, which makes it
     messier to work with when proving things by induction.  Here is
     the induction principle for the first [le]: *)
+(** 一方、最初の定義に Coq が生成する帰納法の原理には、もっと多くの量化子が
+    含まれることになります。これでは、帰納法を使った証明がごちゃごちゃしてしまいます。
+    これが [le] の最初の定義で生成された帰納法の原理です。
+ *)
 
 (* le_ind :
      forall P : nat -> nat -> Prop,
@@ -1285,19 +1357,33 @@ Check le_ind.
      (forall n m : nat, le n m -> P n m -> P n (S m)) ->
      forall n n0 : nat, le n n0 -> P n n0 *)
 
-(** Proofs of facts about [<=] using the constructors [le_n] and
+(*  Proofs of facts about [<=] using the constructors [le_n] and
     [le_S] follow the same patterns as proofs about properties, like
     [ev] in the previous chapter.  We can [apply] the constructors to
     prove [<=] goals (e.g., to show that [3<=3] or [3<=6]), and we can
     use tactics like [inversion] to extract information from [<=]
     hypotheses in the context (e.g., to prove that [~(2 <= 1)].) *)
+(** コンストラクタ [le_n] と [le_S] を使った [<=] にからむ証明は、前章の [eq] が
+    そうであったように、属性についての証明のいくつかのパターンに倣っています。
+    [<=] の形をしたゴール（例えば [3<=3] や [3<=6] など）に、そのコンストラクタを
+    apply することができますし、inversion のようなタクティックを使って
+    （[~(2 <= 1)] の証明をしようとする際のように） コンテキストに [<=] を含む
+    仮定から情報を抽出することもできます。
+ *)
 
-(** Here are some sanity checks on the definition.  (Notice that,
+(*  Here are some sanity checks on the definition.  (Notice that,
     although these are the same kind of simple "unit tests" as we gave
     for the testing functions we wrote in the first few lectures, we
     must construct their proofs explicitly -- [simpl] and
     [reflexivity] don't do the job, because the proofs aren't just a
     matter of simplifying computations. *)
+(** 
+    ここで、定義が正しくなされているのかのチェックをしてみましょう。（注意して
+    欲しいのは、ここでやることが、最初のレクチャーで書いてもらった、ある種の
+    シンプルな「ユニットテスト」のようなものですが、今回のものは以前のものと
+    ちょっと違います。今回のものには、[simpl] や [reflexivity] はほとんど
+    役に立ちません。簡約だけで証明できるようなものではないからです。
+ *)
 
 Theorem test_le1 :
   3 <= 3.
@@ -1317,14 +1403,16 @@ Proof.
   (* WORKED IN CLASS *)
   intros H. inversion H. inversion H1.  Qed.
 
-(** The "strictly less than" relation [n < m] can now be defined
+(*  The "strictly less than" relation [n < m] can now be defined
     in terms of [le]. *)
+(** 「より小さい」という関係（ [n < m] ）は、[le] を使って定義できます。 *)
 
 Definition lt (n m:nat) := le (S n) m.
 
 Notation "m < n" := (lt m n).
 
-(** Here are a few more simple relations on numbers: *)
+(*  Here are a few more simple relations on numbers: *)
+(** 他にも、数値の関係についていくつか見てみましょう。 *)
 
 Inductive square_of : nat -> nat -> Prop :=
   sq : forall n:nat, square_of n (n * n).
@@ -1336,25 +1424,34 @@ Inductive next_even (n:nat) : nat -> Prop :=
   | ne_1 : ev (S n) -> next_even n (S n)
   | ne_2 : ev (S (S n)) -> next_even n (S (S n)).
 
-(** **** Exercise: 2 stars, recommended (total_relation) *)
-(** Define an inductive relation [total_relation] that holds
+(*  **** Exercise: 2 stars, recommended (total_relation) *)
+(** **** 練習問題: ★★, recommended (total_relation) *)
+(*  Define an inductive relation [total_relation] that holds
     between every pair of natural numbers. *)
+(** 二つの自然数のペア同士の間に成り立つ帰納的な関係 [total_relation] を
+    定義しなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars (empty_relation) *)
-(** Define an inductive relation [empty_relation] (on numbers)
+(*  **** Exercise: 2 stars (empty_relation) *)
+(** **** 練習問題: ★★ (empty_relation) *)
+(*  Define an inductive relation [empty_relation] (on numbers)
     that never holds. *)
+(** 自然数の間では決して成り立たない関係 [empty_relation] を帰納的に
+    定義しなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (R_provability) *)
+(*  **** Exercise: 3 stars, recommended (R_provability) *)
+(** **** 練習問題: ★★★, recommended (R_provability) *)
 Module R.
-(** We can define three-place relations, four-place relations,
+(*  We can define three-place relations, four-place relations,
     etc., in just the same way as binary relations.  For example,
     consider the following three-place relation on numbers: *)
+(** 次は三つや四つの値の間に成り立つ関係を同じように定義してみましょう。
+    例えば、次のような数値の三項関係が考えられます。 *)
 
 Inductive R : nat -> nat -> nat -> Prop :=
    | c1 : R 0 0 0
@@ -1363,7 +1460,7 @@ Inductive R : nat -> nat -> nat -> Prop :=
    | c4 : forall m n o, R (S m) (S n) (S (S o)) -> R m n o
    | c5 : forall m n o, R m n o -> R n m o.
 
-(** - Which of the following propositions are provable?
+(*  - Which of the following propositions are provable?
       - [R 1 1 2]
       - [R 2 2 6]
 
@@ -1378,29 +1475,54 @@ Inductive R : nat -> nat -> nat -> Prop :=
 (* FILL IN HERE *)
 []
 *)
+(**  - 次の命題のうち、この関係を満たすと証明できると言えるのはどれでしょうか。
+      - [R 1 1 2]
+      - [R 2 2 6]
 
-(** **** Exercise: 3 stars, optional (R_fact) *)
-(** State and prove an equivalent characterization of the relation
+    - この関係 [R] の定義からコンストラクタ [c5] を取り除くと、証明可能な命題の範囲はどのように変わるでしょうか？端的に（１文で）説明しなさい。
+
+    - この関係 [R] の定義からコンストラクタ [c4] を取り除くと、証明可能な命題の範囲はどのように変わるでしょうか？端的に（１文で）説明しなさい。
+
+
+(* FILL IN HERE *)
+[]
+*)
+
+(*  **** Exercise: 3 stars, optional (R_fact) *)
+(** **** 練習問題: ★★★, optional (R_fact) *)
+(*  State and prove an equivalent characterization of the relation
     [R].  That is, if [R m n o] is true, what can we say about [m],
     [n], and [o], and vice versa?
 *)
+(** 関係 [R] の、等値性に関する特性をあげ、それを証明しなさい。 それは、
+    もし [R m n o] が true なら [m] についてどんなことが言えるでしょうか？
+    [n] や [o] についてはどうでしょうか？その逆は？
+ *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 End R.
 
-(** **** Exercise: 3 stars, recommended (all_forallb) *)
-(** Inductively define a property [all] of lists, parameterized by a
+(*  **** Exercise: 3 stars, recommended (all_forallb) *)
+(** **** 練習問題: ★★★, recommended (all_forallb) *)
+(*  Inductively define a property [all] of lists, parameterized by a
     type [X] and a property [P : X -> Prop], such that [all X P l]
     asserts that [P] is true for every element of the list [l]. *)
+(** リストに関する属性 [all] を定義しなさい。それは、型 [X] と属性 [P : X -> Prop]
+    をパラメータとし、 [all X P l]  が「リスト [l] の全ての要素が
+    属性 [P} を満たす」とするものです。
+ *)
 
 Inductive all (X : Type) (P : X -> Prop) : list X -> Prop :=
   (* FILL IN HERE *)
 .
 
-(** Recall the function [forallb], from the exercise
+(*  Recall the function [forallb], from the exercise
 [forall_exists_challenge] in [Poly.v]: *)
+(** [Poly.v] の練習問題 [forall_exists_challenge] に出てきた関数 [forallb] 
+    を思い出してみましょう。
+ *)
 
 Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
   match l with
@@ -1408,18 +1530,24 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     | x :: l' => andb (test x) (forallb test l')
   end.
 
-(** Using the property [all], write down a specification for [forallb],
+(*  Using the property [all], write down a specification for [forallb],
     and prove that it satisfies the specification. Try to make your
     specification as precise as possible.
 
     Are there any important properties of the function [forallb] which
     are not captured by your specification? *)
+(** 属性 [all] を使って関数 [forallb] の仕様を書き、それを満たすことを証明
+    しなさい。できるだけその仕様が厳格になるようにすること。
+
+    関数 [forallb] の重要な性質が、あなたの仕様から洩れている、ということは
+    ありませんか？ *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (filter_challenge) *)
-(** One of the main purposes of Coq is to prove that programs match
+(*  **** Exercise: 4 stars, optional (filter_challenge) *)
+(** **** 練習問題: ★★★★, optional (filter_challenge) *)
+(*  One of the main purposes of Coq is to prove that programs match
     their specifications.  To this end, let's prove that our
     definition of [filter] matches a specification.  Here is the
     specification, written out informally in English.
@@ -1448,30 +1576,73 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     prove it.  (Hint: You'll need to begin by defining what it means
     for one list to be a merge of two others.  Do this with an
     inductive relation, not a [Fixpoint].)  *)
+(** Coq の主な目的の一つは、プログラムが特定の仕様を満たしていることを
+    証明することです。それがどういうことか、[filter] 関数の定義が仕様を満たすか証明
+    してみましょう。まず、その関数の仕様を非形式的に書き出してみます。
+
+    集合 [X] と関数 [test: X->bool]、リスト[l] とその型 [list X] を想定する。
+    さらに、[l] が二つのリスト [l1] と [l2] が順序を維持したままマージされたもので、
+    リスト [l1] の要素はすべて [test] を満たし、 [l2] の要素はすべて満たさないと
+    すると、[filter test l = l1] が成り立つ。
+
+    リスト [l] が [l1] と [l2] を順序を維持したままマージしたものである、とは、
+    それが [l1] と [l2] の要素をすべて含んでいて、しかも 互いに入り組んではいても
+    [l1] 、 [l2] の要素が同じ順序になっている、ということです。例えば、
+
+[[
+    [1,4,6,2,3]
+]]
+    は、以下の二つを順序を維持したままマージしたものです。
+[[
+    [1,6,2]
+]]
+    and
+[[
+    [4,3].
+]]
+    課題は、この仕様をCoq の定理の形に書き直し、それを証明することです。
+    （ヒント：まず、一つのりすとが二つのリストをマージしたものとなっている、
+    ということを示す定義を書く必要がありますが、これは帰納的な関係であって、
+    [Fixpoint] で書くようなものではありません。）
+ *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 5 stars, optional (filter_challenge_2) *)
-(** A different way to formally characterize the behavior of [filter]
+(*  **** Exercise: 5 stars, optional (filter_challenge_2) *)
+(** **** 練習問題: ★★★★★, optional (filter_challenge_2) *)
+
+(*  A different way to formally characterize the behavior of [filter]
     goes like this: Among all subsequences of [l] with the property
     that [test] evaluates to [true] on all their members, [filter test
     l] is the longest.  Express this claim formally and prove it. *)
-
+(** [filter] の振る舞いに関する特性を別の切り口で表すとこうなります。
+    「[test] の結果が [true] なる要素だけでできた、リスト [l] の
+    すべての部分リストの中で、[filter test l] が最も長いリストである。」
+    これを形式的に記述し、それを証明しなさい。
+ *)
+    
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (no_repeats) *)
-(** The following inductively defined proposition... *)
+(*  **** Exercise: 4 stars, optional (no_repeats) *)
+(** **** 練習問題: ★★★★, optional (no_repeats) *)
+(*  The following inductively defined proposition... *)
+(** 次の、帰納的に定義された命題を見て、 *)
 
 Inductive appears_in {X:Type} (a:X) : list X -> Prop :=
   | ai_here : forall l, appears_in a (a::l)
   | ai_later : forall b l, appears_in a l -> appears_in a (b::l).
 
-(** ...gives us a precise way of saying that a value [a] appears at
+(*  ...gives us a precise way of saying that a value [a] appears at
     least once as a member of a list [l].
 
     Here's a pair of warm-ups about [appears_in].
+*)
+(** 値 [a] が、少なくとも一度はリスト [l] の中に現れるということを、
+    厳密に表現する方法を考えなさい。
+
+    [appears_in] に関するウォームアップ問題としてもう一つ、
 *)
 
 Lemma appears_in_app : forall {X:Type} (xs ys : list X) (x:X),
@@ -1484,23 +1655,37 @@ Lemma app_appears_in : forall {X:Type} (xs ys : list X) (x:X),
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** Now use [appears_in] to define a proposition [disjoint X l1 l2],
+(*  Now use [appears_in] to define a proposition [disjoint X l1 l2],
     which should be provable exactly when [l1] and [l2] are
     lists (with elements of type X) that have no elements in common. *)
-
+(** では、 [appears_in] を使って命題 [disjoint X l1 l2] を定義してください。
+    これは、型 [X] の二つのリスト [l1] 、 [l2] が共通の要素を持たない場合
+    にのみ証明可能な命題です。
+ *)
+ 
 (* FILL IN HERE *)
 
-(** Next, use [appears_in] to define an inductive proposition
+(*  Next, use [appears_in] to define an inductive proposition
     [no_repeats X l], which should be provable exactly when [l] is a
     list (with elements of type [X]) where every member is different
     from every other.  For example, [no_repeats nat [1,2,3,4]] and
     [no_repeats bool []] should be provable, while [no_repeats nat
     [1,2,1]] and [no_repeats bool [true,true]] should not be.  *)
+(** 次は、 [appears_in] を使って帰納的な命題 [no_repeats X l] を定義して
+    ください。これは, 型 [X] のリスト [l] の中のどの要素も、他の要素と
+    異なっている場合のみ証明できるような命題です。例えば、 
+    [no_repeats nat [1,2,3,4]] や [no_repeats bool []] は証明可能ですが、 
+    [no_repeats nat [1,2,1]] や [no_repeats bool [true,true]] は証明
+    できないようなものです。
+ *)
 
 (* FILL IN HERE *)
 
-(** Finally, state and prove one or more interesting theorems relating
+(*  Finally, state and prove one or more interesting theorems relating
     [disjoint], [no_repeats] and [++] (list append).  *)
+(** 最後に、[disjoint]、 [no_repeats]、 [++] （リストの結合）の三つを使った、
+    何か面白い定理を考えて、それを証明してください。
+ *)
 
 (* FILL IN HERE *)
 (** [] *)
