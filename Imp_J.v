@@ -1419,15 +1419,18 @@ Example bexp1 :
 Proof. reflexivity. Qed.
 
 (* ####################################################### *)
-(** * Commands *)
+(* * Commands *)
+(** * コマンド *)
 
-(** Now we are ready define the syntax and behavior of Imp
+(*  Now we are ready define the syntax and behavior of Imp
     _commands_ (or _statements_). *)
+(** さて、Imp コマンド (または主張) の構文と挙動を定義する準備が出来ました *)
 
 (* ################################################### *)
-(** ** Syntax *)
+(*  ** Syntax *)
+(** ** 構文 *)
 
-(** Informally, commands are described by the following BNF
+(*  Informally, commands are described by the following BNF
     grammar:
 [[
      com ::= 'SKIP'
@@ -1448,8 +1451,29 @@ Proof. reflexivity. Qed.
    When this command terminates, the variable [Y] will contain the
    factorial of the variable [X].
 *)
+(** 非形式的には、コマンドは以下の BNF で表現されます。
+    構文:
+[[
+     com ::= 'SKIP'
+           | X '::=' aexp
+           | com ';' com
+           | 'WHILE' bexp 'DO' com 'END'
+           | 'IFB' bexp 'THEN' com 'ELSE' com 'FI'
+]]
+    例えば、Imp における階乗関数は以下のようになります。
+[[
+     Z ::= X;
+     Y ::= 1;
+     WHILE not (Z = 0) DO
+       Y ::= Y * Z;
+       Z ::= Z - 1
+     END
+]]
+   このコマンドが終わったとき、変数 [Y] は変数 [X] の階乗の値を持つでしょう。
+*)
 
-(** Here is the formal definition of the syntax of commands: *)
+(*  Here is the formal definition of the syntax of commands: *)
+(** 以下に、コマンドの構文の形式的な定義を示します。 *)
 
 Inductive com : Type :=
   | CSkip : com
@@ -1463,7 +1487,7 @@ Tactic Notation "com_cases" tactic(first) ident(c) :=
   [ Case_aux c "SKIP" | Case_aux c "::=" | Case_aux c ";"
   | Case_aux c "IFB" | Case_aux c "WHILE" ].
 
-(** As usual, we can use a few [Notation] declarations to make things
+(*  As usual, we can use a few [Notation] declarations to make things
     more readable.  However, we need to be a bit careful to avoid
     conflicts with Coq's built-in notations, so we'll keep this
     light -- in particular, we won't introduce any notations for
@@ -1471,6 +1495,14 @@ Tactic Notation "com_cases" tactic(first) ident(c) :=
     boolean operators we've already defined.  (We use the keyword
     [IFB] for conditionals instead of the usual [IF] for similar
     reasons.) *)
+(** いつものとおり、より読みやすいよう、いくつかの [Notation] 宣言が使えます。
+    しかし、Coq の組み込みの表記と衝突しないよう、少し気をつける必要があります 
+    (手軽さを維持しつつ！)。
+    特に、[aexp] と [bexp] については、
+    すでに定義した数値演算子やブール演算子との混同を避けるために、
+    新しい表記は導入しません。
+    (同様の理由により、条件文に対しては通常使われる [IF] の代わりに 
+    [IFB] というキーワードを使います。) *)
 
 Notation "'SKIP'" :=
   CSkip.
@@ -1483,8 +1515,10 @@ Notation "'WHILE' b 'DO' c 'END'" :=
 Notation "'IFB' e1 'THEN' e2 'ELSE' e3 'FI'" :=
   (CIf e1 e2 e3) (at level 80, right associativity).
 
-(** For example, here is the factorial function again, written as a
+(*  For example, here is the factorial function again, written as a
     formal definition to Coq: *)
+(** 例えば先の階乗関数を Coq での形式的な定義として記述し直すと、
+    以下のようになります。*)
 
 Definition fact_in_coq : com :=
   Z ::= AId X;
@@ -1495,11 +1529,14 @@ Definition fact_in_coq : com :=
   END.
 
 (* ####################################################### *)
-(** ** Examples *)
+(*  ** Examples *)
+(** ** 例 *)
 
-(** Here are some more examples... *)
+(*  Here are some more examples... *)
+(** 以下に、さらなる例を挙げます。 *)
 
-(** Assignment: *)
+(*  Assignment: *)
+(** 割り当て: *)
 
 Definition plus2 : com :=
   X ::= (APlus (AId X) (ANum 2)).
@@ -1511,7 +1548,8 @@ Definition subtract_slowly_body : com :=
   Z ::= AMinus (AId Z) (ANum 1) ;
   X ::= AMinus (AId X) (ANum 1).
 
-(** Loops: *)
+(*  Loops: *)
+(** ループ: *)
 
 Definition subtract_slowly : com :=
   WHILE BNot (BEq (AId X) (ANum 0)) DO
@@ -1523,16 +1561,19 @@ Definition subtract_3_from_5_slowly : com :=
   Z ::= ANum 5 ;
   subtract_slowly.
 
-(** An infinite loop: *)
+(*  An infinite loop: *)
+(** 無限ループ: *)
 
 Definition loop : com :=
   WHILE BTrue DO
     SKIP
   END.
 
-(** Factorial again (broken up into smaller pieces this time, for
+(*  Factorial again (broken up into smaller pieces this time, for
     convenience when we come back to proving things about it
     later).  *)
+(** 階乗関数再び (あとで戻って証明するとき便利なように、
+    細かい部品に分割してあります)。 *)
 
 Definition fact_body : com :=
   Y ::= AMult (AId Y) (AId Z) ;
@@ -1549,16 +1590,21 @@ Definition fact_com : com :=
   fact_loop.
 
 (* ################################################################ *)
-(** * Evaluation *)
+(*  * Evaluation *)
+(** * 評価 *)
 
 (** Next we need to define what it means to evaluate an Imp command.
     [WHILE] loops actually make this a bit tricky... *)
+(** 次に、Imp のコマンドの実行が何を意味するかを定義する必要があります。
+    [WHILE] ループは、これを少々扱いにくいものにしています ... *)
 
 (* #################################### *)
-(** ** Evaluation Function *)
+(*  ** Evaluation Function *)
+(** ** 評価関数 *)
 
-(** Here's a first try at an evaluation function for commands,
+(*  Here's a first try at an evaluation function for commands,
     omitting [WHILE]. *)
+(** 以下は [WHILE] 以外のコマンドの評価関数を得ようとした、最初の試みです。 *)
 
 Fixpoint ceval_step1 (st : state) (c : com) : state :=
   match c with
@@ -1577,8 +1623,10 @@ Fixpoint ceval_step1 (st : state) (c : com) : state :=
         st  (* bogus *)
   end.
 
-(** Second try, using an extra numeric argument as a "step index" to
+(*  Second try, using an extra numeric argument as a "step index" to
     ensure that evaluation always terminates. *)
+(** 次の試みでは、評価が常に停止することを保証するため、
+    数の引数を追加して「ステップ指数」として用いています。*)
 
 Fixpoint ceval_step2 (st : state) (c : com) (i : nat) : state :=
   match i with
@@ -1604,17 +1652,24 @@ Fixpoint ceval_step2 (st : state) (c : com) (i : nat) : state :=
     end
   end.
 
-(** _Note_: It is tempting to think that the index [i] here is
+(*  _Note_: It is tempting to think that the index [i] here is
     counting the "number of steps of evaluation."  But if you look
     closely you'll see that this is not the case: for example, in the
     rule for sequencing, the same [i] is passed to both recursive
     calls.  Understanding the exact way that [i] is treated will be
     important in the proof of [ceval__ceval_step], which is given as
     an exercise below. *)
+(** 注: ここでの指数 [i] は「評価のステップ数」を数えるものだろうか？
+    という点が気になります。しかしよく見ると、そうではないと分かります。
+    例えば、直列実行に対する規則では、2 つの再帰呼び出しに同じ [i] が渡されています。
+    [i] がどのように扱われているのかを正確に理解することは、
+    以下で演習問題として与えられている [ceval__ceval_step] の証明で重要となるでしょう。 *)
 
-(** Third try, returning an [option state] instead of just a [state]
+(*  Third try, returning an [option state] instead of just a [state]
     so that we can distinguish between normal and abnormal
     termination. *)
+(** 3 つ目の試みでは、単なる [state] の代わりに [option state] を返すようにしています。
+    こうすると、通常終了と異常終了を区別出来ます。*)
 
 Fixpoint ceval_step3 (st : state) (c : com) (i : nat)
                     : option state :=
@@ -1645,9 +1700,11 @@ Fixpoint ceval_step3 (st : state) (c : com) (i : nat)
     end
   end.
 
-(** We can improve the readability of this definition by introducing a
+(*  We can improve the readability of this definition by introducing a
     bit of auxiliary notation to hide the "plumbing" involved in
     repeatedly matching against optional states. *)
+(** オプション状態に対する場合分けに繰り返し含まれている「配管」を隠すための、
+    補助的なちょっとした記法を導入すると、この定義の読みやすさは改善出来ます。*)
 
 Notation "'LETOPT' x <== e1 'IN' e2"
    := (match e1 with
@@ -1699,10 +1756,13 @@ Eval compute in
    Some (2, 0, 4)
 *)
 
-(** **** Exercise: 2 stars, recommended (pup_to_n) *)
-(** Write an Imp program that sums the numbers from [1] to
+(* **** Exercise: 2 stars, recommended (pup_to_n) *)
+(** **** 練習問題: ★★, recommended (pup_to_n) *)
+(*  Write an Imp program that sums the numbers from [1] to
    [X] (inclusive: [1 + 2 + ... + X]) in the variable [Y].  Make sure
    your solution satisfies the test that follows. *)
+(** [1] から [X] までの整数を変数 [Y] に足す (つまり [1 + 2 + ... + X]) 
+    Imp プログラムを書きなさい。下に示したテストを満たすことを確認しなさい。 *)
 
 Definition pup_to_n : com :=
   (* FILL IN HERE *) admit.
@@ -1715,18 +1775,22 @@ Proof. reflexivity. Qed.
 *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (peven) *)
-(** Write a [While] program that sets [Z] to [0] if [X] is even and
+(*  **** Exercise: 2 stars, optional (peven) *)
+(** **** 練習問題: ★★, optional (peven) *)
+(*  Write a [While] program that sets [Z] to [0] if [X] is even and
     sets [Z] to [1] otherwise.  Use [ceval_test] to test your
     program. *)
+(** [X] が偶数だったら [Z] に [0] を、そうでなければ [Z] に [1] をセットする 
+    [While] プログラムを書きなさい。テストには [ceval_test] を使いなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (* #################################### *)
-(** ** Evaluation as a Relation *)
+(*  ** Evaluation as a Relation *)
+(** ** 関係としての評価 *)
 
-(** Here's a better way: define [ceval] as a _relation_ rather than a
+(*  Here's a better way: define [ceval] as a _relation_ rather than a
     _function_ -- i.e., define it in [Prop] instead of [Type], as we
     did for [aevalR] and [bevalR] above.
 
@@ -1736,8 +1800,16 @@ Proof. reflexivity. Qed.
     if we added concurrency features to the language, we'd want the
     definition of evaluation to be non-deterministic -- i.e., not only
     would it not be total, it would not even be a partial function! *)
+(** ここに改善策があります: [ceval] を関数ではなく関係 (_relation_) として定義しましょう。
+    つまり、上の [aevalR] と [bevalR] と同様に [Type] ではなく [Prop] で定義しましょう。
 
-(** We'll use the notation [c / st || st'] for our [ceval] relation,
+    これは重要な変更です。
+    ステップ指数をすべての場所で引き回す馬鹿馬鹿しさから解放してくれるのに加え、
+    定義での柔軟性を与えてくれます。
+    例えば、もし言語に並行性の要素を導入したら、評価の定義を非決定的に書きたくなるでしょう。
+    つまり、その関数は全関数でないだけでなく、部分関数ですらないかも知れません！*)
+
+(*  We'll use the notation [c / st || st'] for our [ceval] relation,
     that is [c / st || st'] means that executing program [c] in a
     starting state [st] results in an ending state [st'].  This can be
     pronounced "[c] takes state [st] to [st']".
@@ -1775,9 +1847,50 @@ Proof. reflexivity. Qed.
                     WHILE b1 DO c1 END / st || st''
 ]]]
 *)
+(** [ceavl] 関係に対する表記として [c / st || st'] を使います。
+    正確に言うと、[c / st || st'] と書いたらプログラム [c] を初期状態 [st] で評価すると、
+    その結果は最終状態 [st'] になる、ということを意味します。
+    これは「[c] は状態 [st] を [st'] に持っていく」とも言えます。
+[[[
+                           ----------------                            (E_Skip)
+                           SKIP / st || st
 
-(** Here is the formal definition.  (Make sure you understand
+                           aeval st a1 = n
+                   --------------------------------                     (E_Ass)
+                   l := a1 / st || (update st l n)
+
+                           c1 / st || st'
+                          c2 / st' || st''
+                         -------------------                            (E_Seq)
+                         c1;c2 / st || st''
+
+                          beval st b1 = true
+                           c1 / st || st'
+                -------------------------------------                (E_IfTrue)
+                IF b1 THEN c1 ELSE c2 FI / st || st'
+
+                         beval st b1 = false
+                           c2 / st || st'
+                -------------------------------------               (E_IfFalse)
+                IF b1 THEN c1 ELSE c2 FI / st || st'
+
+                         beval st b1 = false
+                    ------------------------------                 (E_WhileEnd)
+                    WHILE b1 DO c1 END / st || st
+
+                          beval st b1 = true
+                           c1 / st || st'
+                  WHILE b1 DO c1 END / st' || st''
+                  ---------------------------------               (E_WhileLoop)
+                    WHILE b1 DO c1 END / st || st''
+]]]
+*)
+
+
+(*  Here is the formal definition.  (Make sure you understand
     how it corresponds to the inference rules.) *)
+(** 以下に形式的な定義を挙げます。
+    (上の推論規則とどのように対応するか、確認しておきましょう。) *)
 
 Reserved Notation "c1 '/' st '||' st'" (at level 40, st at level 39).
 
@@ -1816,10 +1929,14 @@ Tactic Notation "ceval_cases" tactic(first) ident(c) :=
   | Case_aux c "E_IfTrue" | Case_aux c "E_IfFalse"
   | Case_aux c "E_WhileEnd" | Case_aux c "E_WhileLoop" ].
 
-(** The cost of defining evaluation as a relation instead of a
+(*  The cost of defining evaluation as a relation instead of a
     function is that we now need to construct _proofs_ that some
     program evaluates to some result state, rather than just letting
     Coq's computation mechanism do it for us. *)
+(** 評価を関数ではなく関係として定義することのコストは、
+    あるプログラムを実行した結果がとある状態になる、
+    というのを Coq の計算機構にやってもらうだけではなく、
+    その「証明」を構築する必要がある、ということです。*)
 
 Example ceval_example1:
     (X ::= ANum 2;
@@ -1839,7 +1956,8 @@ Proof.
       reflexivity.
       apply E_Ass. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars (ceval_example2) *)
+(*  **** Exercise: 2 stars (ceval_example2) *)
+(** **** 練習問題: ★★ (ceval_example2) *)
 Example ceval_example2:
     (X ::= ANum 0; Y ::= ANum 1; Z ::= ANum 2) / empty_state ||
     (update (update (update empty_state X 0) Y 1) Z 2).
@@ -1848,13 +1966,18 @@ Proof.
 (** [] *)
 
 (* ################################################################ *)
-(** ** Equivalence of Relational and Step-Indexed Evaluation *)
+(*  ** Equivalence of Relational and Step-Indexed Evaluation *)
+(** ** 関係による評価とステップ指数を利用した評価の等価性 *)
 
 (** As with arithmetic and boolean expressions, we'd hope that
     the two alternative definitions of evaluation actually boil down
     to the same thing.  This section shows that this is the case.
     Make sure you understand the statements of the theorems and can
     follow the structure of the proofs. *)
+(** 算術式とブール式で行ったように、2 つの評価の定義が本当に、
+    結局のところ同じものになるのかを確認したくなるでしょう。
+    この章では、それを確認します。定理の主張を理解して、
+    証明の構造を追えることを確認しておいて下さい。*)
 
 Theorem ceval_step__ceval: forall c st st',
       (exists i, ceval_step st c i = Some st') ->
@@ -1910,13 +2033,24 @@ Proof.
           apply E_WhileEnd.
           rewrite Heqr. subst. reflexivity.  Qed.
 
-(** **** Exercise: 4 stars (ceval_step__ceval_inf) *)
+(*  **** Exercise: 4 stars (ceval_step__ceval_inf) *)
+(** **** 練習問題: ★★★★ (ceval_step__ceval_inf) *)
 (** Write an informal proof of [ceval_step__ceval], following the
     usual template.  (The template for case analysis on an inductively
     defined value should look the same as for induction, except that
     there is no induction hypothesis.)  Make your proof communicate
     the main ideas to a human reader; do not simply transcribe the
     steps of the formal proof.
+
+(* FILL IN HERE *)
+[]
+*)
+(** いつものテンプレートにのっとって、
+    [ceval_step__ceval] の形式的でない証明を書きましょう。
+    (帰納的に定義された値の場合分けに対するテンプレートは、
+    帰納法の仮定がないこと以外は帰納法と同じ見た目になるはずです。) 
+    単に形式的な証明のステップを書き写すだけでなく、
+    人間の読者に主要な考えが伝わるようにしなさい。
 
 (* FILL IN HERE *)
 []
@@ -1970,9 +2104,12 @@ induction i1 as [|i1']; intros i2 st st' c Hle Hceval.
       SSCase "i1'o = None".
         simpl in Hceval. inversion Hceval.  Qed.
 
-(** **** Exercise: 3 stars, recommended (ceval__ceval_step) *)
-(** Finish the following proof.  You'll need [ceval_step_more] in a
+(*  **** Exercise: 3 stars, recommended (ceval__ceval_step) *)
+(** **** 練習問題: ★★★, recommended (ceval__ceval_step) *)
+(*  Finish the following proof.  You'll need [ceval_step_more] in a
     few places, as well as some basic facts about [<=] and [plus]. *)
+(** 以下の証明を完成させなさい。何度か [ceval_step_more] が必要となり、
+    さらに [<=] と [plus] に関するいくつかの基本的な事実が必要となるでしょう。*)
 
 Theorem ceval__ceval_step: forall c st st',
       c / st || st' ->
@@ -1992,9 +2129,10 @@ Proof.
 Qed.
 
 (* ####################################################### *)
-(** ** Determinacy of Evaluation *)
+(*  ** Determinacy of Evaluation *)
+(** ** 実行の決定性 *)
 
-(** Changing from a computational to a relational definition of
+(*  Changing from a computational to a relational definition of
     evaluation is a good move because it allows us to escape from the
     artificial requirement (imposed by Coq's restrictions on Fixpoint
     definitions) that evaluation should be a total function.  But it
@@ -2006,6 +2144,15 @@ Qed.
 
     In fact, this cannot happen: the evaluation relation [ceval] is a
     partial function.  Here's the proof: *)
+(** 評価の定義を計算的なものから関係的なものに変更するのは、
+    評価は全関数であるべきという (Fixpoint の定義における 
+    Coq の制限によって課せられる) 不自然な要求から逃れさせてくれる良い変更です。
+    しかしこれは、2 つ目の評価の定義は本当に部分関数なのか？という疑問ももたらします。
+    つまり、同じ状態 [st] から始めて、あるコマンド [c] を違った方法で評価し、
+    2 つの異なる出力状態 [st'] と [st''] に至るのは可能か？ということです。
+
+   実際には、こうなることはありません。評価関係 [ceval] は部分関数です。
+   以下に証明を挙げます: *)
 
 Theorem ceval_deterministic: forall c st st1 st2,
      c / st || st1  ->
@@ -2047,8 +2194,10 @@ Proof.
       subst st'0.
       apply IHE1_2. assumption.  Qed.
 
-(** Here's a slicker proof, using the fact that the relational and
+(*  Here's a slicker proof, using the fact that the relational and
     step-indexed definition of evaluation are the same. *)
+(** 以下に、より巧みな証明を示します。
+    これは関係による定義と指数を利用した定義の評価が同じである事実を利用しています。*)
 
 Theorem ceval_deterministic' : forall c st st1 st2,
      c / st || st1  ->
@@ -2066,14 +2215,19 @@ Proof.
   omega. omega.  Qed.
 
 (* ####################################################### *)
-(** * Reasoning About Programs *)
+(*  * Reasoning About Programs *)
+(** * プログラムの検証 *)
 
-(** We'll get much deeper into systematic techniques for reasoning
+(*  We'll get much deeper into systematic techniques for reasoning
     about programs in Imp in the following chapters, but we can do
     quite a bit just working with the bare definitions.  This section
     explores some examples. *)
+(** ここから Imp におけるプログラムの検証に対する系統だったテクニックに深く関わっていきます。
+    しかし、その多くはむき出しの (もとの) 定義を扱うだけで出来ます。
+    この章では、いくつかの例を探します。*)
 
-(** ** Basic Examples *)
+(*  ** Basic Examples *)
+(** ** 基本的な例 *)
 
 Theorem plus2_spec : forall st n st',
   st X = n ->
@@ -2088,13 +2242,16 @@ Proof.
   inversion Heval. subst.
   apply update_eq.  Qed.
 
-(** **** Exercise: 3 stars, recommended (XtimesYinZ_spec) *)
-(** State and prove a specification of the XtimesYinZ Imp program. *)
+(*  **** Exercise: 3 stars, recommended (XtimesYinZ_spec) *)
+(** **** 練習問題: ★★★, recommended (XtimesYinZ_spec) *)
+(*  State and prove a specification of the XtimesYinZ Imp program. *)
+(** XtimesYinZ の Imp プログラムの仕様を書いて証明しなさい。*)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (loop_never_stops) *)
+(*  **** Exercise: 3 stars, recommended (loop_never_stops) *)
+(** **** 練習問題: ★★★, recommended (loop_never_stops) *)
 Theorem loop_never_stops : forall st st',
   ~(loop / st || st').
 Proof.
@@ -2116,12 +2273,16 @@ Fixpoint no_whiles (c : com) : bool :=
   | WHILE _ DO _ END  => false
   end.
 
-(** **** Exercise: 2 stars, optional (no_whilesR) *)
-(** The [no_whiles] property yields [true] on just those programs that
+(*  **** Exercise: 2 stars, optional (no_whilesR) *)
+(** **** 練習問題: ★★, optional (no_whilesR) *)
+(*  The [no_whiles] property yields [true] on just those programs that
     have no while loops.  Using [Inductive], write a property
     [no_whilesR] such that [no_whilesR c] is provable exactly when [c]
     is a program with no while loops.  Then prove its equivalence
     with [no_whiles]. *)
+(** 性質 [no_whiles] はプログラムが while ループを含まない場合 [true] を返します。
+    Inductive を使って [c] が while ループのないプログラムのとき証明可能な性質 [no_whilesR] を書きなさい。
+    さらに、それが [no_whiles] と等価であることを示しなさい。*)
 
 Inductive no_whilesR: com -> Prop :=
  (* FILL IN HERE *)
@@ -2133,22 +2294,29 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (no_whiles_terminating) *)
-(** Imp programs that don't involve while loops always terminate.
+(*  **** Exercise: 4 stars, optional (no_whiles_terminating) *)
+(** **** 練習問題: ★★★★, optional (no_whiles_terminating) *)
+(*  Imp programs that don't involve while loops always terminate.
     State and prove a theorem that says this. *)
-(** (Use either [no_whiles] or [no_whilesR], as you prefer.) *)
+(** while ループを含まない Imp プログラムは必ず停止します。
+    これを定理として記述し、証明しなさい。*)
+(*  (Use either [no_whiles] or [no_whilesR], as you prefer.) *)
+(** ([no_whiles] と [no_whilesR] のどちらでも好きなほうを使いなさい。) *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** ** Proving a Program Correct (Optional) *)
+(*  ** Proving a Program Correct (Optional) *)
+(** ** プログラム正当性 Proving a Program Correct (Optional) *)
 
-(** Recall the factorial program: *)
+(*  Recall the factorial program: *)
+(** 階乗のプログラムを思い出しましょう: *)
 
 Print fact_body. Print fact_loop. Print fact_com.
 
-(** Here is an alternative "mathematical" definition of the factorial
+(*  Here is an alternative "mathematical" definition of the factorial
     function: *)
+(** 階乗関数の別の「数学的な」定義を以下に示します: *)
 
 Fixpoint real_fact (n:nat) : nat :=
   match n with
@@ -2156,13 +2324,17 @@ Fixpoint real_fact (n:nat) : nat :=
   | S n' => n * (real_fact n')
   end.
 
-(** We would like to show that they agree -- if we start [fact_com] in
+(*  We would like to show that they agree -- if we start [fact_com] in
     a state where variable [X] contains some number [x], then it will
     terminate in a state where variable [Y] contains the factorial of
     [x].
 
     To show this, we rely on the critical idea of a _loop
     invariant_. *)
+(** 変数 [X] がある数 [x] を持つ状態で [fact_com] を実行すると、
+    変数 [Y] が [x] の階乗の値を持つ状態で停止する、ということを示したくなります。
+    
+    これを示すため、ループ不変式 (_loop invariant_) という重要な概念を使います。 *)
 
 Definition fact_invariant (x:nat) (st:state) :=
   (st Y) * (real_fact (st Z)) = real_fact x.
@@ -2221,7 +2393,8 @@ Proof.
   Case "E_WhileLoop".
     apply IHHce2. reflexivity.  Qed.
 
-(** Patching it all together... *)
+(*  Patching it all together... *)
+(** これらをすべてつなぎ合わせましょう... *)
 
 Theorem fact_com_correct : forall st st' x,
      st X = x ->
@@ -2251,15 +2424,19 @@ Proof.
   Case "st'' Z > 0 (impossible)". inversion H5.
 Qed.
 
+(*  One might wonder whether all this work with poking at states and
+    unfolding definitions could be ameliorated with some more powerful
+    lemmas and/or more uniform reasoning principles... Indeed, this is
+    exactly the topic of the next chapter ([Hoare.v])! *)
 (** One might wonder whether all this work with poking at states and
     unfolding definitions could be ameliorated with some more powerful
     lemmas and/or more uniform reasoning principles... Indeed, this is
     exactly the topic of the next chapter ([Hoare.v])! *)
 
 (** **** Exercise: 4 stars, optional (subtract_slowly_spec) *)
-(** Prove a specification for subtract_slowly, using the above
-    specification of [fact_com] and the invariant below as
-    guides. *)
+(** **** 練習問題: ★★★★, optional (subtract_slowly_spec) *)
+(** 上の [fact_com] の仕様、および以下の不変式をガイドとして、
+    subtract_slowly の仕様を証明しなさい。 *)
 
 Definition ss_invariant (x:nat) (z:nat) (st:state) :=
   minus (st Z) (st X) = minus z x.
@@ -2268,10 +2445,12 @@ Definition ss_invariant (x:nat) (z:nat) (st:state) :=
 (** [] *)
 
 (* ####################################################### *)
-(** * Additional Exercises *)
+(*  * Additional Exercises *)
+(** * 追加の練習問題 *)
 
-(** **** Exercise: 4 stars, optional (add_for_loop) *)
-(** Add C-style [for] loops to the language of commands, update the
+(*  **** Exercise: 4 stars, optional (add_for_loop) *)
+(** **** 練習問題: ★★★★, optional (add_for_loop) *)
+(*  Add C-style [for] loops to the language of commands, update the
     [ceval] definition to define the semantics of [for] loops, and add
     cases for [for] loops as needed so that all the proofs in this file
     are accepted by Coq.
@@ -2283,12 +2462,24 @@ Definition ss_invariant (x:nat) (z:nat) (st:state) :=
     that makes up the body of the loop.  (You don't need to worry
     about making up a concrete Notation for [for] loops, but feel free
     to play with this too if you like.) *)
+(** C 風の [for] ループをコマンドの言語に追加し、[ceval] の定義を
+   [for] ループの意味も与えるよう更新して、
+   このファイルにあるすべての証明が Coq に通るよう、
+   必要なところへ [for] ループに対する場合分けを追加しなさい。
+
+    [for] ループは (a) 初めに実行される主張、
+    (b) 各繰り返しで実行される、ループを続けてよいか決定するテスト、
+    (c) 各ループの繰り返しの最後に実行される主張、および
+    (d) ループの本体を構成する主張によってパラメタ化されていなければなりません。
+    ([for] ループに対する具体的な表記の構成を気にする必要はありませんが、
+    やりたければ自由にやって構いません。) *)
 
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars, optional (short_circuit) *)
-(** Most modern programming languages use a "short-circuit" evaluation
+(*  **** Exercise: 3 stars, optional (short_circuit) *)
+(** **** 練習問題: ★★★, optional (short_circuit) *)
+(*  Most modern programming languages use a "short-circuit" evaluation
     rule for boolean [and]: to evaluate [BAnd b1 b2], first evaluate
     [b1].  If it evaluates to [false], then the entire [BAnd]
     expression evaluates to [false] immediately, without evaluating
@@ -2298,11 +2489,21 @@ Definition ss_invariant (x:nat) (z:nat) (st:state) :=
     Write an alternate version of [beval] that performs short-circuit
     evaluation of [BAnd] in this manner, and prove that it is
     equivalent to [beval]. *)
+(** 多くのモダンなプログラミング言語はブール演算子 [and] に対し、
+    「省略した」実行を使っています。
+    [BAnd b1 b2] を実行するには、まず [b1] を評価します。
+    それが [false] に評価されるならば、[b2] の評価はせず、
+    すぐに [BAnd] 式全体の結果を [false] に評価します。
+    そうでなければ、[BAnd] 式の結果を決定するため、[b2] が評価されます。
+
+    このように [BAnd] を省略して評価する、別のバージョンの [beval] を書き、
+    それが [beavl] と等価であることを証明しなさい。 *)
 
 (* FILL IN HERE *)
 
 (** **** Exercise: 4 stars, recommended (stack_compiler) *)
-(** HP Calculators, programming languages like Forth and Postscript,
+(** **** 練習問題: ★★★★, recommended (stack_compiler) *)
+(*  HP Calculators, programming languages like Forth and Postscript,
     and abstract machines like the Java Virtual Machine all evaluate
     arithmetic expressions using a stack. For instance, the expression
 <<
@@ -2340,6 +2541,40 @@ Definition ss_invariant (x:nat) (z:nat) (st:state) :=
      - [SMinus]:  Similar, but subtract.
      - [SMult]:   Similar, but multiply.
 *)
+(** HP 計算機、Forth や Postscript などのプログラミング言語、
+   および Java Virtual Machine などの抽象機械はすべて、スタックを使って算術式を評価します。
+   例えば、
+<<
+   (2*3)+(3*(4-2))
+>>
+   という式は
+<<
+   2 3 * 3 4 2 - * +
+>>
+   と入力され、以下のように実行されるでしょう:
+<<
+  []            |    2 3 * 3 4 2 - * +
+  [2]           |    3 * 3 4 2 - * +
+  [3, 2]        |    * 3 4 2 - * +
+  [6]           |    3 4 2 - * +
+  [3, 6]        |    4 2 - * +
+  [4, 3, 6]     |    2 - * +
+  [2, 4, 3, 6]  |    - * +
+  [2, 3, 6]     |    * +
+  [6, 6]        |    +
+  [12]          |
+>>
+
+  この練習問題のタスクは、[eaxp] をスタック機械の命令列に変換する小さなコンパイラを書き、その正当性を証明することです。
+
+  スタック言語の命令セットは、以下の命令から構成されます:
+     - [SPush n]: 数 [n] をスタックにプッシュする。
+     - [SLoad X]: ストアから識別子 [X] に対応する値を読み込み、スタックにプッシュする。
+     - [SPlus]:   スタックの先頭の 2 つの数をポップし、それらを足して、
+                  結果をスタックにプッシュする。
+     - [SMinus]:  上と同様。ただし引く。
+     - [SMult]:   上と同様。ただし掛ける。
+*)
 
 Inductive sinstr : Type :=
 | SPush : nat -> sinstr
@@ -2348,7 +2583,7 @@ Inductive sinstr : Type :=
 | SMinus : sinstr
 | SMult : sinstr.
 
-(** Write a function to evaluate programs in the stack language. It
+(*  Write a function to evaluate programs in the stack language. It
     takes as input a state, a stack represented as a list of
     numbers (top stack item is the head of the list), and a program
     represented as a list of instructions, and returns the stack after
@@ -2360,6 +2595,18 @@ Inductive sinstr : Type :=
     immaterial, since our compiler will never emit such a malformed
     program. However, when you do the correctness proof you may find
     some choices makes the proof easier than others. *)
+(** スタック言語のプログラムを評価するための関数を書きなさい。
+    入力として、状態、数のリストとして表現されたスタック
+    (スタックの先頭要素はリストの先頭)、
+    および命令のリストとして表現されたプログラムを受け取り、
+    受け取ったプログラムの実行した後のスタックを返します。
+    下にある例で、その関数のテストをしなさい。
+
+    上の仕様では、スタックが 2 つ未満の要素しか含まずに [SPlus] や [SMinus]、
+    [SMult] 命令に至った場合を明示していないままなことに注意しましょう。
+    我々のコンパイラはそのような奇形のプログラムは生成しないので、
+    これは重要でないという意味です。
+    しかし正当性の証明をするときは、いくつかの選択のほうが証明をより簡単にすることに気づくかもしれません。*)
 
 Fixpoint s_execute (st : state) (stack : list nat)
                    (prog : list sinstr)
@@ -2378,9 +2625,11 @@ Example s_execute2 :
    = [15, 4].
 (* FILL IN HERE *) Admitted.
 
-(** Next, write a function which compiles an [aexp] into a stack
+(*  Next, write a function which compiles an [aexp] into a stack
     machine program. The effect of running the program should be the
     same as pushing the value of the expression on the stack. *)
+(** 次に、[aexp] をスタック機械のプログラムにコンパイルする関数を書きなさい。
+    このプログラムを実行する影響は、もとの式の値をスタックに積むことと同じでなければなりません。*)
 
 Fixpoint s_compile (e : aexp) : list sinstr :=
 (* FILL IN HERE *) admit.
@@ -2392,9 +2641,11 @@ Example s_compile1 :
 Proof. reflexivity. Qed.
 *)
 
-(** Finally, prove the following theorem, stating that the [compile]
+(*  Finally, prove the following theorem, stating that the [compile]
     function behaves correctly.  You will need to start by stating a
     more general lemma to get a usable induction hypothesis. *)
+(** 最後に、[compile] 関数が正しく振る舞うことを述べている以下の定理を証明しなさい。
+    まずは使える帰納法の仮定を得るため、より一般的な補題を述べる必要があるでしょう。*)
 
 (* FILL IN HERE *)
 
