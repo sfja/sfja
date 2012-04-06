@@ -66,7 +66,7 @@ Definition funny_prop1'' := forall n, ev n -> ev (n+4).
 
 (* ########################################################### *)
 (*  * Conjunction *)
-(** * 論理積（Conjunction、AND） *)
+(** * 論理積、連言（Conjunction、AND） *)
 
 (*  The logical conjunction of propositions [P] and [Q] is
     represented using an [Inductive] definition with one
@@ -369,7 +369,7 @@ Definition MyProp_iff_ev : forall n, MyProp n <-> ev n :=
 
 (* ############################################################ *)
 (*  * Disjunction *)
-(** * 論理和（Disjunction、OR） *)
+(** * 論理和、選言（Disjunction、OR） *)
 
 (*  Disjunction ("logical or") can also be defined as an
     inductive proposition. *)
@@ -1125,7 +1125,7 @@ Proof.
     principle of _Leibniz equality_: what we mean when we say "[x] and
     [y] are equal" is that every property on [P] that is true of [x]
     is also true of [y]. *)
-(** 二つ目の定義の優れたところは、Coqが生成する帰納法の公理が正確に
+(** 二つ目の定義の優れたところは、Coqが生成する帰納法の原理が正確に
     「ライプニッツの同値関係（ _Leibniz equality_ ）」と親和している点です。
     それはつまり、「[x] と [y] が等しいということは、 任意の命題 [P] が
      [x] でtrueとなるならば [y] でもtrueとなる」ということです。
@@ -1596,9 +1596,9 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
 [[
     [1,6,2]
 ]]
-    and
+    と、
 [[
-    [4,3].
+    [4,3]
 ]]
     課題は、この仕様をCoq の定理の形に書き直し、それを証明することです。
     （ヒント：まず、一つのりすとが二つのリストをマージしたものとなっている、
@@ -1691,13 +1691,20 @@ Proof.
 (** [] *)
 
 (* ######################################################### *)
-(** ** Digression: More Facts about [<=] and [<] *)
+(*  ** Digression: More Facts about [<=] and [<] *)
+(** ** 少し脱線: [<=] と [<] についてのさらなる事実*)
 
-(** Let's pause briefly to record several facts about the [<=]
+(*  Let's pause briefly to record several facts about the [<=]
     and [<] relations that we are going to need later in the
     course.  The proofs make good practice exercises. *)
+(** ここで少し新しいことを中断して、 [<=] や [<] といった関係についての
+    事実をいくつか書き溜めていくことにしましょう。それらはここから先に進む際に
+    必要になってくるばかりでなく、その証明自体がとてもよい練習問題に
+    なってくれます。 *)
 
-(** **** Exercise: 2 stars, optional (le_exercises) *)
+(*  **** Exercise: 2 stars, optional (le_exercises) *)
+(** **** 練習問題: ★★, optional (le_exercises) *)
+
 Theorem O_le_n : forall n,
   0 <= n.
 Proof.
@@ -1749,8 +1756,9 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (nostutter) *)
-(** Formulating inductive definitions of predicates is an important skill
+(*  **** Exercise: 3 stars, recommended (nostutter) *)
+(** **** 練習問題: ★★★, recommended (nostutter) *)
+(*  Formulating inductive definitions of predicates is an important skill
     you'll need in this course.
 
     Try to solve this exercise without any help at all.   If you do receive
@@ -1763,12 +1771,24 @@ Proof.
     predicate in the exercise above; the sequence [1,4,1] repeats but
     does not stutter.)
 *)
+(** 述語の帰納的な定義を定式化できるようになるというのは、これから先の学習に
+    必要なスキルになってきます。
 
+    この練習問題は、何の力も借りず自力で解いてください。
+    もし誰かの力を借りてしまった場合は、そのことをコメントに書いておいて
+    ください。
+
+    同じ数値が連続して現れるリストを "stutters" （どもったリスト）と
+    呼ぶことにします。述語 "[nostutter mylist]" は、 [mylist]  が「どもった
+    リスト」でないことを意味しています。[nostutter] の帰納的な定義を記述しなさい。
+    （これは以前の練習問題に出てきた [no_repeats] という述語とは異なるものです。
+    リスト [1,4,1] は repeats ではありますが stutter ではありません。）
+ *)
 Inductive nostutter:  list nat -> Prop :=
  (* FILL IN HERE *)
 .
 
-(** Make sure each of these tests succeeds, but you are free
+(*  Make sure each of these tests succeeds, but you are free
     to change the proof if the given one doesn't work for you.
     Your definition might be different from mine and still correct,
     in which case the examples might need a different proof.
@@ -1779,7 +1799,18 @@ Inductive nostutter:  list nat -> Prop :=
     You should be able to just uncomment and use them as-is, but if
     you prefer you can also prove each example with more basic
     tactics.  *)
+(** できた定義が、以下のテストを通過することを確認してください。
+    通過できないものがあったら、定義を修正してもかまいません。
+    あなたの書いた定義が、正しくはあるけれど私の用意した模範解答と異なって
+    いるかもしれません。その場合、このテストを通過するために別の
+    証明を用意する必要があります。
 
+    以下の Example にコメントとして提示された証明には、色々な種類の 
+    [nostutter] の定義に対応できるようにするため、まだ説明していない
+    タクティックがいくつか使用されています。 まずこれらのコメントをはずしただけの
+    状態で確認できればいいのですが、もしそうしたいなら、これらの証明をもっと
+    基本的なタクティックで書き換えて証明してもかまいません。
+ *)
 Example test_nostutter_1:      nostutter [3,1,4,1,5,6].
 (* FILL IN HERE *) Admitted.
 (*
@@ -1809,15 +1840,26 @@ Example test_nostutter_4:      not (nostutter [3,1,1,4]).
 *)
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (pigeonhole principle) *)
-(** The "pigeonhole principle" states a basic fact about counting:
+(*  **** Exercise: 4 stars, optional (pigeonhole principle) *)
+(** **** 練習問題: ★★★★, optional (pigeonhole principle) *)
+(*  The "pigeonhole principle" states a basic fact about counting:
    if you distribute more than [n] items into [n] pigeonholes, some
    pigeonhole must contain at least two items.  As is often the case,
    this apparently trivial fact about numbers requires non-trivial
    machinery to prove, but we now have enough... *)
+(** 「鳩の巣定理（ "pigeonhole principle" ）」は、「数えるあげる」という
+    ことについての基本的な事実を提示しています。「もし [n] 個の鳩の巣に
+    [n] 個より多い数のものを入れようとするなら、どのような入れ方をしても
+    いくつかの鳩の巣には必ず一つ以上のものが入ることになる。」というもので、
+    この、数値に関する見るからに自明な事実を証明するにも、なかなか自明とは言えない
+    手段が必要になります。我々は既にそれを知っているのですが...
+ *)
 
-(** First a pair of useful lemmas... (we already proved this for lists
+(*  First a pair of useful lemmas... (we already proved this for lists
     of naturals, but not for arbitrary lists.) *)
+(** まず、補題を二つほど証明しておきます。（既に数値のリストについては
+    証明済みのものですが、任意のリストについてはのものはまだないので）
+ *)
 
 Lemma app_length : forall {X:Type} (l1 l2 : list X),
   length (l1 ++ l2) = length l1 + length l2.
@@ -1830,19 +1872,29 @@ Lemma appears_in_app_split : forall {X:Type} (x:X) (l:list X),
 Proof.
   (* FILL IN HERE *) Admitted.
 
-(** Now define a predicate [repeats] (analogous to [no_repeats] in the
+(*  Now define a predicate [repeats] (analogous to [no_repeats] in the
    exercise above), such that [repeats X l] asserts that [l] contains
    at least one repeated element (of type [X]).  *)
+(** そして、述語 [repeats] の定義をします（以前の練習問題 [no_repeats] に
+    類似したものです）。それは [repeats X l] が、「 [l] の中に少なくとも一組の
+    同じ要素（型 [X] の）を含む」という主張となるようなものです。
+ *)
 
 Inductive repeats {X:Type} : list X -> Prop :=
   (* FILL IN HERE *)
 .
 
-(** Now here's a way to formalize the pigeonhole principle. List [l2]
+(*  Now here's a way to formalize the pigeonhole principle. List [l2]
    represents a list of pigeonhole labels, and list [l1] represents an
    assignment of items to labels: if there are more items than labels,
    at least two items must have the same label.  You will almost
    certainly need to use the [excluded_middle] hypothesis. *)
+(** この「鳩の巣定理」を定式化する方法を一つ挙げておきましょう。
+    リスト [l2] が鳩の巣に貼られたラベルの一覧を、リスト [l1] はそのラベルの、
+    アイテムへの割り当ての一覧を表しているとします。もしラベルよりも沢山の
+    アイテムがあったならば、少なくとも二つのアイテムに同じラベルが貼られている
+    ことになります。おそらくこの証明には「排中律（ [excluded_middle] ）」が
+    必要になるでしょう。 *)
 
 Theorem pigeonhole_principle: forall {X:Type} (l1 l2:list X),
   excluded_middle ->
@@ -1854,31 +1906,41 @@ Proof.  intros X l1. induction l1.
 (** [] *)
 
 (* ##################################################### *)
-(** * Optional Material *)
+(*  * Optional Material *)
+(** * 選択課題 *)
 
 (* ################################################### *)
-(** ** Induction Principles for [/\] and [\/] *)
+(*  ** Induction Principles for [/\] and [\/] *)
+(** ** [/\] や [\/] のための帰納法の原理 *)
 
-(** The induction principles for conjunction and disjunction are a
+(*  The induction principles for conjunction and disjunction are a
     good illustration of Coq's way of generating simplified induction
     principles for [Inductive]ly defined propositions, which we
     discussed in the last chapter.  You try first: *)
+(** 論理積（連言）や論理和（連言）に関する帰納法の原理は、帰納的に定義された
+    命題に対して簡約された帰納法の原理を Coq が生成する方法をとてもよく示しています。
+    これについては最後の章でお話しします。とりあえずこれに挑戦してみてください。
+ *)
 
-(** **** Exercise: 1 star (and_ind_principle) *)
-(** See if you can predict the induction principle for conjunction. *)
+(*  **** Exercise: 1 star (and_ind_principle) *)
+(** **** 練習問題: ★ (and_ind_principle) *)
+(*  See if you can predict the induction principle for conjunction. *)
+(** 連言（ conjunction ）についての帰納法の原理を予想して、確認しなさい。 *)
 
 (* Check and_ind. *)
 (** [] *)
 
-(** **** Exercise: 1 star (or_ind_principle) *)
-(** See if you can predict the induction principle for disjunction. *)
+(*  **** Exercise: 1 star (or_ind_principle) *)
+(** **** 練習問題: ★ (or_ind_principle) *)
+(*  See if you can predict the induction principle for disjunction. *)
+(** 選言（ disjunction ）についての帰納法の原理を予想して、確認しなさい。 *)
 
 (* Check or_ind. *)
 (** [] *)
 
 Check and_ind.
 
-(** From the inductive definition of the proposition [and P Q]
+(*  From the inductive definition of the proposition [and P Q]
 [[
      Inductive and (P Q : Prop) : Prop :=
        conj : P -> Q -> (and P Q).
@@ -1920,18 +1982,68 @@ Check and_ind.
             P \/ Q -> P0
 ]]
 *)
+(** 命題 [and P Q] の帰納的な定義から、 
+[[
+     Inductive and (P Q : Prop) : Prop :=
+       conj : P -> Q -> (and P Q).
+]]
+    我々は Coq がこのような帰納法の原理を生成することを期待します。
+[[
+     and_ind_max :
+       forall (P Q : Prop) (P0 : P /\ Q -> Prop),
+            (forall (a : P) (b : Q), P0 (conj P Q a b)) ->
+            forall a : P /\ Q, P0 a
+]]
+    しかし実際には、もっとシンプルで使いやすいものが生成されます。
+[[
+     and_ind :
+       forall P Q P0 : Prop,
+            (P -> Q -> P0) ->
+            P /\ Q -> P0
+]]
+    同様に、 [or P Q] の帰納的な定義が与えられると、
+[[
+     Inductive or (P Q : Prop) : Prop :=
+       | or_introl : P -> or P Q
+       | or_intror : Q -> or P Q.
+]]
+    以下のような、原則通りの帰納法の原理を制する代わりに、
+[[
+     or_ind_max :
+       forall (P Q : Prop) (P0 : P \/ Q -> Prop),
+            (forall a : P, P0 (or_introl P Q a)) ->
+            (forall b : Q, P0 (or_intror P Q b)) ->
+            forall o : P \/ Q, P0 o
+]]
+    Coq はこのような帰納法の原理が生成されます。
+[[
+     or_ind :
+       forall P Q P0 : Prop,
+            (P -> P0) ->
+            (Q -> P0) ->
+            P \/ Q -> P0
+]]
+*)
 
 (* ######################################################### *)
-(** ** Explicit Proof Objects for Induction *)
+(*  ** Explicit Proof Objects for Induction *)
+(** ** 帰納法のための明白な証明オブジェクト *)
 
 
-(** Although tactic-based proofs are normally much easier to
+(*  Although tactic-based proofs are normally much easier to
     work with, the ability to write a proof term directly is sometimes
     very handy, particularly when we want Coq to do something slightly
     non-standard.  *)
+(** タクティックを使った証明は一般に簡単に済むことが多いですが、証明式を
+    直接書いてしまえるなら、そうしたほうが簡単な場合もあります。特に、
+    Coq にちょっとだけ変わった方法をとらせたい時はそうです。
+ *)
 
-(** Recall the induction principle on naturals that Coq generates for
+(*  Recall the induction principle on naturals that Coq generates for
     us automatically from the Inductive declation for [nat]. *)
+(** [nat] の帰納的な定義からCoqが自動的に生成した自然数に関する帰納法の
+    原理を思い出してください。
+ *)
 
 (* Check nat_ind. *)
 (* ===>
@@ -1940,9 +2052,13 @@ Check and_ind.
       (forall n : nat, P n -> P (S n)) ->
       forall n : nat, P n  *)
 
-(** There's nothing magic about this induction lemma: it's just
+(*  There's nothing magic about this induction lemma: it's just
    another Coq lemma that requires a proof.  Coq generates the proof
    automatically too...  *)
+(** この帰納法についての補題には何のタネも仕掛けもありません。
+    これは単に、証明を必要とする Coq の別の補題です。Coq はこれにも
+    自動的に証明を生成してくれます。
+ *)
 
 Print nat_ind.  Print nat_rect.
 (* ===> (after some manual inlining)
@@ -1957,7 +2073,7 @@ Print nat_ind.  Print nat_rect.
             end.
 *)
 
-(** We can read this as follows:
+(*  We can read this as follows:
      Suppose we have evidence [f] that [P] holds on 0,  and
      evidence [f0] that [forall n:nat, P n -> P (S n)].
      Then we can prove that [P] holds of an arbitrary nat [n] via
@@ -1998,6 +2114,54 @@ Print nat_ind.  Print nat_rect.
     non-standard induction principle that goes "by twos":
 
  *)
+(* ===> (after some manual inlining)
+   nat_ind =
+    fun (P : nat -> Type)
+        (f : P 0%nat)
+        (f0 : forall n : nat, P n -> P (S n)) =>
+          fix F (n : nat) : P n :=
+             match n as n0 return (P n0) with
+            | 0%nat => f
+            | S n0 => f0 n0 (F n0)
+            end.
+*)
+(** これは次のように読めます :
+     [P] が 0 の場合に成り立つという根拠 [f] と [forall n:nat, P n -> P (S n)]
+     の根拠 [f0] があると仮定します。
+     そうすると、 [P] が任意の自然数 [n] で成り立つことを、再帰的に定義された
+     関数 [F] （ここでは、トップレベルで使われる [Fixpoint] ではなく、
+      [Fix] を使って定義されています）を使って示すことができます。
+     [F] は [n] について以下のようなパターンマッチをしています：
+      - もし 0 ならば、 [F] は [f] を [P n] が成り立つことの根拠とする。
+      - もし [S n0] ならば、[F] は [P n0] が成り立つ根拠を手に入れるために、[n0] を持ってそれ自身を再帰呼び出しする。そうして得た根拠が [f0] に適用され [P (S n)] が成り立つことが示される。
+    [F] は、集合 [Set] ではなく、根拠  [Prop] を操作することになっただけの
+    普通の再帰的な関数です。
+
+    関数型プログラミングが少し面白くなるような脇道です。もしかするとあなたは
+    関数 [F] の [match] が、アノテーション [as n0 return (P n0)] を必要としている
+    ことに気づいたかもしれません。それは Coq の型チェッカが二つの [match] の
+    枝が、実は同じ型 [P n] を返すことを明確にするために必要なものなのですが、
+    これは本質的に Haskell の GADT (generalized algebraic datatype) と同じものです。
+    実際、 [F] は依存型（ _dependent_ type ）をしており、その結果の方はその引数に
+    依存します。 GADT はこのような単純な依存型を表現する際に使えます。
+    
+    我々は、 [nat_ind] の証明に使用したこのようなアプローチを、
+    標準的でない（ _non-standard_ ）帰納法の原理を証明する際にも使うことができます。
+    以前このような証明をしようとしていたことを思い出してください。
+    
+    [forall n : nat, even n -> ev n].
+
+    これを、通常の [n] に対する帰納法でやろうとしても失敗してしまいます。
+    なぜなら、この帰納法の原理は [even n -> even (S n)] を証明しようとする
+    時にしかうまく機能してくれないからです。これはもちろん証明不能な命題です。
+    このような場合、前の章ではちょっとした小技を使いました。
+
+    [Theorem even_ev : forall n : nat,
+     (even n -> ev n) /\ (even (S n) -> ev (S n))].
+
+    これについては、標準的でない帰納法の原理（二つずつ、となるような）を
+    定義して証明することで、より良い証明が得られます。
+ *)
 
  Definition nat_ind2 :
     forall (P : nat -> Prop),
@@ -2012,13 +2176,20 @@ Print nat_ind.  Print nat_rect.
                            | S (S n') => PSS n' (f n')
                           end.
 
- (** Once you get the hang of it, it is entirely straightforward to
+(*  Once you get the hang of it, it is entirely straightforward to
      give an explicit proof term for induction principles like this.
      Proving this as a lemma using tactics is much less intuitive (try
      it!).
 
      The [induction ... using] tactic gives a convenient way to
      specify a non-standard induction principle like this. *)
+(** 一度これを手にいれてしまえば、今回のような帰納法の原理を使った
+    証明全般にこれを使うことができます。これを補題としてタクティックを
+    使うと、さらに直観に反したものになります（試してみてください！）。
+     
+     [induction ... using] タクティックは、このように標準的でない
+     帰納法の原理を取る際に便利です。
+ *)
 
 Lemma even_ev' : forall n, even n -> ev n.
 Proof.
@@ -2034,9 +2205,10 @@ Proof.
 Qed.
 
 (* ######################################################### *)
-(** ** The Coq Trusted Computing Base *)
+(*  ** The Coq Trusted Computing Base *)
+(** ** Coq の信頼できるコンピューティング基盤 *)
 
-(** One issue that arises with any automated proof assistant is "why
+(*  One issue that arises with any automated proof assistant is "why
     trust it?": what if there is a bug in the implementation that
     renders all its reasoning suspect?
 
@@ -2087,13 +2259,62 @@ Qed.
 ]]
       Again, this is perfectly well-typed, but (fortunately) Coq will
       reject it. *)
+(** ここで一つの疑問が起こってきます。自動化された証明アシスタントが
+    「なぜ信用できるのか？」という疑問です。つまり、これらの実装に
+    バグがあるなら、その証明にも疑いを持たざるを得ません。
 
-(** Note that the soundness of Coq depends only on the correctness of
+    このような考えを完全に排除することはできませんが、Coq カリー・ハワード同型対応を
+    その基礎に置いているという事実は Coq 自身の強い基礎ともなっています。
+    なぜなら、命題は型であり、証明は項であり、まだ証明されていない命題が
+    妥当かどうかを調べることは、項の型をチェックする（ _type-checking_ ）ことに
+    等しいからです。型チェッカは十分に信頼できるほど小さく率直に書かれた
+    プログラムであり、それこそが Coq の「信頼できるコンピューティング基盤」と
+    なっています。その「信頼性が必要となる一部のコード」は正確に動き、また
+    十分に小さいのです。
+    
+    型チェッカの役割とはなんでしょうか？その一番の役割は、各々の関数の適用で、
+    予想された型と実際の型が一致していることを確認することです。つまり、
+     [match] の各枝の式が、帰納的な型のコンストラクタと対応しており、すべてが
+     同じ型を返すようになっているか、などです。
+    
+    しかしこれには若干の弱点もあります。
+
+    - Coq の型はそれ自身が式となっているため、その型チェッカがそれらを比較する前際に、変換ルールに基づいて正規化しなければならない。
+
+    - 型チェッカは、 [match] の式が「尽くされている（_exhaustive_ ）ことを確認しなければならない。つまり、その型ににあるコンストラクタに対応する枝をすべて持っていなければならい。その理由は、次に提示された証明オブジェクトについて考えればわかるはずです。
+      
+[[
+      Definition or_bogus : forall P Q, P \/ Q -> P :=
+        fun (P Q : Prop) (A : P \/ Q) =>
+           match A with
+           | or_introl H => H
+           end.
+]]
+      この定義では、型は正しく一致していますが、 [match] が [or] の一方の
+      コンストラクタのことしか考えていません。Coq は、このようなケースがないか
+      をチェックし、このような定義を拒絶します。
+
+    - 型チェッカは、各 [fix] の式が終了することを確認しなければならない。これは文法レベルで「各々の再帰呼び出しに元々の引数にわたってきた式の部分式が渡されていること」をチェックをすることで実現されている。この理由の本質的なところを理解するために次の証明について考えてください。
+[[
+          Definition nat_false : forall (n:nat), False :=
+             fix f (n:nat) : False := f n.
+]]
+      やはり、これも型について何も問題はありませんが、残念なことに Coq はこの定義を
+      拒絶します。 *)
+
+(*  Note that the soundness of Coq depends only on the correctness of
     this typechecking engine, not on the tactic machinery.  If there
     is a bug in a tactic implementation (and this certainly does
     happen!), that tactic might construct an invalid proof term.  But
     when you type [Qed], Coq checks the term for validity from
     scratch.  Only lemmas whose proofs pass the type-checker can be
     used in further proof developments.  *)
+(** Coq の「確実さ」は、タクティックの仕組みではなく、型チェックの仕組みに
+    よってもたらされていることに注目してください。もしタクティックの実装に
+    バグがあれば（実際にこれはあったことです！）、タクティックは間違った証明
+    を構築してしまうでしょう。しかし、[Qed] を入力した時点で、Coq はその正しさを
+    １から検証しなおします。型チェッカを通過した補題のみ、その後の証明の
+    構築に使える定理となることができるのです。
+ *)
 
 

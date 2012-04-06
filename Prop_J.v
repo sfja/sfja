@@ -2027,7 +2027,7 @@ Proof.
 
            <集合 [S] の各コンストラクタ [c] について...>
 
-           - [n = c a1 ... ak] と仮定して、<...もし必要なら [S} のそれぞれの要素 [a] についてIHであることをを示す。>ならば
+           - [n = c a1 ... ak] と仮定して、<...もし必要なら [S] のそれぞれの要素 [a] についてIHであることをを示す。>ならば
               <...ここで再び [P(c a1 ... ak)] を示す> である。
 
              < [P(n)] を証明してこのケースを終わらせる...>
@@ -2146,7 +2146,7 @@ Proof.
 
 (* ##################################################### *)
 (*  * Optional Material *)
-(** * できればやっておいてもらいたいこと *)
+(** * 選択課題 *)
 
 (*  This section offers some additional details on how induction works
     in Coq.  It can safely be skimmed on a first reading.  (We
@@ -2154,7 +2154,7 @@ Proof.
     answers some questions that occur to many Coq users at some point,
     so it is useful to have a rough idea of what's here.) *)
 
-(** この項では、Coqにおいて帰納法がどのように帰納しているか、もう少し詳しく示していきたいと思います。
+(** この項では、Coqにおいて帰納法がどのように機能しているか、もう少し詳しく示していきたいと思います。
     最初にこの項を読むときは、全体を読み流す感じでもかまいません（完全に
     読み飛ばすのではなく、概要だけでも眺めてください。ここに書いてあることは、
     多くのCoqユーザーにとって、概要だけでも頭に入れておくことで、いつか直面する問題に
