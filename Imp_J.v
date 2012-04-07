@@ -1593,7 +1593,7 @@ Definition fact_com : com :=
 (*  * Evaluation *)
 (** * 評価 *)
 
-(** Next we need to define what it means to evaluate an Imp command.
+(* Next we need to define what it means to evaluate an Imp command.
     [WHILE] loops actually make this a bit tricky... *)
 (** 次に、Imp のコマンドの実行が何を意味するかを定義する必要があります。
     [WHILE] ループは、これを少々扱いにくいものにしています ... *)
@@ -1851,7 +1851,7 @@ Proof. reflexivity. Qed.
     正確に言うと、[c / st || st'] と書いたらプログラム [c] を初期状態 [st] で評価すると、
     その結果は最終状態 [st'] になる、ということを意味します。
     これは「[c] は状態 [st] を [st'] に持っていく」とも言えます。
-[[[
+[[
                            ----------------                            (E_Skip)
                            SKIP / st || st
 
@@ -1883,7 +1883,7 @@ Proof. reflexivity. Qed.
                   WHILE b1 DO c1 END / st' || st''
                   ---------------------------------               (E_WhileLoop)
                     WHILE b1 DO c1 END / st || st''
-]]]
+]]
 *)
 
 
@@ -1969,7 +1969,7 @@ Proof.
 (*  ** Equivalence of Relational and Step-Indexed Evaluation *)
 (** ** 関係による評価とステップ指数を利用した評価の等価性 *)
 
-(** As with arithmetic and boolean expressions, we'd hope that
+(* As with arithmetic and boolean expressions, we'd hope that
     the two alternative definitions of evaluation actually boil down
     to the same thing.  This section shows that this is the case.
     Make sure you understand the statements of the theorems and can
@@ -2035,7 +2035,7 @@ Proof.
 
 (*  **** Exercise: 4 stars (ceval_step__ceval_inf) *)
 (** **** 練習問題: ★★★★ (ceval_step__ceval_inf) *)
-(** Write an informal proof of [ceval_step__ceval], following the
+(* Write an informal proof of [ceval_step__ceval], following the
     usual template.  (The template for case analysis on an inductively
     defined value should look the same as for induction, except that
     there is no induction hypothesis.)  Make your proof communicate
@@ -2307,7 +2307,7 @@ Proof.
 (** [] *)
 
 (*  ** Proving a Program Correct (Optional) *)
-(** ** プログラム正当性 Proving a Program Correct (Optional) *)
+(** ** プログラム正当性 (Optional) *)
 
 (*  Recall the factorial program: *)
 (** 階乗のプログラムを思い出しましょう: *)
@@ -2428,12 +2428,12 @@ Qed.
     unfolding definitions could be ameliorated with some more powerful
     lemmas and/or more uniform reasoning principles... Indeed, this is
     exactly the topic of the next chapter ([Hoare.v])! *)
-(** One might wonder whether all this work with poking at states and
-    unfolding definitions could be ameliorated with some more powerful
-    lemmas and/or more uniform reasoning principles... Indeed, this is
-    exactly the topic of the next chapter ([Hoare.v])! *)
+(** この、状態をつっついて定義を展開するような全体のやり方を、何かより強力な補題や、
+    より一貫性のある推論原理で改善できないのかと思う人もいるかもしれません。
+    実は、それがまさに次の章([Hoare_J.v])の主題です! *)
 
-(** **** Exercise: 4 stars, optional (subtract_slowly_spec) *)
+
+(* **** Exercise: 4 stars, optional (subtract_slowly_spec) *)
 (** **** 練習問題: ★★★★, optional (subtract_slowly_spec) *)
 (** 上の [fact_com] の仕様、および以下の不変式をガイドとして、
     subtract_slowly の仕様を証明しなさい。 *)
@@ -2501,7 +2501,7 @@ Definition ss_invariant (x:nat) (z:nat) (st:state) :=
 
 (* FILL IN HERE *)
 
-(** **** Exercise: 4 stars, recommended (stack_compiler) *)
+(* **** Exercise: 4 stars, recommended (stack_compiler) *)
 (** **** 練習問題: ★★★★, recommended (stack_compiler) *)
 (*  HP Calculators, programming languages like Forth and Postscript,
     and abstract machines like the Java Virtual Machine all evaluate
@@ -2541,7 +2541,7 @@ Definition ss_invariant (x:nat) (z:nat) (st:state) :=
      - [SMinus]:  Similar, but subtract.
      - [SMult]:   Similar, but multiply.
 *)
-(** HP 計算機、Forth や Postscript などのプログラミング言語、
+(** HP の電卓、Forth や Postscript などのプログラミング言語、
    および Java Virtual Machine などの抽象機械はすべて、スタックを使って算術式を評価します。
    例えば、
 <<
