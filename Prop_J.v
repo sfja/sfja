@@ -1374,7 +1374,7 @@ Proof.
     残ったサブゴールは、元のゴールが成り立つことを示すのに必要な場合分けです。
 
     先ほどの例で、 [inversion] は [ev (S (S n))] の分析に用いられ、 これはコンストラクタ [ev_SS] を使って構築されていることを判定し、そのコンストラクタの引数を仮定に追加した新しいサブゴールを生成しました。(今回は使いませんでしたが、補助的な等式も生成しています。)
-    このあとの例では、inversionのより一般的な振る舞いについて調べていきましょう。
+    このあとの例では、inversion のより一般的な振る舞いについて調べていきましょう。
 *)
 
 (* **** Exercise: 1 star (inversion_practice) *)
@@ -1580,19 +1580,19 @@ Proof.
       hypothesis. [] *)
 (** この定理の非形式的な証明は次のようになります。
 
-    _Theorem_: 任意の自然数 [n] において、もし [ev n] ならば [MyProp n] が成り立つ。
+    _Theorem_ : 任意の自然数 [n] において、もし [ev n] ならば [MyProp n] が成り立つ。
 
-    _Proof_: [n] を [nat] とし、[ev n] の導出を [E] とします。
+    _Proof_ : [n] を [nat] とし、[ev n] の導出を [E] とします。
     [MyProp n] の導出を示さなければなりません。 
     [E] の帰納法について証明を行うので、以下の2つの場合について考えなければなりません。
 
-    - [E]の最後のステップが[ev_0]だった場合、 [n] は [0] となる。
+    - [E] の最後のステップが[ev_0]だった場合、 [n] は [0] となる。
       その場合、[MyProp 0]が成り立つをことを示さなければならない; 
       補題 [MyProp_0] よりこれは真である。
 
-    -  [E]の最後のステップが[ev_SS]だった場合、 [n = S (S n')] となる [n']  が存在し、 [ev n'] の導出が存在する。 
-       [MyProp n'] が成り立つという帰納法の仮定を用いて、[MyProp (S (S n'))]を示さなければなりません。
-       しかし、補題 [MyProp_plustwo] により、[MyProp n']を示せば十分であることがわかり、さらにそれは帰納法の仮定そのものです。
+    -  [E] の最後のステップが [ev_SS] だった場合、 [n = S (S n')] となる [n']  が存在し、 [ev n'] の導出が存在する。 
+       [MyProp n'] が成り立つという帰納法の仮定を用いて、[MyProp (S (S n'))] を示さなければなりません。
+       しかし、補題 [MyProp_plustwo] により、[MyProp n'] を示せば十分であることがわかり、さらにそれは帰納法の仮定そのものです。
 
 *)
 
@@ -1631,7 +1631,7 @@ Proof.
 (* Now that we've touched on several of Coq's basic structures,
     it may be useful to take a step back and talk a little about how
     it all fits together. *)
-(** これまでCoqの基本的な構造についていくつか触れてきたので、
+(** これまで Coq の基本的な構造についていくつか触れてきたので、
     ここでは一歩引いてそれらがどのように組み合わさっているか少しだけ見てみましょう。
 *)
 
@@ -1644,7 +1644,7 @@ Proof.
    but they play quite different roles in defining and reasoning about
    mathematical structures. *)
 
-(** Coqの式は2つの異なる空間のどちらかに属しています。
+(** Coq の式は2つの異なる空間のどちらかに属しています。
       - [Type] は計算とデータの空間です。
       - [Prop] は論理的表明と根拠の空間です。
 
@@ -1705,10 +1705,10 @@ Proof.
      - [ev_SS (S (S (S (S O)))) (ev_SS (S (S O)) ev_0)]
 
     そのような式は木として考えることもできます。
-    葉は0引数のコンストラクタ(引数なしで適用された)であり、内部ノードは1個以上の値に対して適用されたコンストラクタです。
-    [Type]空間において、値はデータとして捉えます。
-    [Prop]において、値を根拠として捉えます。
-    [Prop]における値は、導出木と呼ばれることもあります。
+    葉は0引数のコンストラクタ（引数なしで適用された）であり、内部ノードは1個以上の値に対して適用されたコンストラクタです。
+    [Type] 空間において、値はデータとして捉えます。
+    [Prop] において、値を根拠として捉えます。
+    [Prop] における値は、導出木と呼ばれることもあります。
 
     関数もまた値です。例えば、
      - [fun x => true]
@@ -1716,9 +1716,9 @@ Proof.
      - [fun n => S (S (S n))]
      - [fun n => fun (P : ev n) => ev_SS (S (S n)) P]
 
-   [Type]空間の値を返す関数は、計算を表します: 入力値を受け取り、入力から計算した出力値を返します。
-   [Prop]の値を返す関数は、全量子化された根拠と呼ばれます。 すなわち、ある命題に対する根拠を作るのに入力も用います。
-   (作られる命題も入力を使うかもしれません。)
+   [Type] 空間の値を返す関数は、計算を表します: 入力値を受け取り、入力から計算した出力値を返します。
+   [Prop] の値を返す関数は、全量子化された根拠と呼ばれます。 すなわち、ある命題に対する根拠を作るのに入力も用います。
+  （作られる命題も入力を使うかもしれません。）
  *)
 (*  ** Inductive Definitions *)
 (** ** 帰納的定義 *)
@@ -1764,7 +1764,7 @@ Proof.
     例えば、帰納的な型 [nat] の定義は、要素の全てが自然数を表しているような集合を表します。つまり、 帰納的な定義が「全ての値の集合」から以下のような属性を持つ要素だけを抜き出して部分集合 [nat] を作っていると考えられます。
       - 値 [O] はこの集合の要素である。
       - この集合は、 [S] の適用に対し閉じている（つまり、値 [n] がこの集合の要素なら [S n] もまたこの集合の要素である）。
-      - これらの条件を満たす最小の集合がこの集合である。 (つまり集合 [nat] の要素だけが上の二つの条件を満たしていて、それ以外のものはこの集合に入っていない）。
+      - これらの条件を満たす最小の集合がこの集合である。（つまり集合 [nat] の要素だけが上の二つの条件を満たしていて、それ以外のものはこの集合に入っていない）。
 
     帰納的に定義された集合は、それ自身が複合的な値のコンストラクタの引数となることもあります。例えば、以下のようなものです。
       - [nat]
@@ -1775,7 +1775,7 @@ Proof.
 
     同様に、帰納的な型 [ev] の定義は、その数字が偶数であるという根拠となる命題を集めたものの定義です。このことは、全ての [n] について、この定義が全ての値の集合から以下の条件を満たす値を全て集めて部分集合 [ev n] を抜き出してくるような定義、ということです。
       - 値 [ev_0] は集合 [ev O] の要素である。
-      - この集合は [ev_SS]の型が正しい（well-typed な）適用に関して閉じている。
+      - この集合は [ev_SS] の型が正しい（well-typed な）適用に関して閉じている。
          -- つまり、もし値 [e] が集合 [ev n] の要素なら、
         値[ev_SS n e] は集合 [ev (S (S n))] の要素である。;
       - これらの条件を満たす最小の集合がこの集合である。 (つまり集合 [ev n] の要素だけが上の二つの条件を満たしていて、それ以外のものはこの集合に入っていない）。 *)
@@ -1824,7 +1824,7 @@ Proof.
 
 (** 命題とブール値は、一見とてもよく似ているように見えます。しかしこの二つは根本的に違うものです！
 
-    - ブール値は、「計算の世界における値」です。 [bool] 型の式は全て、（自由変数を持っていない限り）必ず[true] か [false] のどちらかに簡約することができます。
+    - ブール値は、「計算の世界における値」です。 [bool] 型の式は全て、（自由変数を持っていない限り）必ず [true] か [false] のどちらかに簡約することができます。
 
     - 命題は「論理の世界にいおける型」です。これらは「証明可能（この型の式を書くことができる）」か、「証明不能（そのような式は存在しない）」かのいずれかです。従って「命題が [true] である」というような言い方は意味を持ちません。
 
@@ -1852,14 +1852,14 @@ Proof.
     example, the type of [fun x:nat => x + x] can be written, if we
     like, as [forall x:nat, nat]. *)
 
-(** [A->B] という型も [forall x:A, B] という型も、どちらも型[A] から型[B] への関数である、という点については同じです。この二つの唯一の違いは、後者の場合戻り値の型 「B] が引数 [x] を参照できるということです。たとえば、
+(** [A->B] という型も [forall x:A, B] という型も、どちらも型[A] から型[B] への関数である、という点については同じです。この二つの唯一の違いは、後者の場合戻り値の型 [B] が引数 [x] を参照できるということです。たとえば、
 
        - 関数 [fun x:nat => x + x] は型 [nat->nat] を持っていますが、このことは任意の数 [n] を別の数に対応させるもの、ということです。
 
        - 対して、関数 [fun X : Type => nil (list X)] は [forall
          X : Type, list (list X)] という型になります。これは、任意の集合 [X] を、 [X] 型のリストのリストに対応させるもの、ということになります。（もちろん、[nil] は通常 [nil X] と書く代わりに [[]] と書くのが普通ですが。）
 
-    実際、関数を記述するためのこれら二つの書き方はほぼ同じですが、 Coqでは [A->B] の書き方は、[x] が[B] の定義の中に変数として現れない限り、[fun x:nat => x + x] のただの省略形と考えていいでしょう。例えば、好みならばこれを [forall x:nat, nat] と書いてもいいのです。 *)
+    実際、関数を記述するためのこれら二つの書き方はほぼ同じですが、 Coq では [A->B] の書き方は、[x] が[B] の定義の中に変数として現れない限り、[fun x:nat => x + x] のただの省略形と考えていいでしょう。例えば、好みならばこれを [forall x:nat, nat] と書いてもいいのです。 *)
 
 (** ** 関数 vs. 含意 *)
 
@@ -1884,7 +1884,7 @@ Proof.
       - 関数を引数にしたり、関数を戻り値にしたりする高階関数を書くこと。
       - 関数をコンストラクタに適用し、関数を保持したさらに複雑な値を作り出すこと。
 
-    [Prop] 型を扱う [P->Q] という型の関数は、根拠 [P] を引数にとり、新たな根拠 [Q] を結果として生成するものです。このような関数はそれ自身が「[P] ならば [Q] である」ということの根拠であると見なせます。そのことから、[P] が真であるという根拠があるなら、それを関数に適用して [Q] が真であるという根拠を得ることができます。含意に根拠を与えるということは、関数に根拠を与えるということと同じです。このことが、我々がCoqで関数と論理学の「含意」に同じ表記を与えている理由です。これらは全く同じものなのです。 *)
+    [Prop] 型を扱う [P->Q] という型の関数は、根拠 [P] を引数にとり、新たな根拠 [Q] を結果として生成するものです。このような関数はそれ自身が「[P] ならば [Q] である」ということの根拠であると見なせます。そのことから、[P] が真であるという根拠があるなら、それを関数に適用して [Q] が真であるという根拠を得ることができます。含意に根拠を与えるということは、関数に根拠を与えるということと同じです。このことが、我々が Coq で関数と論理学の「含意」に同じ表記を与えている理由です。これらは全く同じものなのです。 *)
 
 (* ####################################################### *)
 (*  * Informal Proofs *)
@@ -2044,7 +2044,7 @@ Proof.
         _Proof_: [l] についての帰納法で証明する。
 
         - まず、[l = []] と仮定して、任意の [n] でこれが成り立つことを示す。もし length [[] = n] ならば [index (S n) [] = None] 。
-          これは indexの定義から直接導かれる 。
+          これは index の定義から直接導かれる 。
 
         - 次に、 [x] と [l'] において [l = x :: l'] と仮定して、任意の [n'] について
           [length l' = n'] ならば [index (S n') l' = None] である時、任意の [n] について、
@@ -2094,11 +2094,11 @@ Proof.
 *)
 (** 帰納的に定義された証明オブジェクトは、しばしば”導出木”と呼ばれるため、この形の証明は「導出による帰納法（ _induction on derivations_ ）」として知られています。
 
-    _Template_:
+    _Template_ :
 
-       - _Theorem_: <"[Q -> P]," という形を持った命題。ただし [Q] は帰納的に定義された命題 (さらに一般的には、"For all [x] [y] [z], [Q x y z -> P x y z]" という形の命題)>
+       - _Theorem_ : <"[Q -> P]," という形を持った命題。ただし [Q] は帰納的に定義された命題（さらに一般的には、"For all [x] [y] [z], [Q x y z -> P x y z]" という形の命題）>
 
-         _Proof_: [Q] の導出による帰納法で証明する。 <もしくは、さらに一般化して、" [x], [y], [z]を仮定して、[Q x y z] ならば [P x y z] を示す。[Q x y z]の導出による帰納法によって"...>
+         _Proof_ : [Q] の導出による帰納法で証明する。 <もしくは、さらに一般化して、" [x], [y], [z]を仮定して、[Q x y z] ならば [P x y z] を示す。[Q x y z]の導出による帰納法によって"...>
 
            <各コンストラクタ [c] による値 [Q] について...>
 
@@ -2114,7 +2114,7 @@ Proof.
 (* 
     _Example_
 
-       - _Theorem_: The [<=] relation is transitive -- i.e., for all
+       - _Theorem_ : The [<=] relation is transitive -- i.e., for all
          numbers [n], [m], and [o], if [n <= m] and [m <= o], then
          [n <= o].
 
@@ -2131,11 +2131,11 @@ Proof.
 (**  
     _Example_
 
-       - _Theorem_: [<=] という関係は推移的である -- すなわち、任意の
+       - _Theorem_ : [<=] という関係は推移的である -- すなわち、任意の
          数値 [n], [m], [o] について、もし [n <= m] と [m <= o] が成り立つ
          ならば [n <= o] である。
 
-         _Proof_: [m <= o] についての帰納法で証明する。
+         _Proof_ : [m <= o] についての帰納法で証明する。
 
            -  [m <= o] が [le_n] であることを示した最後のルールを仮定する。
               それにより [m = o] であることとその結果が直接導かれる。
@@ -2156,10 +2156,10 @@ Proof.
     answers some questions that occur to many Coq users at some point,
     so it is useful to have a rough idea of what's here.) *)
 
-(** この項では、Coqにおいて帰納法がどのように機能しているか、もう少し詳しく示していきたいと思います。
+(** この項では、Coq において帰納法がどのように機能しているか、もう少し詳しく示していきたいと思います。
     最初にこの項を読むときは、全体を読み流す感じでもかまいません（完全に
     読み飛ばすのではなく、概要だけでも眺めてください。ここに書いてあることは、
-    多くのCoqユーザーにとって、概要だけでも頭に入れておくことで、いつか直面する問題に
+    多くの Coq ユーザーにとって、概要だけでも頭に入れておくことで、いつか直面する問題に
     対する回答となりえるものです。） *)
 
 (* ##################################################### *)
@@ -2190,18 +2190,18 @@ Proof.
     低レベルな作業をこなすだけのものではありません。
 
     自然数に関する機能的な公理の非形式的な記述を思い出してみてください。:
-      - もし [P n] が数値nを意味する何かの命題だとして、命題 P が全ての数値nに
-        ついて成り立つことを閉めてしたい場合は、このような推論を
+      - もし [P n] が数値 n を意味する何かの命題だとして、命題 P が全ての数値 n に
+        ついて成り立つことを示したい場合は、このような推論を
         することができます。:
           - [P O] が成り立つことを示す
           - もし [P n'] が成り立つなら, [P (S n')] が成り立つことを示す。
-          - 任意のnについて [P n] が成り立つと結論する。
+          - 任意の n について [P n] が成り立つと結論する。
     我々が証明を [intros n] で始め、次に [induction n] とすると、
     これはCoqに「特定の」 [n] について（それを仮定取り込むことで）考えて
     から、その後でそれを帰納法を使って任意の数値にまで推し進めるよう
     示していることになります。
 
-    このようなときにCoqが内部的に行っていることは、帰納法を適用した変数を
+    このようなときに Coq が内部的に行っていることは、帰納法を適用した変数を
     「再一般化（ _re-generalize_ ）」することです。
     例えば、[plus] の結合則を証明するケースでは、
 *)
@@ -2221,7 +2221,7 @@ Proof.
      and hence also for the particular [n] that is in the context
      at the moment. *)
   (** ...ここで、[induction] タクティックを使い [P n] （任意の [n] に
-     ついて[n + (m + p) = (n + m) + p]）を証明し、すぐに、
+     ついて [n + (m + p) = (n + m) + p]）を証明し、すぐに、
      コンテキストにある特定の [n] についても証明します。 *)
   induction n as [| n'].
   Case "n = O". reflexivity.
@@ -2261,7 +2261,7 @@ Proof.
     into the context. *)
 (** [induction n] が [m] をゴールに残したままにしていることに注目してください。
     つまり、今証明しようとしている帰納的な性質は、[forall m] で表されて
-    いるということです。.
+    いるということです。
 
     もし [induction] をゴールにおいて量化された変数に対して他の量化子の後に
     適用すると、[induction] タクティックは自動的に変数をその量化子に基づいて
@@ -2298,7 +2298,7 @@ Proof.
     anything very familiar from everyday mathematics.  The following
     exercise gives a slightly contrived example. *)
 (** 冒険心を満足させるために、もう少し脱線してみましょう。
-     [Definition] でパラメータ化された命題を定義できるなら、 [Fixpoint]でも
+     [Definition] でパラメータ化された命題を定義できるなら、 [Fixpoint] でも
      定義できていいのではないでしょうか？もちろんできます！しかし、この種の
      「再帰的なパラメータ化」は、日常的に使われる数学の分野と必ずしも調和するわけでは
      ありません。そんなわけで次の練習問題は、例としてはいささか不自然かもしれません。
@@ -2561,10 +2561,10 @@ End P.
 
 (* ####################################################### *)
 (*  * Additional Exercises *)
-(** * Additional Exercises *)
+(** * 追加練習問題 *)
 
 (*  **** Exercise: 4 stars (palindromes) *)
-(** **** Exercise: 4 stars (palindromes) *)
+(** **** 練習問題: ★★★★ (palindromes) *)
 (*  A palindrome is a sequence that reads the same backwards as
     forwards.
 
@@ -2586,23 +2586,23 @@ End P.
        forall l, pal l -> l = rev l.
 ]]
 *)
-(** A palindrome is a sequence that reads the same backwards as
-    forwards.
+(** palindrome（回文）は、最初から読んでも逆から読んでも同じになるような
+    シーケンスです。
 
-    - Define an inductive proposition [pal] on [list X] that
-      captures what it means to be a palindrome. (Hint: You'll need
-      three cases.  Your definition should be based on the structure
-      of the list; just having a single constructor
+    - [list X] でパラメータ化され、それが palindrome であることを示すような帰納的
+    命題 [pal] を定義しなさい。（ヒント：これには三つのケースが必要です。この定義は、
+    リストの構造に基いたものとなるはずです。まず一つのコンストラクタ、
+
 [[
     c : forall l, l = rev l -> pal l
 ]]
-      may seem obvious, but will not work very well.)
+      は明らかですが、これはあまりうまくいきません。）
 
-    - Prove that
+    - 以下を証明しなさい。
 [[
        forall l, pal (l ++ rev l).
 ]]
-    - Prove that
+    - 以下を証明しなさい。
 [[
        forall l, pal l -> l = rev l.
 ]]
@@ -2612,15 +2612,15 @@ End P.
 (** [] *)
 
 (*  **** Exercise: 5 stars, optional (palindrome_converse) *)
-(** **** Exercise: 5 stars, optional (palindrome_converse) *)
+(** **** 練習問題: ★★★★★, optional (palindrome_converse) *)
 (*  Using your definition of [pal] from the previous exercise, prove
     that
 [[
      forall l, l = rev l -> pal l.
 ]]
 *)
-(** Using your definition of [pal] from the previous exercise, prove
-    that
+
+(**  一つ前の練習問題で定義した [pal] を使って、これを証明しなさい。
 [[
      forall l, l = rev l -> pal l.
 ]]
@@ -2630,7 +2630,7 @@ End P.
 (** [] *)
 
 (*  **** Exercise: 4 stars (subsequence) *)
-(** **** Exercise: 4 stars (subsequence) *)
+(** **** 練習問題: ★★★★ (subsequence) *)
 (*  A list is a _subsequence_ of another list if all of the elements
     in the first list occur in the same order in the second list,
     possibly with some extra elements in between. For example,
@@ -2667,48 +2667,40 @@ End P.
       of [l3], then [l1] is a subsequence of [l3].  Hint: choose your
       induction carefully!
 *)
-(** A list is a _subsequence_ of another list if all of the elements
-    in the first list occur in the same order in the second list,
-    possibly with some extra elements in between. For example,
+(** あるリストが、別のリストのサブシーケンス（ _subsequence_ ）であるとは、
+    最初のリストの要素が全て二つ目のリストに同じ順序で現れるということです。
+    ただし、その間に何か別の要素が入ってもかまいません。例えば、
 [[
     [1,2,3]
 ]]
-    is a subsequence of each of the lists
+    は、次のいずれのリストのサブシーケンスでもあります。
 [[
     [1,2,3]
     [1,1,1,2,2,3]
     [1,2,7,3]
     [5,6,1,9,9,2,7,3,8]
 ]]
-    but it is _not_ a subsequence of any of the lists
+    しかし、次のいずれのリストのサブシーケンスでもありません。
 [[
     [1,2]
     [1,3]
     [5,6,2,1,7,3,8]
 ]]
 
-    - Define an inductive proposition [subseq] on [list nat] that
-      captures what it means to be a subsequence. (Hint: You'll need
-      three cases.)
+    - [list nat] 上に、そのリストがサブシーケンスであることを意味するような命題 [subseq] を定義しなさい。（ヒント：三つのケースが必要になります）
 
-    - Prove that subsequence is reflexive, that is, any list is a
-      subsequence of itself.
+    - サブシーケンスである、という関係が「反射的」であることを証明しなさい。つまり、どのようなリストも、それ自身のサブシーケンスであるということです。
 
-    - Prove that for any lists [l1], [l2], and [l3], if [l1] is a
-      subsequence of [l2], then [l1] is also a subsequence of [l2 ++
-      l3].
+    - 任意のリスト [l1]、 [l2]、 [l3] について、もし [l1] が [l2] のサブシーケンスならば、 [l1] は [l2 ++ l3] のサブシーケンスでもある、ということを証明しなさい。.
 
-    - (Optional, harder) Prove that subsequence is transitive -- that
-      is, if [l1] is a subsequence of [l2] and [l2] is a subsequence
-      of [l3], then [l1] is a subsequence of [l3].  Hint: choose your
-      induction carefully!
+    - （これは少し難しいですので、任意とします）サブシーケンスという関係は推移的である、つまり、 [l1] が [l2] のサブシーケンスであり、 [l2] が [l3] のサブシーケンスであるなら、 [l1] は [l3] のサブシーケンスである、というような関係であることを証明しなさい。（ヒント：何について帰納法を適用するか、よくよく注意して下さい。）
 *)
 
 (* FILL IN HERE *)
 (** [] *)
 
 (*  **** Exercise: 2 stars, optional (foo_ind_principle) *)
-(** **** Exercise: 2 stars, optional (foo_ind_principle) *)
+(** **** 練習問題: ★★, optional (foo_ind_principle) *)
 (*  Suppose we make the following inductive definition:
 [[
    Inductive foo (X : Set) (Y : Set) : Set :=
@@ -2728,15 +2720,15 @@ End P.
 ]]
 
 *)
-(** Suppose we make the following inductive definition:
+(** 次のような、帰納的な定義をしたとします：
 [[
    Inductive foo (X : Set) (Y : Set) : Set :=
      | foo1 : X -> foo X Y
      | foo2 : Y -> foo X Y
      | foo3 : foo X Y -> foo X Y.
 ]]
-   Fill in the blanks to complete the induction principle that will be
-   generated by Coq.
+   次の空欄を埋め、この定義のために Coq が生成する帰納法の原理を完成させなさい。
+
 [[
    foo_ind
         : forall (X Y : Set) (P : foo X Y -> Prop),
@@ -2749,8 +2741,8 @@ End P.
 *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (bar_ind_principle) *)
-(** Consider the following induction principle:
+(** **** 練習問題: ★★, optional (bar_ind_principle) *)
+(*  Consider the following induction principle:
 [[
    bar_ind
         : forall P : bar -> Prop,
@@ -2768,10 +2760,28 @@ End P.
 ]]
 
 *)
+(** 次に挙げた帰納法の原理について考えてみましょう：
+[[
+   bar_ind
+        : forall P : bar -> Prop,
+          (forall n : nat, P (bar1 n)) ->
+          (forall b : bar, P b -> P (bar2 b)) ->
+          (forall (b : bool) (b0 : bar), P b0 -> P (bar3 b b0)) ->
+          forall b : bar, P b
+]]
+   これに対応する帰納的な集合の定義を書きなさい。
+[[
+   Inductive bar : Set :=
+     | bar1 : ________________________________________
+     | bar2 : ________________________________________
+     | bar3 : ________________________________________.
+]]
+
+*)
 (** [] *)
 
 (*  **** Exercise: 2 stars, optional (no_longer_than_ind) *)
-(** **** Exercise: 2 stars, optional (no_longer_than_ind) *)
+(** **** 練習問題: ★★, optional (no_longer_than_ind) *)
 (*  Given the following inductively defined proposition:
 [[
   Inductive no_longer_than (X : Set) : (list X) -> nat -> Prop :=
@@ -2797,7 +2807,7 @@ End P.
 ]]
 
 *)
-(** Given the following inductively defined proposition:
+(** 次のような、帰納的に定義された命題が与えられたとします：
 [[
   Inductive no_longer_than (X : Set) : (list X) -> nat -> Prop :=
     | nlt_nil  : forall n, no_longer_than X [] n
@@ -2806,7 +2816,7 @@ End P.
     | nlt_succ : forall l n, no_longer_than X l n ->
                              no_longer_than X l (S n).
 ]]
-  write the induction principle generated by Coq.
+  この命題のために Coq が生成する帰納法の原理を完成させなさい。
 [[
   no_longer_than_ind
        : forall (X : Set) (P : list X -> nat -> Prop),
@@ -2825,7 +2835,7 @@ End P.
 (** [] *)
 
 (*  **** Exercise: 2 stars, optional (R_provability) *)
-(** **** Exercise: 2 stars, optional (R_provability) *)
+(** **** 練習問題: ★★, optional (R_provability) *)
 (*  Suppose we give Coq the following definition:
 [[
     Inductive R : nat -> list nat -> Prop :=
@@ -2839,14 +2849,14 @@ End P.
     - [R 1 [1,2,1,0]]
     - [R 6 [3,2,1,0]]
 *)
-(** Suppose we give Coq the following definition:
+(** Coq に次のような定義を与えたとします：
 [[
     Inductive R : nat -> list nat -> Prop :=
       | c1 : R 0 []
       | c2 : forall n l, R n l -> R (S n) (n :: l)
       | c3 : forall n l, R (S n) l -> R n l.
 ]]
-    Which of the following propositions are provable?
+    次のうち、証明可能なのはどの命題でしょうか？
 
     - [R 2 [1,0]]
     - [R 1 [1,2,1,0]]
