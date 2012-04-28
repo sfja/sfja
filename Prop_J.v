@@ -520,7 +520,7 @@ Print okdw'.
     inhabitant of a proposition [P] is a different way of giving
     evidence for [P].  If there are none, then [P] is not provable.
     If there are many, then [P] has many different proofs. *)
-(** 集合に空集合、単集合、有限集合、無限集合があり、それぞれが0個、個1、多数の元を持っているように、命題も0個、1個、多数、無限の証明を持ちえます。
+(** 集合に空集合、単集合、有限集合、無限集合があり、それぞれが0個、1個、多数の元を持っているように、命題も0個、1個、多数、無限の証明を持ちえます。
     命題 [P] の各要素は、それぞれ異なる [P] の根拠です。
     もし要素がないならば、[P] は証明不能です。
     もしたくさんの要素があるならば、[P] には多数の異なった証明があります。 *)
@@ -852,7 +852,7 @@ Inductive ExSet : Type :=
    applied to a type [X], gives us back an induction principle
    specialized to the type [list X]. *)
 
-(** 多相的なデータ型ではどのようになるでしょうか?
+(** 多相的なデータ型ではどのようになるでしょうか？
 
     多相的なリストの帰納的定義は [natlist] によく似ています。
 [[
@@ -862,8 +862,9 @@ Inductive ExSet : Type :=
 ]]
      ここでの主な違いは、定義全体が集合 [X] によってパラメータ化されていることです。
      つまり、それぞれの [X] ごとに帰納型 [list X] を定義していることになります。
-     (定義本体で [list] が登場するときは、常にパラメータ [X] に適用されていることに注意してください。)
-     帰納法の原理も同様に [X] によってパラメータ化されています。
+     (定義本体で [list] が登場するときは、常にパラメータ [X] に適用されていることに
+     注意してください。)
+     帰納法の原理も同様に [X] によってパラメータ化されます。
 [[
      list_ind :
        forall (X : Type) (P : list X -> Prop),
@@ -871,9 +872,10 @@ Inductive ExSet : Type :=
           (forall (x : X) (l : list X), P l -> P (x :: l)) ->
           forall l : list X, P l
 ]]
-   この言い回し（と [list_ind] の形)
-   ）に注意してください。
-   言い換えると、[list_ind] は多相関数と考えることができます。この関数は、型 [X] が適用されると、[list X] に特化した帰納法の原理を返します。 *)
+   この表現（と [list_ind] の全体的な形）に注目してください。帰納法の原理全体が 
+   [X] によってパラメータ化されています。
+   別の見方をすると、[list_ind] は多相関数と考えることができます。この関数は、型 
+   [X] が適用されると、[list X] に特化した帰納法の原理を返します。 *)
 
 (* **** Exercise: 1 star (tree) *)
 (** **** 練習問題: ★ (tree) *)
@@ -881,7 +883,7 @@ Inductive ExSet : Type :=
    the following datatype.  Compare your answer with what Coq
    prints. *)
 (** 次のデータ型に対してCoqが生成する帰納法の原理を予測しなさい。
-    Coqの出力と比較しなさい。 *)
+    答えが書けたら、それをCoqの出力と比較しなさい。 *)
 
 Inductive tree (X:Type) : Type :=
   | leaf : X -> tree X
@@ -1014,7 +1016,7 @@ Inductive foo' (X:Type) : Type :=
             (forall n : nat, P n -> P (S n))  ->
             forall n : nat, P n
 ]]
-    は、すべての命題 [P]（より正確にはnを引数にとる命題 [P] ）について成り立つ一般的な文です。
+    は、すべての命題 [P]（より正確には数値 n を引数にとる命題 [P] ）について成り立つ一般的な文です。
     この原理を使うときはいつも、[nat->Prop] という型を持つ式を [P] として選びます。
 
     この式に名前を与えることで、証明をもっと明確にできます。
@@ -1061,9 +1063,9 @@ Proof.
     implication -- the assumption that [P] holds of [n'], which we are
     allowed to use in proving that [P] holds for [S n']. *)
 
-(** この名前をつける手順は通常の証明では不要です。
-    しかし、1つか2つの例で試してみると、帰納法の仮定がどのようなものなのかが分かりやすくなります。
-    [forall n, P_m0r n] を [n] による帰納法（[induction] か [apply nat_ind] を使う）によって証明しようとすると、最初のサブゴールでは [P_m0r 0]（"[P] が0に対して成り立つ"）を証明しなければならず、2つめのサブゴールでは [forall n', P_m0r n' -> P_m0r n' (S n')]（"[P] が [n'] について成り立つならば、[P] が [S n'] につても成り立つ"あるいは" [P] が [S] によって保存される"）を証明しなければなりません。
+(** このように名前をつける手順は通常の証明では不要です。
+    しかし、1つ2つ試してみると、帰納法の仮定がどのようなものなのかが分かりやすくなります。
+    [forall n, P_m0r n] を [n] による帰納法（[induction] か [apply nat_ind] を使う）によって証明しようとすると、最初のサブゴールでは [P_m0r 0]（"[P] が0に対して成り立つ"）を証明しなければならず、2つめのサブゴールでは [forall n', P_m0r n' -> P_m0r (S n')]（"[P] が [n'] について成り立つならば、[P] が [S n'] についても成り立つ"あるいは" [P] が [S] によって保存される"）を証明しなければなりません。
     帰納法の仮定は、2つめの推論の基礎になっています -- [P] が [n'] について成り立つことを仮定することにより、それによって [P] が [S n'] について成り立つことを示すことができます。
 *)
 
@@ -1084,13 +1086,13 @@ Proof.
     even if a certain computation yields [true]"), we can say directly
     what the concept of evenness means in terms of evidence. *)
 
-(** これまで命題に関して議論してきたことのいくつかは、偶数の概念に関係しています。
-    偶数を判定するために[evenb n]を計算することから始め、真偽値を返していました。
+(** 最初の方で命題に関して議論してきた例のいくつかは、偶数の概念に結びついてきます。
+    これまでは偶数を判定するために [evenb n] を計算することから始め、真偽値を返していました。
     つぎに、[n] が偶数であることを主張する命題 [even n] を( [evenb] を使うことで）作りました。
-    つまり、"[n] が偶数である"を" [evenb] が [n] を適用されたときに [n] を返す"と定義していました。
+    つまり、"[n] が偶数である"を" [evenb] が [n] を適用されたときに [true] を返す"と定義していました。
 
     偶数性の概念をそのまま定義する別の方法があります。
-    [evenb] 関数（"ある計算が [true] を返すなら、その数は偶数である"）を使って間接的に定義するのではなく、「偶数とは何を意味するか」を根拠を使って直接定義することができます。
+    [evenb] 関数（"ある計算が [true] を返すなら、その数は偶数である"）を使って間接的に定義するのではなく、「偶数とは何を意味するか」を根拠を使って直接定義することができるのです。
 *)
 
 Inductive ev : nat -> Prop :=
@@ -1102,9 +1104,9 @@ Inductive ev : nat -> Prop :=
     [ev_0] is evidence for this.  Second, if [m = S (S n)] for some
     [n] and we can give evidence [e] that [n] is even, then [m] is
     also even, and [ev_SS n e] is the evidence. *)
-(** この定義は、数 [m] が偶数であるという根拠を与える方法は2つあることを示しています。
+(** この定義は、数 [m] が偶数であるという根拠を与える方法が2つあることを示しています。
     第一に、[0] は偶数であり、[ev_0] がこれに対する根拠です。
-    次に、適当な [n] に対して [m = S (S n)] であり、[n] が偶数であるという根拠 [e] を与えることができるならば、[m] も偶数であり、[ev_SS n e] がその根拠です。 *)
+    次に、任意の [n] に対して [m = S (S n)] とし、[n] が偶数であるという根拠 [e] を与えることができるならば、[m] も偶数であると言え、[ev_SS n e] がその根拠となります。 *)
 
 (* **** Exercise: 1 star, optional (four_ev) *)
 (** **** 練習問題: ★, optional (four_ev) *)
@@ -1144,7 +1146,7 @@ Proof.
 (** [] *)
 
 (* **** Exercise: 4 stars, optional (double_even_pfobj) *)
-(* **** 練習問題: ★★★★, optional (double_even_pfobj) *)
+(** **** 練習問題: ★★★★, optional (double_even_pfobj) *)
 (* Try to predict what proof object is constructed by the above
     tactic proof.  (Before checking your answer, you'll want to
     strip out any uses of [Case], as these will make the proof
@@ -1297,8 +1299,8 @@ Proof.
 (** [] *)
 (* [] *)
 
-(** **** 練習問題: ★★ (ev_sum) *)
 (* **** Exercise: 2 stars (ev_sum) *)
+(** **** 練習問題: ★★ (ev_sum) *)
 
 (*  Here's another exercise requiring induction. *)
 (** 帰納法が必要な別の練習問題をやってみましょう。 *)
@@ -1321,7 +1323,7 @@ Theorem SSev_ev_firsttry : forall n,
 Proof.
   intros n E.
   destruct E as [| n' E'].
-  (* Stuck: [destruct] gives us un-provable subgoals! *)
+  (* Stuck: [destruct] は証明できないサブゴールを提示してしまいます！ *)
 Admitted.
 
 
@@ -1364,14 +1366,14 @@ Proof.
     We'll begin exploring this more general behavior of inversion in
     what follows. *)
 (** このような [inversion] の使い方は最初はちょっと謎めいて思えるかもしれません。
-    これまでのところ、 [inversion] は等号に関する命題に対して使い、コンストラクタから元のデータを取り出すためか、別のコンストラクタを区別するためににしか使っていません。
-    しかし、ここでは [inversion] が 帰納的に定義された命題に対する根拠を分析するために使えることを紹介しました。
+    これまでは、 [inversion] は等号に関する命題に対して使い、コンストラクタから元のデータを取り出すためか、別のコンストラクタを区別するためににしか使っていませんでした。
+    しかし、ここでは [inversion] が 帰納的に定義された命題に対する根拠を分析するためにも使えることを紹介しました。
 
     ここで、[inversion] が一般にはどのように動作するかを説明します。 
     [I] が現在のコンテキストにおいて帰納的に宣言された仮定 [P] を参照しているとします。
     ここで、[inversion I] は、[P]のコンストラクタごとにサブゴールを生成します。 各サブゴールにおいて、 コンストラクタが [P] を証明するのに必要な条件によって [I] が置き換えられます。
     サブゴールのうちいくつかは矛盾が存在するので、 [inversion] はそれらを除外します。 
-    残ったサブゴールは、元のゴールが成り立つことを示すのに必要な場合分けです。
+    残っているのは、元のゴールが成り立つことを示すのに必要なサブゴールです。
 
     先ほどの例で、 [inversion] は [ev (S (S n))] の分析に用いられ、 これはコンストラクタ [ev_SS] を使って構築されていることを判定し、そのコンストラクタの引数を仮定に追加した新しいサブゴールを生成しました。(今回は使いませんでしたが、補助的な等式も生成しています。)
     このあとの例では、inversion のより一般的な振る舞いについて調べていきましょう。
