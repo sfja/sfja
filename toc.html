@@ -1,0 +1,1412 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="coqdoc.css" rel="stylesheet" type="text/css"/>
+<title>ソフトウェアの基礎</title>
+  <!-- Google Analytics -->
+  <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6143321-8']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+  </script>
+  <!-- Google Analytics -->
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+<div id="toc">
+<a href="Symbols_J.html"><h2>Symbols_J:概要</h2></a>
+<a href="Preface_J.html"><h2>Preface_J:前書き</h2></a>
+	<ul>
+	<li><a href="Preface_J.html#lab1">前書き</a></li>
+	<li><a href="Preface_J.html#lab2">概要</a></li>
+	<li><a href="Preface_J.html#lab3">実際の学習について</a>
+		<ul>
+		<li><a href="Preface_J.html#lab4">章間の依存関係</a></li>
+		<li><a href="Preface_J.html#lab5">学習者に要求される知識的前提</a></li>
+		</ul>
+	</li>
+	<li><a href="Preface_J.html#lab6">Coqについて</a>
+		<ul>
+		<li><a href="Preface_J.html#lab7">学習に必要なもの</a></li>
+		<li><a href="Preface_J.html#lab8">教材となるCoqファイルの入手方法</a></li>
+		</ul>
+	</li>
+	<li><a href="Preface_J.html#lab9">練習問題について</a></li>
+	<li><a href="Preface_J.html#lab10">推奨書籍</a></li>
+	<li><a href="Preface_J.html#lab11">教育関係者へ</a></li>
+	</ul>
+<a href="Basics_J.html"><h2>Basics_J: 関数プログラミングとプログラムの証明</h2></a>
+	<ul>
+	<li><a href="Basics_J.html#lab12">列挙型</a>
+		<ul>
+		<li><a href="Basics_J.html#lab13">曜日の表し方</a></li>
+		<li><a href="Basics_J.html#lab14">ブール型</a></li>
+		<li><a href="Basics_J.html#lab17">関数の型</a></li>
+		<li><a href="Basics_J.html#lab18">数値</a></li>
+		</ul>
+	</li>
+	<li><a href="Basics_J.html#lab21">簡約を用いた証明</a>
+	<li><a href="Basics_J.html#lab23"><span class="inlinecode"><span class="id" type="tactic">intros</span></span>タクティック</a></li>
+	<li><a href="Basics_J.html#lab24">書き換え（<span class="inlinecode"><span class="id" type="var">Rewriting</span></span>）による証明</a></li>
+	<li><a href="Basics_J.html#lab27">Case分析</a></li>
+	<li><a href="Basics_J.html#lab29">Caseへのネーミング</a></li>
+	<li><a href="Basics_J.html#lab31">帰納法</a></li>
+	<li><a href="Basics_J.html#lab35">形式的証明と非形式的証明</a></li>
+	<li><a href="Basics_J.html#lab39">証明の中で行う証明</a></li>
+	<li><a href="Basics_J.html#lab42">さらなる練習問題</a></li>
+	</ul>
+<a href="Lists_J.html"><h2>Lists_J: 直積、リスト、オプション</h2></a>
+	<ul>
+	<li><a href="Lists_J.html#lab48">数のペア</a></li>
+	<li><a href="Lists_J.html#lab50">数のリスト</a></li>
+	<li><a href="Lists_J.html#lab53">リストを使ったバッグ</a></li>
+	<li><a href="Lists_J.html#lab57">リストに関する推論</a>
+		<ul>
+		<li><a href="Lists_J.html#lab58">お小言</a></li>
+		<li><a href="Lists_J.html#lab59">リスト上の帰納法</a></li>
+		<li><a href="Lists_J.html#lab60"><span class="inlinecode"><span class="id" type="var">SearchAbout</span></span></a></li>
+		<li><a href="Lists_J.html#lab61">リストについての練習問題 (1)</a></li>
+		<li><a href="Lists_J.html#lab63">リストについての練習問題 (2)</a></li>
+		</ul>
+	</li>
+	<li><a href="Lists_J.html#lab67">オプション</a></li>
+	<li><a href="Lists_J.html#lab71"><span class="inlinecode"><span class="id" type="tactic">apply</span></span> タクティック</a></li>
+	<li><a href="Lists_J.html#lab75">帰納法の仮定を変更する</a></li>
+	<li><a href="Lists_J.html#lab79">練習問題: 辞書</a></li>
+	</ul>
+<a href="Poly_J.html"><h2>Poly_J: 多相性と高階関数</h2></a>
+	<ul>
+	<li><a href="Poly_J.html#lab82">ポリモルフィズム（多相性）</a>
+		<ul>
+		<li><a href="Poly_J.html#lab83">多相的なリスト</a>
+			<ul>
+			<li><a href="Poly_J.html#lab84">型推論</a></li>
+			<li><a href="Poly_J.html#lab85">引数の同化（Synthesys）</a></li>
+			<li><a href="Poly_J.html#lab86">暗黙の引数</a></li>
+			<li><a href="Poly_J.html#lab87">練習問題:多相的なリスト</a></li>
+			</ul>
+		<li><a href="Poly_J.html#lab89">多相的なペア</a></li>
+		<li><a href="Poly_J.html#lab92">多相的なオプション</a></li>
+		</ul>
+	</li>
+	<li><a href="Poly_J.html#lab94">データとしての関数</a>
+		<ul>
+		<li><a href="Poly_J.html#lab95">高階関数</a></li>
+		<li><a href="Poly_J.html#lab96">部分適用</a></li>
+		<li><a href="Poly_J.html#lab97">余談： カリー化</a></li>
+		<li><a href="Poly_J.html#lab99">フィルター (Filter)関数</a></li>
+		<li><a href="Poly_J.html#lab100">無名（匿名）関数</a></li>
+		<li><a href="Poly_J.html#lab103">マップ（Map）関数</a></li>
+		<li><a href="Poly_J.html#lab107">畳み込み（Fold）関数</a></li>
+		<li><a href="Poly_J.html#lab109">関数を作成する関数</a></li>
+		</ul>
+	</li>
+	<li><a href="Poly_J.html#lab111">さらにCoqについて</a>
+		<ul>
+		<li><a href="Poly_J.html#lab112"><span class="inlinecode"><span class="id" type="tactic">unfold</span></span>タクティック</a></li>
+		<li><a href="Poly_J.html#lab114">反転（Inversion）</a></li>
+		<li><a href="Poly_J.html#lab121">タクティックを仮定に使用する</a></li>
+		<li><a href="Poly_J.html#lab123"><span class="inlinecode"><span class="id" type="tactic">destruct</span></span>を複合式で使う</a></li>
+		<li><a href="Poly_J.html#lab127"><span class="inlinecode"><span class="id" type="var">remember</span></span>タクティック</a></li>
+		<li><a href="Poly_J.html#lab130"><span class="inlinecode"><span class="id" type="tactic">apply</span> ... <span class="id" type="keyword">with</span> ...</span>タクティック</a></li>
+		</ul>
+	<li><a href="Poly_J.html#lab132">まとめ</a></li>
+	<li><a href="Poly_J.html#lab133">さらなる練習問題</a></li>
+	</ul>
+<a href="Gen_J.html"><h2>Gen_J: 帰納法の仮定の一般化</h2></a>
+<a href="Prop_J.html"><h2>Prop_J: 命題と根拠</h2></a>
+	<ul>
+	<li><a href="Prop_J.html#lab145">命題によるプログラミング</a></li>
+	<li><a href="Prop_J.html#lab146">根拠</a>
+		<ul>
+		<li><a href="Prop_J.html#lab147">帰納的に定義された命題</a></li>
+		<li><a href="Prop_J.html#lab148">証明オブジェクト</a></li>
+		<li><a href="Prop_J.html#lab149">カリー・ハワード対応</a></li>
+		<li><a href="Prop_J.html#lab150">含意</a></li>
+		<li><a href="Prop_J.html#lab153">帰納的に定義された型に対する帰納法の原理</a></li>
+		<li><a href="Prop_J.html#lab162">帰納法の仮定</a></li>
+		<li><a href="Prop_J.html#lab163">偶数について再び</a></li>
+		<li><a href="Prop_J.html#lab168">根拠に対する帰納法の推論</a></li>
+		<li><a href="Prop_J.html#lab176">なぜ命題を帰納的に定義するのか?</a></li>
+		</ul>
+	</li>
+	<li><a href="Prop_J.html#lab180">全体像: Coqの2つの空間</a>
+		<ul>
+		<li><a href="Prop_J.html#lab181">値</a></li>
+		<li><a href="Prop_J.html#lab182">帰納的定義</a></li>
+		<li><a href="Prop_J.html#lab183">型と種類 (<i>kinds</i>)</a></li>
+		<li><a href="Prop_J.html#lab184">命題 vs. ブール値</a></li>
+		<li><a href="Prop_J.html#lab185">関数 vs. 限量子</a></li>
+		<li><a href="Prop_J.html#lab186">関数 vs. 含意</a></li>
+		</ul>
+	</li>
+	<li><a href="Prop_J.html#lab187">非形式的な証明</a>
+		<ul>
+		<li><a href="Prop_J.html#lab188">帰納法による非形式的な証明</a>
+			<ul>
+			<li><a href="Prop_J.html#lab189">帰納的に定義された集合についての帰納法</a></li>
+			<li><a href="Prop_J.html#lab190">帰納的に定義された命題についての帰納法</a></li>
+			</ul>
+		</li>
+		</ul>
+	</li>
+	<li><a href="Prop_J.html#lab191">選択課題</a>
+		<ul>
+		<li><a href="Prop_J.html#lab192"><span class="inlinecode"><span class="id" type="tactic">induction</span></span> タクティックについてもう少し</a></li>
+		<li><a href="Prop_J.html#lab195"><span class="inlinecode"><span class="id" type="keyword">Prop</span></span> における帰納法の原理</a></li>
+		</ul>
+	</li>
+	<li><a href="Prop_J.html#lab200">追加練習問題</a></li>
+	</ul>
+<a href="Logic_J.html"><h2>Logic_J: Coqにおける論理</h2></a>
+	<ul>
+	<li><a href="Logic_J.html#lab208">全称記号 と ならば</a></li>
+	<li><a href="Logic_J.html#lab209">論理積、連言（Conjunction、AND）</a>
+		<ul>
+		<li><a href="Logic_J.html#lab214">Iff （両含意）</a></li>
+		</ul>
+	</li>
+	<li><a href="Logic_J.html#lab217">論理和、選言（Disjunction、OR）</a>
+		<ul>
+		<li><a href="Logic_J.html#lab221"><span class="inlinecode"><span style="font-family: arial;">&and;</span></span> 、 <span class="inlinecode"><span style="font-family: arial;">&or;</span></span> の<span class="inlinecode"><span class="id" type="var">andb</span></span> 、<span class="inlinecode"><span class="id" type="var">orb</span></span> への関連付け</a></li>
+		</ul>
+	</li>
+	<li><a href="Logic_J.html#lab223">偽であるということ</a>
+		<ul>
+		<li><a href="Logic_J.html#lab225">真であるということ</a></li>
+		</ul>
+	</li>
+	<li><a href="Logic_J.html#lab227">否定</a>
+		<ul>
+		<li><a href="Logic_J.html#lab234">不等であるということ</a></li>
+		</ul>
+	</li>
+	<li><a href="Logic_J.html#lab237">存在量化子</a></li>
+	<li><a href="Logic_J.html#lab242">等しいということ（同値性）</a>
+		<ul>
+		<li><a href="Logic_J.html#lab244">Inversion 再び</a></li>
+		</ul>
+	</li>
+	<li><a href="Logic_J.html#lab245">命題としての関係</a>
+		<ul>
+		<li><a href="Logic_J.html#lab254">少し脱線: <span class="inlinecode">&lt;=</span> と <span class="inlinecode">&lt;</span> についてのさらなる事実</a></li>
+		</ul>
+	</li>
+	<li><a href="Logic_J.html#lab258">選択課題</a>
+		<ul>
+		<li><a href="Logic_J.html#lab259"><span class="inlinecode"><span style="font-family: arial;">&and;</span></span> や <span class="inlinecode"><span style="font-family: arial;">&or;</span></span> のための帰納法の原理</a></li>
+		<li><a href="Logic_J.html#lab262">帰納法のための明白な証明オブジェクト</a></li>
+		<li><a href="Logic_J.html#lab263">Coq の信頼できるコンピューティング基盤</a></li>
+		</ul>
+	</li>
+	</ul>
+<a href="Rel_J.html"><h2>Rel_J: 関係の性質</h2></a>
+	<ul>
+	<li><a href="Rel_J.html#lab264">関係の基本性質</a></li>
+	<li><a href="Rel_J.html#lab275">反射推移閉包</a></li>
+	</ul>
+<a href="SfLib_J.html"><h2>SfLib_J: Software Foundations ライブラリ</h2></a>
+	<ul>
+	<li><a href="SfLib_J.html#lab278">Coq スタンダードライブラリから</a></li>
+	<li><a href="SfLib_J.html#lab279">Basics.vから</a></li>
+	<li><a href="SfLib_J.html#lab280">Props.vから</a></li>
+	<li><a href="SfLib_J.html#lab281">Logic.vから</a></li>
+	<li><a href="SfLib_J.html#lab282">使い勝手のいいタクティックをいくつか</a></li>
+	</ul>
+<a href="Imp_J.html"><h2>Imp_J: 単純な命令型プログラム</h2></a>
+	<ul>
+	<li><a href="Imp_J.html#lab283">Sflib</a></li>
+	<li><a href="Imp_J.html#lab284">算術式とブール式</a>
+		<ul>
+		<li><a href="Imp_J.html#lab285">構文</a></li>
+		<li><a href="Imp_J.html#lab286">評価</a></li>
+		<li><a href="Imp_J.html#lab287">最適化(Optimization)</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab288">Coq の自動化</a>
+		<ul>
+		<li><a href="Imp_J.html#lab289">タクティカル(Tacticals)</a>
+			<ul>
+			<li><a href="Imp_J.html#lab290"><span class="inlinecode"><span class="id" type="tactic">try</span></span>タクティカル</a></li>
+			<li><a href="Imp_J.html#lab291"><span class="inlinecode">;</span>タクティカル</a></li>
+			</ul>
+		</li>
+		<li><a href="Imp_J.html#lab292">新しいタクティック記法を定義する</a>
+			<ul>
+			<li><a href="Imp_J.html#lab293">場合分けを万全にする</a></li>
+			</ul>
+		</li>
+		<li><a href="Imp_J.html#lab296"><span class="inlinecode"><span class="id" type="tactic">omega</span></span>タクティック</a></li>
+		<li><a href="Imp_J.html#lab297">便利なタクティックをさらにいくつか</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab298">関係としての評価</a>
+		<ul>
+		<li><a href="Imp_J.html#lab300">推論規則記法</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab301">変数を持つ式</a>
+		<ul>
+		<li><a href="Imp_J.html#lab302">識別子</a></li>
+		<li><a href="Imp_J.html#lab307">状態</a></li>
+		<li><a href="Imp_J.html#lab314">構文</a></li>
+		<li><a href="Imp_J.html#lab315">評価</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab316">コマンド</a>
+		<ul>
+		<li><a href="Imp_J.html#lab317">構文</a></li>
+		<li><a href="Imp_J.html#lab318">例</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab319">評価</a>
+		<ul>
+		<li><a href="Imp_J.html#lab320">評価関数</a></li>
+		<li><a href="Imp_J.html#lab323">関係としての評価</a></li>
+		<li><a href="Imp_J.html#lab325">関係による評価とステップ指数を利用した評価の等価性</a></li>
+		<li><a href="Imp_J.html#lab328">実行の決定性</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab329">プログラムの検証</a>
+		<ul>
+		<li><a href="Imp_J.html#lab330">基本的な例</a></li>
+		<li><a href="Imp_J.html#lab335">プログラム正当性 (Optional)</a></li>
+		</ul>
+	</li>
+	<li><a href="Imp_J.html#lab337">追加の練習問題</a></li>
+	</ul>
+<a href="ImpParser_J.html"><h2>ImpParser_J: Coqでの字句解析と構文解析</h2></a>
+	<ul>
+	<li><a href="ImpParser_J.html#lab341">内部処理</a>
+		<ul>
+		<li><a href="ImpParser_J.html#lab342">字句解析</a></li>
+		<li><a href="ImpParser_J.html#lab343">構文解析</a>
+			<ul>
+			<li><a href="ImpParser_J.html#lab344">Option と Error</a></li>
+			<li><a href="ImpParser_J.html#lab345">シンボルテーブル</a></li>
+			<li><a href="ImpParser_J.html#lab346">パーサ構築のための一般コンビネータ</a></li>
+			<li><a href="ImpParser_J.html#lab347">Impの再帰下降パーサ</a></li>
+			</ul>
+		</ul>
+	</li>
+	<li><a href="ImpParser_J.html#lab348">例</a></li>
+	</ul>
+	<a href="Equiv_J.html"><h2>Equiv_J: プログラムの同値性</h2></a>
+	<ul>
+	  <li><a href="Equiv_J.html#lab349">宿題割当てについての一般的アドバイス</a></li>
+	  <li><a href="Equiv_J.html#lab350">振る舞い同値性</a>
+	    <ul>
+	      <li><a href="Equiv_J.html#lab351">定義</a></li>
+	      <li><a href="Equiv_J.html#lab353">例</a></li>
+	    </ul>
+	  </li>
+	  <li><a href="Equiv_J.html#lab362">振る舞い同値の性質</a>
+	    <ul>
+	      <li><a href="Equiv_J.html#lab363">振る舞い同値は同値関係である</a></li>
+	      <li><a href="Equiv_J.html#lab364">振る舞い同値は合同関係である</a></li>
+	    </ul>
+	  </li>
+	  <li><a href="Equiv_J.html#lab367">ケーススタディ: 定数畳み込み</a>
+	    <ul>
+	      <li><a href="Equiv_J.html#lab368">プログラム変換の健全性</a></li>
+	      <li><a href="Equiv_J.html#lab369">定数畳み込み変換</a></li>
+	      <li><a href="Equiv_J.html#lab370">定数畳み込みの健全性</a></li>
+	      <li><a href="Equiv_J.html#lab373">(0 + n)の消去の健全性、再び</a></li>
+	    </ul>
+	  </li>
+	  <li><a href="Equiv_J.html#lab375">プログラムが同値でないことを証明する</a></li>
+	  <li><a href="Equiv_J.html#lab378">外延性を使わずに行う (Optional)</a></li>
+	  <li><a href="Equiv_J.html#lab386">さらなる練習問題</a></li>
+	</ul>
+<a href="ImpList_J.html"><h2>ImpList_J: Imp のリスト拡張</h2></a>
+	<ul>
+	<li><a href="ImpList_J.html#lab389">リストを持つ Imp プログラム</a>
+		<ul>
+		<li><a href="ImpList_J.html#lab390">定義の繰り返し</a></li>
+		<li><a href="ImpList_J.html#lab391">拡張</a></li>
+		<li><a href="ImpList_J.html#lab392">定義の繰り返し</a></li>
+		</ul>
+	</li>
+	</ul>
+	<a href="Hoare_J.html"><h2>Hoare_J: ホーア論理</h2></a>
+	<ul>
+	  <li><a href="Hoare_J.html#lab393">ホーア論理</a>
+	    <ul>
+	      <li><a href="Hoare_J.html#lab394">表明</a></li>
+	      <li><a href="Hoare_J.html#lab396">ホーアの三つ組</a></li>
+	      <li><a href="Hoare_J.html#lab399">最弱事前条件</a></li>
+	      <li><a href="Hoare_J.html#lab401">証明規則</a>
+		<ul>
+		  <li><a href="Hoare_J.html#lab402">代入</a></li>
+		  <li><a href="Hoare_J.html#lab406">帰結</a></li>
+		  <li><a href="Hoare_J.html#lab407">余談: <span class="inlinecode"><span class="id" type="tactic">eapply</span></span> タクティック</a></li>
+		  <li><a href="Hoare_J.html#lab408">Skip</a></li>
+		  <li><a href="Hoare_J.html#lab409">コマンド合成</a></li>
+		  <li><a href="Hoare_J.html#lab413">条件分岐</a></li>
+		  <li><a href="Hoare_J.html#lab414">ループ</a></li>
+		  <li><a href="Hoare_J.html#lab415">練習問題: <span class="inlinecode"><span class="id" type="var">REPEAT</span></span>のホーア規則</a></li>
+		  <li><a href="Hoare_J.html#lab417">修飾付きプログラム</a></li>
+		</ul>
+
+	      </li>
+	      <li><a href="Hoare_J.html#lab418">ホーア論理によるプログラムについての推論</a>
+		<ul>
+		  <li><a href="Hoare_J.html#lab419">例: 遅い引き算</a> </li>
+		  <li><a href="Hoare_J.html#lab420">練習問題: ゼロへの簡約</a> </li>
+		  <li><a href="Hoare_J.html#lab422">練習問題: 遅い足し算</a> </li>
+		  <li><a href="Hoare_J.html#lab425">例: パリティ</a> </li>
+		  <li><a href="Hoare_J.html#lab427">例: 平方根の探索</a> </li>
+		  <li><a href="Hoare_J.html#lab429">練習問題: 階乗</a> </li>
+		  <li><a href="Hoare_J.html#lab432">リストを扱うプログラムについての推論</a></li>
+		</ul>
+	      </li>
+	      <li><a href="Hoare_J.html#lab435">修飾付きプログラムの形式化</a>
+		<ul>
+		  <li><a href="Hoare_J.html#lab436">構文</a> </li>
+		  <li><a href="Hoare_J.html#lab437">検証条件の抽出</a> </li>
+		  <li><a href="Hoare_J.html#lab438">例</a> </li>
+		</ul>
+	      </li>
+	    </ul>
+          </li>
+        </ul>
+<a href="HoareAsLogic_J.html"><h2>HoareAsLogic_J: 論理としてのホーア論理</h2></a>
+<a href="Smallstep_J.html"><h2>Smallstep_J: スモールステップ操作的意味論</h2></a>
+<ul>
+  <li><a href="Smallstep_J.html#lab442">おもちゃの言語</a>
+    <ul>
+      <li><a href="Smallstep_J.html#lab444">値</a></li>
+      <li><a href="Smallstep_J.html#lab446">強進行と正規形</a></li>
+      <li><a href="Smallstep_J.html#lab450">練習問題</a></li>
+    </ul>
+  </li>
+  <li><a href="Smallstep_J.html#lab456">マルチステップ簡約</a><ul>
+      <li><a href="Smallstep_J.html#lab457">マルチステップ簡約</a></li>
+      <li><a href="Smallstep_J.html#lab461">正規形再び</a></li>
+      <li><a href="Smallstep_J.html#lab464">ビッグステップ簡約とスモールステップ簡約の同値性</a></li>
+      <li><a href="Smallstep_J.html#lab468">さらなる練習問題</a></li>
+    </ul>
+  </li>
+  <li><a href="Smallstep_J.html#lab470">スモールステップ Imp</a></li>
+  <li><a href="Smallstep_J.html#lab471">並列実行 Imp</a></li>
+</ul>
+<a href="Types_J.html"><h2>Types_J: 型システム</h2></a>
+<ul>
+  <li><a href="Types_J.html#lab474">さらに自動化</a>
+    <ul>
+      <li><a href="Types_J.html#lab475"><span class="inlinecode"><span class="id" type="tactic">auto</span></span> と <span class="inlinecode"><span class="id" type="tactic">eauto</span></span> タクティック</a>
+
+      </li>
+      <li><a href="Types_J.html#lab476"><span class="inlinecode"><span class="id" type="keyword">Proof</span> <span class="id" type="keyword">with</span></span> タクティック</a>
+
+      </li>
+      <li><a href="Types_J.html#lab477"><span class="inlinecode"><span class="id" type="var">solve</span> <span class="id" type="tactic">by</span> <span class="id" type="tactic">inversion</span></span> タクティック</a>
+
+      </li>
+      <li><a href="Types_J.html#lab478"><span class="inlinecode"><span class="id" type="tactic">try</span> <span class="id" type="var">solve</span></span> タクティック</a>
+
+      </li>
+      <li><a href="Types_J.html#lab479"><span class="inlinecode"><span class="id" type="tactic">f_equal</span></span> タクティック</a>
+
+      </li>
+      <li><a href="Types_J.html#lab480"><span class="inlinecode"><span class="id" type="var">normalize</span></span> タクティック</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="Types_J.html#lab481">型付きの算術式</a>
+    <ul>
+      <li><a href="Types_J.html#lab482">構文</a> </li>
+      <li><a href="Types_J.html#lab483">スモールステップ簡約</a></li>
+      <li><a href="Types_J.html#lab484">正規形と値</a></li>
+      <li><a href="Types_J.html#lab488">型付け</a></li>
+      <li><a href="Types_J.html#lab491">進行</a></li>
+      <li><a href="Types_J.html#lab495">型保存</a></li>
+      <li><a href="Types_J.html#lab499">型の健全性</a></li>
+      <li><a href="Types_J.html#lab500">追加演習</a></li>
+    </ul>
+  </li>
+</ul>
+<a href="Stlc_J.html"><h2>Stlc_J: 単純型付きラムダ計算</h2></a>
+<ul>
+  <li><a href="Stlc_J.html#lab513">単純型付きラムダ計算</a>
+    <ul>
+      <li><a href="Stlc_J.html#lab514">概観</a></li>
+      <li><a href="Stlc_J.html#lab515">構文</a>
+	<ul>
+	  <li><a href="Stlc_J.html#lab516">型</a></li>
+	  <li><a href="Stlc_J.html#lab517">項</a></li>
+	</ul>
+      </li>
+      <li><a href="Stlc_J.html#lab518">操作的意味論</a>
+	<ul>
+	  <li><a href="Stlc_J.html#lab519">値</a></li>
+	  <li><a href="Stlc_J.html#lab520">自由変数と置換</a></li>
+	  <li><a href="Stlc_J.html#lab521">簡約</a></li>
+	  <li><a href="Stlc_J.html#lab522">例</a></li>
+	</ul>
+      </li>
+      <li><a href="Stlc_J.html#lab524">型付け</a>
+	<ul>
+	  <li><a href="Stlc_J.html#lab525">コンテキスト</a></li>
+	  <li><a href="Stlc_J.html#lab526">型付け関係</a></li>
+	  <li><a href="Stlc_J.html#lab527">例</a></li>
+	</ul>
+      </li>
+      <li><a href="Stlc_J.html#lab533">性質</a>
+	<ul>
+	  <li><a href="Stlc_J.html#lab534">自由な出現</a></li>
+	  <li><a href="Stlc_J.html#lab535">置換</a></li>
+	  <li><a href="Stlc_J.html#lab537">保存</a></li>
+	  <li><a href="Stlc_J.html#lab539">進行</a></li>
+	  <li><a href="Stlc_J.html#lab541">型の一意性</a></li>
+	</ul>
+      </li>
+      <li><a href="Stlc_J.html#lab543">さらなる練習問題</a></li>
+    </ul>
+  </li>
+  <li><a href="Stlc_J.html#lab547">練習問題: 算術を持つSTLC</a>
+    <ul>
+      <li><a href="Stlc_J.html#lab548">構文と操作的意味</a></li>
+    </ul>
+  </li>
+</ul>
+<a href="Typechecking_J.html"><h2>Typechecking_J: STLCの型チェッカ</h2></a>
+<ul>
+  <li><a href="Typechecking_J.html#lab550">型を比較する</a></li>
+  <li><a href="Typechecking_J.html#lab551">型チェッカ</a></li>
+  <li><a href="Typechecking_J.html#lab552">性質</a></li>
+</ul>
+<a href="MoreStlc_J.html"><h2>MoreStlc_J: 単純型付きラムダ計算についてさらに</h2></a>
+<ul>
+  <li><a href="MoreStlc_J.html#lab553">STLCの単純な拡張</a>
+    <ul>
+      <li><a href="MoreStlc_J.html#lab554">数値</a></li>
+      <li><a href="MoreStlc_J.html#lab555"><span class="inlinecode"><span class="id" type="keyword">let</span></span>束縛</a></li>
+      <li><a href="MoreStlc_J.html#lab556">対</a></li>
+      <li><a href="MoreStlc_J.html#lab557">直和</a></li>
+      <li><a href="MoreStlc_J.html#lab558">リスト</a></li>
+      <li><a href="MoreStlc_J.html#lab559">一般再帰</a></li>
+      <li><a href="MoreStlc_J.html#lab562">レコードとバリアント (Optional)</a>
+	<ul>
+	  <li><a href="MoreStlc_J.html#lab563"><span class="inlinecode"><span class="id" type="var">Unit</span></span>型</a></li>
+	  <li><a href="MoreStlc_J.html#lab564">レコード</a></li>
+	  <li><a href="MoreStlc_J.html#lab565">レコードのエンコード</a></li>
+	  <li><a href="MoreStlc_J.html#lab566">バリアント</a></li>
+	</ul>
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="MoreStlc_J.html#lab567">拡張を形式化する</a>
+    <ul>
+      <li><a href="MoreStlc_J.html#lab569">構文と操作的意味</a></li>
+      <li><a href="MoreStlc_J.html#lab570">置換</a></li>
+      <li><a href="MoreStlc_J.html#lab571">簡約</a></li>
+      <li><a href="MoreStlc_J.html#lab572">型付け</a></li>
+      <li><a href="MoreStlc_J.html#lab573">例</a>
+	<ul>
+	  <li><a href="MoreStlc_J.html#lab574">準備</a></li>
+	  <li><a href="MoreStlc_J.html#lab575">数値</a></li>
+	  <li><a href="MoreStlc_J.html#lab576">直積</a></li>
+	  <li><a href="MoreStlc_J.html#lab577"><span class="inlinecode"><span class="id" type="keyword">let</span></span></a></li>
+	  <li><a href="MoreStlc_J.html#lab578">直和</a></li>
+	  <li><a href="MoreStlc_J.html#lab579">リスト</a></li>
+	  <li><a href="MoreStlc_J.html#lab580"><span class="inlinecode"><span class="id" type="var">fix</span></span></a></li>
+	</ul>
+      </li>
+      <li><a href="MoreStlc_J.html#lab581">型付けの性質</a>
+	<ul>
+	  <li><a href="MoreStlc_J.html#lab582">進行</a></li>
+	  <li><a href="MoreStlc_J.html#lab583">コンテキスト不変性</a></li>
+	  <li><a href="MoreStlc_J.html#lab584">保存</a></li>
+	</ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<a href="Records_J.html"><h2>Records_J: STLCにレコードを追加する</h2></a>
+<ul>
+  <li><a href="Records_J.html#lab585">レコードを追加する</a>
+
+  </li>
+  <li><a href="Records_J.html#lab586">レコードを形式化する</a>
+    <ul>
+	  <li><a href="Records_J.html#lab587">構文と操作的意味</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab588">Well-Formedness(正しい形をしていること、整式性)</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab589">置換</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab590">簡約</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab591">型付け</a>
+
+	  </li>
+      <li><a href="Records_J.html#lab592">例</a>
+      </li>
+      <li><a href="Records_J.html#lab594">型付けの性質</a>
+	<ul>
+	  <li><a href="Records_J.html#lab595">Well-Formedness</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab596">フィールドのルックアップ</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab597">進行</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab598">コンテキスト不変性</a>
+
+	  </li>
+	  <li><a href="Records_J.html#lab599">保存</a>
+
+	  </li>
+	</ul>
+
+      </li>
+    </ul>
+
+  </li>
+</ul>
+<a href="References_J.html"><h2>References_J: 変更可能な参照の型付け</h2></a>
+<ul>
+      <li><a href="References_J.html#lab600">定義</a>
+
+      </li>
+      <li><a href="References_J.html#lab601">構文</a>
+	<ul>
+	  <li><a href="References_J.html#lab602">型</a>
+
+	  </li>
+	  <li><a href="References_J.html#lab603">項</a>
+
+	  </li>
+	  <li><a href="References_J.html#lab604">型付け (プレビュー)</a>
+
+	  </li>
+	  <li><a href="References_J.html#lab605">値と置換</a>
+
+	  </li>
+	</ul>
+
+      </li>
+  <li><a href="References_J.html#lab606">プラグマティクス(語用論)</a>
+    <ul>
+      <li><a href="References_J.html#lab607">副作用と順次処理</a>
+
+      </li>
+      <li><a href="References_J.html#lab608">参照と別名付け</a>
+
+      </li>
+      <li><a href="References_J.html#lab609">共有状態</a>
+
+      </li>
+      <li><a href="References_J.html#lab610">オブジェクト</a>
+      </li>
+      <li><a href="References_J.html#lab612">参照と合成型</a>
+      </li>
+      <li><a href="References_J.html#lab614">null参照</a>
+
+      </li>
+      <li><a href="References_J.html#lab615">ガベージコレクション</a>
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="References_J.html#lab617">操作的意味</a>
+    <ul>
+      <li><a href="References_J.html#lab618">場所(Locations)</a>
+
+      </li>
+      <li><a href="References_J.html#lab619">記憶(Stores)</a>
+
+      </li>
+      <li><a href="References_J.html#lab620">簡約</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="References_J.html#lab621">型付け</a>
+    <ul>
+      <li><a href="References_J.html#lab622">記憶の型付け</a>
+      </li>
+      <li><a href="References_J.html#lab624">型付け関係</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="References_J.html#lab625">性質</a>
+    <ul>
+      <li><a href="References_J.html#lab626">型付けできる記憶</a>
+      </li>
+      <li><a href="References_J.html#lab628">記憶型付けを拡張する</a>
+
+      </li>
+      <li><a href="References_J.html#lab629">保存、最終的に</a>
+
+      </li>
+      <li><a href="References_J.html#lab630">置換補題</a>
+
+      </li>
+      <li><a href="References_J.html#lab631">代入は記憶型付けを保存する</a>
+
+      </li>
+      <li><a href="References_J.html#lab632">記憶についての弱化</a>
+
+      </li>
+      <li><a href="References_J.html#lab633">保存!</a>
+      </li>
+      <li><a href="References_J.html#lab635">進行</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="References_J.html#lab636">参照と非停止性</a>
+  </li>
+  <li><a href="References_J.html#lab638">さらなる練習問題</a>
+  </li>
+</ul>
+<a href="Subtyping_J.html"><h2>Subtyping_J: サブタイプ</h2></a>
+<ul>
+  <li><a href="Subtyping_J.html#lab640">概念</a>
+    <ul>
+      <li><a href="Subtyping_J.html#lab641">動機付けのための例</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab642">サブタイプとオブジェクト指向言語</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab643">包摂規則</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab644">サブタイプ関係</a>
+	<ul>
+	  <li><a href="Subtyping_J.html#lab645">直積型</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab646">関数型</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab647">Top</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab648">構造規則</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab649">レコード</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab650">直積と Top によるレコード (optional)</a>
+
+	  </li>
+	</ul>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="Subtyping_J.html#lab651">中核部の定義</a>
+    <ul>
+	  <li><a href="Subtyping_J.html#lab652">構文</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab653">包摂</a>
+
+	  </li>
+	  <li><a href="Subtyping_J.html#lab654">簡約</a>
+
+	  </li>
+	</ul>
+
+      </li>
+  <li><a href="Subtyping_J.html#lab655">サブタイプ</a>
+    <ul>
+      <li><a href="Subtyping_J.html#lab656">定義</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab657">サブタイプの例と練習問題</a>
+	  </li>
+    </ul>
+
+  </li>
+  <li><a href="Subtyping_J.html#lab672">型付け</a>
+    <ul>
+      <li><a href="Subtyping_J.html#lab673">型付けの例</a>
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="Subtyping_J.html#lab677">性質</a>
+    <ul>
+      <li><a href="Subtyping_J.html#lab678">サブタイプの反転補題(Inversion Lemmas)</a>
+      </li>
+      <li><a href="Subtyping_J.html#lab681">正準形(Canonical Forms)</a>
+      </li>
+      <li><a href="Subtyping_J.html#lab683">進行</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab684">型付けの反転補題</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab685">コンテキスト不変性</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab686">置換</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab687">保存</a>
+
+      </li>
+      <li><a href="Subtyping_J.html#lab688">型付けの練習問題</a>
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="Subtyping_J.html#lab690">練習問題: 直積の追加</a>
+  </li>
+</ul>
+<a href="RecordSub_J.html"><h2>RecordSub_J: レコードのサブタイプ</h2></a>
+<ul>
+  <li><a href="RecordSub_J.html#lab692">中核部の定義</a>
+    <ul>
+	  <li><a href="RecordSub_J.html#lab693">構文</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab694">Well-Formedness</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab695">置換</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab696">簡約</a>
+
+	  </li>
+    </ul>
+
+  </li>
+  <li><a href="RecordSub_J.html#lab697">サブタイプ</a>
+    <ul>
+      <li><a href="RecordSub_J.html#lab698">定義</a>
+
+      </li>
+      <li><a href="RecordSub_J.html#lab699">サブタイプの例と練習問題</a>
+      </li>
+      <li><a href="RecordSub_J.html#lab704">サブタイプの性質</a>
+	<ul>
+	  <li><a href="RecordSub_J.html#lab705">Well-Formedness</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab706">フィールド参照</a>
+	  </li>
+	  <li><a href="RecordSub_J.html#lab708">反転補題</a>
+	  </li>
+	</ul>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="RecordSub_J.html#lab710">型付け</a>
+    <ul>
+      <li><a href="RecordSub_J.html#lab711">型付けの例</a>
+      </li>
+      <li><a href="RecordSub_J.html#lab715">型付けの性質</a>
+	<ul>
+	  <li><a href="RecordSub_J.html#lab716">Well-Formedness</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab717">フィールド参照</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab718">進行</a>
+	  </li>
+	  <li><a href="RecordSub_J.html#lab720">反転補題</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab721">コンテキスト不変性</a>
+
+	  </li>
+	  <li><a href="RecordSub_J.html#lab722">保存</a>
+
+	  </li>
+	</ul>
+
+      </li>
+      <li><a href="RecordSub_J.html#lab723">型付けの練習問題</a>
+      </li>
+    </ul>
+
+  </li>
+</ul>
+<a href="Norm_J.html"><h2>Norm_J: STLCの正規化</h2></a>
+<ul>
+  <li><a href="Norm_J.html#lab726">言語</a>
+    <ul>
+	  <li><a href="Norm_J.html#lab727">構文と操作的意味</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab728">置換</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab729">簡約</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab730">型付け</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab731">コンテキスト不変性</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab732">保存</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab733">決定性</a>
+
+    </ul>
+  </li>
+  <li><a href="Norm_J.html#lab734">正規化</a>
+    <ul>
+      <li><a href="Norm_J.html#lab735"><span class="inlinecode"><span class="id" type="var">R_T</span></span> の要素であるか否かは評価によって変化しない</a>
+
+      </li>
+      <li><a href="Norm_J.html#lab736"><span class="inlinecode"><span class="id" type="var">R_T</span></span>に含まれる型<span class="inlinecode"><span class="id" type="var">T</span></span>の項の閉じたインスタンス</a>
+	<ul>
+	  <li><a href="Norm_J.html#lab737">多重置換、多重拡張、インスタンス化</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab738">置換についてのさらなる事実</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab739">多重置換の性質</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab740">多重拡張の性質</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab741">インスタンス化の性質</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab742">stepmany(<span class="inlinecode"><span style="font-family: arial;">&rArr;*</span></span>)についての合同補題</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab743">R補題</a>
+
+	  </li>
+	  <li><a href="Norm_J.html#lab744">正規化定理</a>
+
+	  </li>
+	</ul>
+
+      </li>
+    </ul>
+
+  </li>
+</ul>
+<a href="UseTactics_J.html"><h2>UseTactics_J: Coq用タクティックライブラリのご紹介</h2></a>
+<ul>
+  <li><a href="UseTactics_J.html#lab745">導入と場合分けについてのタクティック</a>
+    <ul>
+      <li><a href="UseTactics_J.html#lab746">タクティック<span class="inlinecode"><span class="id" type="var">introv</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab747">タクティック<span class="inlinecode"><span class="id" type="var">inverts</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab748">タクティック<span class="inlinecode"><span class="id" type="var">cases</span></span>と<span class="inlinecode"><span class="id" type="var">cases_if</span></span></a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseTactics_J.html#lab749">n-引数論理演算のためのタクティック</a>
+    <ul>
+      <li><a href="UseTactics_J.html#lab750">タクティック <span class="inlinecode"><span class="id" type="var">splits</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab751">タクティック <span class="inlinecode"><span class="id" type="var">branch</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab752">タクティック <span class="inlinecode"><span class="id" type="var"><span style="font-family: arial;">&exist;</span></span></span></a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseTactics_J.html#lab753">等式を扱うタクティック</a>
+    <ul>
+      <li><a href="UseTactics_J.html#lab754">タクティック <span class="inlinecode"><span class="id" type="var">asserts_rewrite</span></span> と <span class="inlinecode"><span class="id" type="var">cuts_rewrite</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab755">タクティック <span class="inlinecode"><span class="id" type="var">substs</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab756">タクティック <span class="inlinecode"><span class="id" type="var">fequals</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab757">タクティック <span class="inlinecode"><span class="id" type="var">applys_eq</span></span></a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseTactics_J.html#lab758">便利な略記法をいくつか</a>
+    <ul>
+      <li><a href="UseTactics_J.html#lab759">タクティック <span class="inlinecode"><span class="id" type="var">unfolds</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab760">タクティック<span class="inlinecode"><span class="id" type="var">false</span></span>と<span class="inlinecode"><span class="id" type="var">tryfalse</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab761">タクティック <span class="inlinecode"><span class="id" type="var">gen</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab762">タクティック<span class="inlinecode"><span class="id" type="var">skip</span></span>、<span class="inlinecode"><span class="id" type="var">skip_rewrite</span></span>、<span class="inlinecode"><span class="id" type="var">skip_goal</span></span></a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab763">タクティック <span class="inlinecode"><span class="id" type="var">sort</span></span></a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseTactics_J.html#lab764">高度な補題具体化のためのタクティック</a>
+    <ul>
+      <li><a href="UseTactics_J.html#lab765"><span class="inlinecode"><span class="id" type="var">lets</span></span>のはたらき</a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab766"><span class="inlinecode"><span class="id" type="var">applys</span></span>、<span class="inlinecode"><span class="id" type="var">forwards</span></span>、<span class="inlinecode"><span class="id" type="var">specializes</span></span>のはたらき</a>
+
+      </li>
+      <li><a href="UseTactics_J.html#lab767">具体化の例</a>
+
+      </li>
+    </ul>
+
+  </li>
+</ul>
+<a href="UseAuto_J.html"><h2>UseAuto_J: Coqの証明自動化の理論と実際</h2></a>
+<ul>
+  <li><a href="UseAuto_J.html#lab768">証明探索の基本性質</a>
+    <ul>
+      <li><a href="UseAuto_J.html#lab769">証明探索の強さ</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab770">基本</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab771">連言</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab772">選言</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab773">存在限量</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab774">否定</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab775">等式</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseAuto_J.html#lab776">証明探索はどのようにはたらくか</a>
+    <ul>
+      <li><a href="UseAuto_J.html#lab777">探索の深さ</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab778">バックトラック</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab779">ヒントを追加する</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab780">タクティックへの自動証明の統合</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseAuto_J.html#lab781">自動化の使用例</a>
+    <ul>
+      <li><a href="UseAuto_J.html#lab782">決定性</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab783">STLC の保存</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab784">STLC の前進</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab785">ビッグステップとスモールステップ</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab786">STLCRef の保存</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab787">STLCRef の前進</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab788">サブタイプ</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseAuto_J.html#lab789">証明探索の進んだ話題</a>
+    <ul>
+      <li><a href="UseAuto_J.html#lab790">補題を正しい方法で記述する</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab791">証明検索中で定義を展開する</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab792">不合理なゴールの証明の自動化</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab793">推移性補題についての自動化</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="UseAuto_J.html#lab794">決定手続き</a>
+    <ul>
+      <li><a href="UseAuto_J.html#lab795">Omega</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab796">Ring(環)</a>
+
+      </li>
+      <li><a href="UseAuto_J.html#lab797">Congruence(合同)</a>
+
+      </li>
+    </ul>
+
+  </li>
+</ul>
+<a href="LibTactics_J.html"><h2>LibTactics_J: 使いやすい汎用タクティックのコレクション</h2></a>
+<ul>
+  <li><a href="LibTactics_J.html#lab798">Coqのための追加の記法</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab799">N変数の存在限量</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab800">Ltacによるプログラミングのための道具類</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab801">等価継続</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab802">タクティックの型付けされない引数</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab803">タクティックのオプショナルな引数</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab804">タクティックのワイルドカード引数</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab805">ポジションマーカ</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab806">タクティックの引数のリスト</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab807">補題のデータベース</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab808">その場での仮定の除去</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab809">引数としての数値</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab810">タクティックをテストする</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab811">ゴールにやり残しがないことのチェック</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab812">仮定のタグ付け</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab813">仮定のタグ付け</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab814">項を解体する</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab815">出現場所でのアクションと出現場所以外でのアクション</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab816"><span class="inlinecode"><span class="id" type="var">eq</span></span>の別名</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab817">後方/前方連鎖</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab818">適用(Application)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab819">表明(Assertions)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab820">具体化と前方連鎖</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab821">適用(application)の実験的タクティック</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab822">仮定を追加する</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab823">トートロジーの適用</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab824">等式を法とした適用</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab825">導入と一般化</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab826">導入(Introduction)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab827">一般化(Generalization)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab828">名前付け(Naming)</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab829">書き換え</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab830">書き換え(Rewriting)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab831">置き換え(Replace)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab832">名前変え(リネーム、Renaming)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab833">定義の展開(Unfolding)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab834">単純化(Simplification)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab835">評価(Evaluation)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab836">置換(Substitution)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab837">proof irrelevance を扱うタクティック</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab838">等式を証明する</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab839">反転(Inversion)</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab840">基本反転(Basic inversion)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab841">置換(substitution)を伴う反転(inversion)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab842">置換を伴う注入(Injection)</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab843">置換を伴う反転と注入 -- おおざっぱな実装</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab844">場合分け</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab845">帰納法(Induction)</a>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab846">決定可能な等式</a>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab847">同値(Equivalence)</a>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab848">N個の連言と選言</a>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab849">タイプクラスのインスタンスを証明するためのタクティック</a>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab850">自動化起動のタクティック</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab851"><span class="inlinecode"><span class="id" type="var">jauto</span></span>, 新しい自動化タクティック</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab852">自動化タクティックの定義</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab853">コンパチビリティを構文解析するための定義</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab854">軽い自動化の構文解析</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab855">強力な自動化の構文解析</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab856">証明コンテキストを整理するためのタクティック</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab857">仮定の隠蔽</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab858">仮定のソーティング</a>
+
+      </li>
+      <li><a href="LibTactics_J.html#lab859">仮定のクリア</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab860">開発目的のタクティック</a>
+    <ul>
+      <li><a href="LibTactics_J.html#lab861">サブゴールのスキップ</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="LibTactics_J.html#lab862">標準ライブラリとのコンパチビリティ</a>
+
+  </li>
+</ul>
+<a href="PE_J.html"><h2>PE_J: 部分評価</h2></a>
+<ul>
+  <li><a href="PE_J.html#lab863">定数畳み込みを一般化する</a>
+    <ul>
+      <li><a href="PE_J.html#lab864">部分状態</a>
+
+      </li>
+      <li><a href="PE_J.html#lab865">算術式</a>
+
+      </li>
+      <li><a href="PE_J.html#lab866">ブール式</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="PE_J.html#lab867">ループ以外のコマンドの部分評価</a>
+    <ul>
+      <li><a href="PE_J.html#lab868">代入</a>
+
+      </li>
+      <li><a href="PE_J.html#lab869">条件分岐</a>
+
+      </li>
+      <li><a href="PE_J.html#lab870">部分評価関係</a>
+
+      </li>
+      <li><a href="PE_J.html#lab871">例</a>
+
+      </li>
+      <li><a href="PE_J.html#lab872">部分評価の正しさ</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="PE_J.html#lab873">ループの部分評価</a>
+    <ul>
+      <li><a href="PE_J.html#lab874">例</a>
+
+      </li>
+      <li><a href="PE_J.html#lab875">正しさ</a>
+
+      </li>
+    </ul>
+
+  </li>
+  <li><a href="PE_J.html#lab876">フローチャートプログラムの部分評価</a>
+    <ul>
+      <li><a href="PE_J.html#lab877">基本ブロック</a>
+
+      </li>
+      <li><a href="PE_J.html#lab878">フローチャートプログラム</a>
+
+      </li>
+      <li><a href="PE_J.html#lab879">基本ブロックとフローチャートプログラムの部分評価</a>
+
+      </li>
+    </ul>
+
+  </li>
+</ul>
+<a href="Postscript_J.html"><h2>Postscript_J: あとがき</h2></a>
+<ul>
+  <li><a href="Postscript_J.html#lab880">ふりかえり...</a>
+
+  </li>
+  <li><a href="Postscript_J.html#lab881">さらなる読み物</a>
+
+  </li>
+</ul>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a><hr/>
+<a href="https://github.com/sfja/sfja">ソフトウェアの基礎 日本語化プロジェクト</a>
+</div>
+
+</div>
+
+</body>
+</html>
