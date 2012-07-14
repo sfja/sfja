@@ -904,7 +904,9 @@ Proof.
             [E-WhileLoop]を適用すると、
             証明すべき[WHILE b1' DO c1' END / st || st']が得られる。
 
-      - ([<-]) 同様である。[] *)
+      - ([<-]) 同様である。
+
+    [] *)
 
 Theorem CWhile_congruence : forall b1 b1' c1 c1',
   bequiv b1 b1' -> cequiv c1 c1' ->
