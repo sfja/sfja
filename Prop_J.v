@@ -141,7 +141,7 @@ Check (even 3).
     ways: (1) "[even] is a _function_ from numbers to
     propositions," (2) "[even] is a _family_ of propositions, indexed
     by a number [n]," or (3) "[even] is a _property_ of numbers."  *)
-(** [even]の型 [nat->Prop]は3つの意味を持っています。
+(** [even]の型 [nat -> Prop]は3つの意味を持っています。
    (1) "[even]は数から命題への関数である。"
    (2) "[even]は数[n]でインデックスされた命題の集りである"。
    (3) "[even]は数の性質(_property_)である。" *)
@@ -149,7 +149,7 @@ Check (even 3).
 (* Propositions -- including parameterized propositions -- are
     first-class citizens in Coq.  We can use them in other
     definitions: *)
-(** 命題（パラーメータ化された命題も含む）はCoqにおける第一級（_first-class_）市民です。
+(** 命題（パラメータ化された命題も含む）はCoqにおける第一級（_first-class_）市民です。
     このため、ほかの定義の中でこれらの命題を使うことができます。 *)
 
 Definition even_n__even_SSn (n:nat) : Prop :=
@@ -307,7 +307,7 @@ Proof. apply gd_sun. Qed.
 
 (* The constructor [gd_sun] is "primitive evidence" -- an _axiom_ --
     justifying the claim that Sunday is good. *)
-(** コンストラクタ [gd_sun] は、日曜日が良いという主張を正当化する"素朴（primitive）な根拠"、つまり公理です。*)
+(** コンストラクタ [gd_sun] は、日曜日が良いという主張を正当化する"原始的（primitive）な根拠"、つまり公理です。*)
 
 (* Similarly, we can define a proposition [day_before]
     parameterized by _two_ days, together with axioms stating that
