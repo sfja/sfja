@@ -248,7 +248,7 @@ Proof.
 (** [] *)
 
 (** **** 練習問題: ★★★★, optional (app_length_twice) *)
-(** [app_length]を使わずに[l1]に関する帰納法で示しなさい。 *)
+(** [app_length]を使わずに[l]に関する帰納法で示しなさい。 *)
 
 Theorem app_length_twice : forall (X:Type) (n:nat) (l:list X),
      length l = n ->
