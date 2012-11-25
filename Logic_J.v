@@ -415,7 +415,6 @@ Check or_intror.
 
     - [P] の根拠を与える。（そしてそれが [P] の根拠であることを伝える。
     これがコンストラクタ [or_introl] の機能です）か、
-      constructor), or
 
     - [Q] の根拠をコンストラクタ [or_intror] に与える。 *)
 
@@ -452,7 +451,7 @@ Proof.
 
 (*  Try to write down an explicit proof object for [or_commut] (without
     using [Print] to peek at the ones we already defined!). *)
-(** [or_commut] の証明オブジェクトの型がどのようになるか、書き出してみて
+(** [or_commut] の証明オブジェクトがどのようになるか、書き出してみて
     ください。（ただし、定義済みの証明オブジェクトを [Print] を使って
     見てみたりしないこと。）
  *)
