@@ -890,7 +890,7 @@ Proof.
           - [E_WhileEnd]: この場合、
             規則の形から[beval st b1 = false]かつ[st = st']となる。
             しかし[b1]と[b1']が同値であることから
-            [beval st b1' = c1' END / st || st']になる。
+            [beval st b1' = false]になる。
             さらに[E-WhileEnd]を適用すると
             証明すべき[WHILE b1' DO c1' END / st || st']が得られる。
 
