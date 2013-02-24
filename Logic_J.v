@@ -2047,7 +2047,7 @@ Check and_ind.
  *)
 
 (* Check nat_ind. *)
-(* ===>
+(** ===>
    nat_ind : forall P : nat -> Prop,
       P 0%nat ->
       (forall n : nat, P n -> P (S n)) ->
@@ -2115,8 +2115,8 @@ Print nat_ind.  Print nat_rect.
     non-standard induction principle that goes "by twos":
 
  *)
-(* ===> (after some manual inlining)
-   nat_ind =
+(** ===> (after some manual inlining)
+   nat_rect =
     fun (P : nat -> Type)
         (f : P 0%nat)
         (f0 : forall n : nat, P n -> P (S n)) =>
@@ -2260,7 +2260,7 @@ Qed.
 ]]
       Again, this is perfectly well-typed, but (fortunately) Coq will
       reject it. *)
-(** ここで一つの疑問が起こってきます。自動化された証明アシスタントが
+(** ここで一つの疑問が起こってきます。自動化された証明支援系が
     「なぜ信用できるのか？」という疑問です。つまり、これらの実装に
     バグがあるなら、その証明にも疑いを持たざるを得ません。
 
