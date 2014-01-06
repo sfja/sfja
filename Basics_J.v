@@ -98,9 +98,9 @@ Example test_orb1:  (orb true  false) = true.
 Proof. simpl. reflexivity.  Qed.
 Example test_orb2:  (orb false false) = false.
 Proof. simpl. reflexivity.  Qed.
-Example test_orb3:  (orb false true ) = true.
+Example test_orb3:  (orb false true) = true.
 Proof. simpl. reflexivity.  Qed.
-Example test_orb4:  (orb true  true ) = true.
+Example test_orb4:  (orb true  true) = true.
 Proof. simpl. reflexivity.  Qed.
 
 (** 記述方法について: Coqのコード中にコメントを含める場合には、大括弧を使用してコードと区切ります。この慣習は[coqdoc]というドキュメント作成ツールでも利用されているのですが、ソース中のコメントをコードから視覚的に分離することができます。CoqソースのHTML版では、コメントはソースとは[別のフォント]で表示されます。 *)
