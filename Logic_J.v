@@ -11,15 +11,14 @@ Require Export "Prop_J".
     conjunction, disjunction, negation, existential quantification,
     even equality -- can be defined using just these. *)
 (**
-   Coqの組み込み論理は非常に小さく、帰納的定義([Inductive])、
-   全称記号([forall])、ならば([->])だけです。しかしそれ以外の論理演算子（
-   かつ、または、否定、存在量化子、等号など）はこれら組み込みのものから
-   定義できます。
+   Coqにあらかじめ組み込まれた論理は極めて小さく、帰納的定義([Inductive])、
+   全称量化([forall])、含意([->])だけがプリミティブです。しかしそれ以外の論理結合子
+   （かつ、または、否定、存在量化子、等号など）も、組み込みのものを用いて定義できます。
 *)
 
 (* ########################################################### *)
 (* * Quantification and Implication *)
-(** * 全称記号 と ならば *)
+(** * 全称量化 と 含意 *)
 
 (* In fact, [->] and [forall] are the _same_ primitive!  Coq's [->]
     notation is actually just a shorthand for [forall].  The [forall]
@@ -28,7 +27,7 @@ Require Export "Prop_J".
 (**
    実は、[->] と [forall] は 同じものです! Coqの [->] 記法は [forall] の
    短縮記法に過ぎません。仮定に名前をつけることができることから、
-   [forall]記法の方がより一般的に使われます。
+   [forall]記法の方が一般的です。
 *)
 
 (* For example, consider this proposition: *)
@@ -43,11 +42,11 @@ Definition funny_prop1 := forall n, forall (E : ev n), ev (n+4).
     bother making up a name.  We could write it like this instead: *)
 
 (**
-   もしもこの命題を含む証明項があったら、その中でこの命題は二つの引数
+   もしもこの命題に含まれる証明項があったら、その項は二つの引数
    （一つは、数字[n]、もう一つは[n]が偶数であることの根拠[E]）を持つ
    関数になっているはずです。
    しかし根拠となる[E]は[funny_prop1]の中では使われていませんから、これに
-   わざわざ [E] という名前をつけることはちょっと無意味です。
+   わざわざ [E] という名前をつけることはちょっと馬鹿げています。
    このような場合は、次のように書くこともできます。
 *)
 
@@ -81,8 +80,8 @@ Inductive and (P Q : Prop) : Prop :=
     chapter, this definition is parameterized; however, in this case,
     the parameters are themselves propositions, rather than numbers. *)
 (** 注意してほしいのは、前の章で取り上げた関数 [ev] の定義と同様に、
-    この定義もパラメータ化された命題になっていますが、この場合はパラメータ
-    が数値ではなく命題である、ということです。 *)
+    この定義もパラメータ化された命題になっていることです。ただしこの場合はパラメータ
+    自身も数値ではなく命題です。 *)
 
 (*  The intuition behind this definition is simple: to
     construct evidence for [and P Q], we must provide evidence
@@ -101,21 +100,24 @@ Inductive and (P Q : Prop) : Prop :=
 
 (** この定義の内容を直感的に理解するのに、そうややこしく考える必要はありません。
     [and P Q] に根拠を与えるには、[P] の根拠と [Q] の根拠が必要
-    だということです。もっと細かく言えば、
+    だということです。もっと精確に言えば、
 
-    - もし [p] が [P] の根拠で、[q] が [Q] の根拠であるなら、[conj p q] は [and P Q] の根拠となり得る。
+    - もし [p] が [P] の根拠で、[q] が [Q] の根拠であるなら、[conj p q] を [and P Q] の根拠とすることができる。
 
-    - これは [and P Q] に根拠を与える唯一の方法である。というこは、もし [and P Q] の根拠が得られたならば、[p] を [P] の根拠とし、 [q] を [Q] の根拠とした上で [conj p q] が得られるということです。
+    - これは [and P Q] に根拠を与える唯一の方法であること、
+      即ち、もし [and P Q] の根拠が与えられたならば、
+      その根拠が [conj p q] の形をしており、さらに [p] が [P] の根拠であることと
+      [q] が [Q] の根拠であることがわかるということです。
 
-   ここまでさんざん論理積（conjunction）という言葉を使ってきましたが、ここで
-   もっと馴染みのある、中置の記法を導入することにしましょう。 *)
+   今後論理積をよく使うことになるので、
+   もっと馴染みのある、中置記法を導入することにしましょう。 *)
 
 Notation "P /\ Q" := (and P Q) : type_scope.
 
 (*  (The [type_scope] annotation tells Coq that this notation
     will be appearing in propositions, not values.) *)
-(** （[type_scope] という注釈は、Coqに対しこの記法が値にではなく、
-    命題に現れるものであることを伝えまています。） *)
+(** （[type_scope] という注釈は、この記法が値にではなく、
+    命題に現れるものであることを、Coqに伝えています。） *)
 
 (*  Consider the "type" of the constructor [conj]: *)
 (** コンストラクタ [conj] の型はどのようなものか考えてみましょう。 *)
@@ -415,7 +417,6 @@ Check or_intror.
 
     - [P] の根拠を与える。（そしてそれが [P] の根拠であることを伝える。
     これがコンストラクタ [or_introl] の機能です）か、
-      constructor), or
 
     - [Q] の根拠をコンストラクタ [or_intror] に与える。 *)
 
@@ -452,7 +453,7 @@ Proof.
 
 (*  Try to write down an explicit proof object for [or_commut] (without
     using [Print] to peek at the ones we already defined!). *)
-(** [or_commut] の証明オブジェクトの型がどのようになるか、書き出してみて
+(** [or_commut] の証明オブジェクトがどのようになるか、書き出してみて
     ください。（ただし、定義済みの証明オブジェクトを [Print] を使って
     見てみたりしないこと。）
  *)
@@ -1628,7 +1629,7 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
 (*  **** Exercise: 4 stars, optional (no_repeats) *)
 (** **** 練習問題: ★★★★, optional (no_repeats) *)
 (*  The following inductively defined proposition... *)
-(** 次の、帰納的に定義された命題を見て、 *)
+(** 次の、帰納的に定義された命題は、 *)
 
 Inductive appears_in {X:Type} (a:X) : list X -> Prop :=
   | ai_here : forall l, appears_in a (a::l)
@@ -1639,10 +1640,10 @@ Inductive appears_in {X:Type} (a:X) : list X -> Prop :=
 
     Here's a pair of warm-ups about [appears_in].
 *)
-(** 値 [a] が、少なくとも一度はリスト [l] の中に現れるということを、
-    厳密に表現する方法を考えなさい。
+(** 値 [a] がリスト [l] の要素として少なくとも一度は現れるということを
+    言うための、精確な方法を与えてくれます。
 
-    [appears_in] に関するウォームアップ問題としてもう一つ、
+    次の二つは[appears_in] に関するウォームアップ問題です。
 *)
 
 Lemma appears_in_app : forall {X:Type} (xs ys : list X) (x:X),
@@ -2046,7 +2047,7 @@ Check and_ind.
  *)
 
 (* Check nat_ind. *)
-(* ===>
+(** ===>
    nat_ind : forall P : nat -> Prop,
       P 0%nat ->
       (forall n : nat, P n -> P (S n)) ->
@@ -2114,8 +2115,8 @@ Print nat_ind.  Print nat_rect.
     non-standard induction principle that goes "by twos":
 
  *)
-(* ===> (after some manual inlining)
-   nat_ind =
+(** ===> (after some manual inlining)
+   nat_rect =
     fun (P : nat -> Type)
         (f : P 0%nat)
         (f0 : forall n : nat, P n -> P (S n)) =>
@@ -2259,7 +2260,7 @@ Qed.
 ]]
       Again, this is perfectly well-typed, but (fortunately) Coq will
       reject it. *)
-(** ここで一つの疑問が起こってきます。自動化された証明アシスタントが
+(** ここで一つの疑問が起こってきます。自動化された証明支援系が
     「なぜ信用できるのか？」という疑問です。つまり、これらの実装に
     バグがあるなら、その証明にも疑いを持たざるを得ません。
 

@@ -75,7 +75,7 @@ Proof.
 (** [] *)
 
 (** **** 練習問題:★★, optional *)
-(** Logic_J.v に定義された [empty_relation] が部分関数ではないことを示しなさい。 *)
+(** Logic_J.v に定義された [empty_relation] が部分関数であることを示しなさい。 *)
 
 (* FILL IN HERE *)
 (** [] *)
