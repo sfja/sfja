@@ -98,9 +98,9 @@ Example test_orb1:  (orb true  false) = true.
 Proof. simpl. reflexivity.  Qed.
 Example test_orb2:  (orb false false) = false.
 Proof. simpl. reflexivity.  Qed.
-Example test_orb3:  (orb false true ) = true.
+Example test_orb3:  (orb false true) = true.
 Proof. simpl. reflexivity.  Qed.
-Example test_orb4:  (orb true  true ) = true.
+Example test_orb4:  (orb true  true) = true.
 Proof. simpl. reflexivity.  Qed.
 
 (** 記述方法について: .v ファイルのコメントの中に Coqのコード片を含める場合には、角括弧を使用してコメントと区切ります。この慣習は[coqdoc]というドキュメント作成ツールでも利用されているのですが、コード片を周囲のコメントから視覚的に分離することができます。CoqソースのHTML版では、ソースはコメントとは[別のフォント]で表示されます。 *)
