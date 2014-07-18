@@ -139,7 +139,7 @@ Check conj.
     solves the current goal and leaves the two parts of the
     conjunction as subgoals to be proved separately. *)
 
-(**
+(** 
     基本的なことから色々なことを組み立てていくエレガントさはさておき、
     このような方法でconjunctionを定義することの利点は、これを含む
     文を、既に知っているタクティックで証明できることです。
@@ -168,7 +168,7 @@ Print and_example.
     conj (ev 0) (ev 4) (...pf of ev 0...) (...pf of ev 4...)
 ]]
     which is what you'd expect, given the type of [conj]. *)
-
+    
 (** この型に注目してください。
 [[
     conj (ev 0) (ev 4) (... ev 0 の証明 ...) (... ev 4 の証明 ...)
@@ -336,7 +336,7 @@ Proof.
 (*  Hint: If you have an iff hypothesis in the context, you can use
     [inversion] to break it into two separate implications.  (Think
     about why this works.) *)
-(** ヒント: もしコンテキストに iff を含む仮定があれば、
+(** ヒント: もしコンテキストに iff を含む仮定があれば、 
     [inversion] を使ってそれを二つの含意の式に分割することができます。
     (なぜそうできるのか考えてみましょう。) *)
 (** [] *)
@@ -675,7 +675,7 @@ Definition not (P:Prop) := P -> False.
 
 (*  The intuition is that, if [P] is not true, then anything at
     all (even [False]) follows from assuming [P]. *)
-(** 直観的には 「もし[P] がtrueでないなら、すべてが（ [False] でさえ）仮定 [P]
+(** 直観的には 「もし[P] がtrueでないなら、すべてが（ [False] でさえ）仮定 [P] 
     から導かれるということです。. *)
 
 Notation "~ x" := (not x) : type_scope.
@@ -723,7 +723,7 @@ Proof.
 (* FILL IN HERE *)
    []
 *)
-(** [double_neg] の非形式的な証明を書きなさい。:
+(** [double_neg] の非形式的な証明を書きなさい。: 
 
 
    _Theorem_: [P] implies [~~P], for any proposition [P].
@@ -914,7 +914,7 @@ Definition some_nat_is_even : Prop :=
     as witness -- say, 4 -- and give some evidence that that number is
     even. *)
 (** この、命題を証明するためには、証拠として特定の値（この場合4）を
-    与え、それが偶数である根拠を示す必要があります。
+    与え、それが偶数である根拠を示す必要があります。 
  *)
 
 Definition snie : some_nat_is_even :=
@@ -1036,8 +1036,8 @@ Proof.
 (** **** 練習問題: ★★★, optional (not_exists_dist) *)
 (*  The other direction requires the classical "law of the excluded
     middle": *)
-(** 反対の向きは、古典論理の「排中律（law of the excluded middle）」が必要です。
- *)
+(** 反対の向きは、古典論理の「排中律（law of the excluded middle）」が
+    必要です。 *)
 
 Theorem not_exists_dist :
   excluded_middle ->
@@ -1250,14 +1250,14 @@ End MyEquality.
 
 
    例 : [and] で構築された仮定を反転（ invert ）すると、[and] にはコンストラクタが
-   一つしかないため、サブゴールも一つしか生成されません。やはり、コンストラクタ
+   一つしかないため、サブゴールも一つしか生成されません。やはり、コンストラクタ 
    ([P /\ Q]) の結果（戻り値の型）は [P] や [Q] の形からくる制約を付けず、追加の等式が
    サブゴールのコンテキストに加えられることはありません。このコンストラクタは引数を二つ
    とりますが、それらはサブゴールのコンテキストに現れます。
 
 
    例 : [eq] で構築された仮定を反転（ invert ）すると、これにもやはりコンストラクタが
-   一つしかないため、サブゴールも一つしか生成されません。しかしこの場合
+   一つしかないため、サブゴールも一つしか生成されません。しかしこの場合 
    コンストラクタ [refl_equal] の形は我々にもう少し情報を与えてくれます。
    それは、[eq] の二つの引数は同じでなければならないという点です。
     [inversion] タクティックはこの事実をコンテキストに加えてくれます。
@@ -1378,7 +1378,7 @@ Check le_ind.
     must construct their proofs explicitly -- [simpl] and
     [reflexivity] don't do the job, because the proofs aren't just a
     matter of simplifying computations. *)
-(**
+(** 
     ここで、定義が正しくなされているのかのチェックをしてみましょう。（注意して
     欲しいのは、ここでやることが、最初のレクチャーで書いてもらった、ある種の
     シンプルな「ユニットテスト」のようなものですが、今回のものは以前のものと
@@ -1521,7 +1521,7 @@ Inductive all (X : Type) (P : X -> Prop) : list X -> Prop :=
 
 (*  Recall the function [forallb], from the exercise
 [forall_exists_challenge] in [Poly.v]: *)
-(** [Poly.v] の練習問題 [forall_exists_challenge] に出てきた関数 [forallb]
+(** [Poly.v] の練習問題 [forall_exists_challenge] に出てきた関数 [forallb] 
     を思い出してみましょう。
  *)
 
@@ -1622,7 +1622,7 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     すべての部分リストの中で、[filter test l] が最も長いリストである。」
     これを形式的に記述し、それを証明しなさい。
  *)
-
+    
 (* FILL IN HERE *)
 (** [] *)
 
@@ -1663,7 +1663,7 @@ Proof.
     これは、型 [X] の二つのリスト [l1] 、 [l2] が共通の要素を持たない場合
     にのみ証明可能な命題です。
  *)
-
+ 
 (* FILL IN HERE *)
 
 (*  Next, use [appears_in] to define an inductive proposition
@@ -1674,8 +1674,8 @@ Proof.
     [1,2,1]] and [no_repeats bool [true,true]] should not be.  *)
 (** 次は、 [appears_in] を使って帰納的な命題 [no_repeats X l] を定義して
     ください。これは, 型 [X] のリスト [l] の中のどの要素も、他の要素と
-    異なっている場合のみ証明できるような命題です。例えば、
-    [no_repeats nat [1,2,3,4]] や [no_repeats bool []] は証明可能ですが、
+    異なっている場合のみ証明できるような命題です。例えば、 
+    [no_repeats nat [1,2,3,4]] や [no_repeats bool []] は証明可能ですが、 
     [no_repeats nat [1,2,1]] や [no_repeats bool [true,true]] は証明
     できないようなものです。
  *)
@@ -1806,7 +1806,7 @@ Inductive nostutter:  list nat -> Prop :=
     いるかもしれません。その場合、このテストを通過するために別の
     証明を用意する必要があります。
 
-    以下の Example にコメントとして提示された証明には、色々な種類の
+    以下の Example にコメントとして提示された証明には、色々な種類の 
     [nostutter] の定義に対応できるようにするため、まだ説明していない
     タクティックがいくつか使用されています。 まずこれらのコメントをはずしただけの
     状態で確認できればいいのですが、もしそうしたいなら、これらの証明をもっと
@@ -1983,7 +1983,7 @@ Check and_ind.
             P \/ Q -> P0
 ]]
 *)
-(** 命題 [and P Q] の帰納的な定義から、
+(** 命題 [and P Q] の帰納的な定義から、 
 [[
      Inductive and (P Q : Prop) : Prop :=
        conj : P -> Q -> (and P Q).
@@ -2145,11 +2145,11 @@ Print nat_ind.  Print nat_rect.
     これは本質的に Haskell の GADT (generalized algebraic datatype) と同じものです。
     実際、 [F] は依存型（ _dependent_ type ）をしており、その結果の方はその引数に
     依存します。 GADT はこのような単純な依存型を表現する際に使えます。
-
+    
     我々は、 [nat_ind] の証明に使用したこのようなアプローチを、
     標準的でない（ _non-standard_ ）帰納法の原理を証明する際にも使うことができます。
     以前このような証明をしようとしていたことを思い出してください。
-
+    
     [forall n : nat, even n -> ev n].
 
     これを、通常の [n] に対する帰納法でやろうとしても失敗してしまいます。
@@ -2187,7 +2187,7 @@ Print nat_ind.  Print nat_rect.
 (** 一度これを手にいれてしまえば、今回のような帰納法の原理を使った
     証明全般にこれを使うことができます。これを補題としてタクティックを
     使うと、さらに直観に反したものになります（試してみてください！）。
-
+     
      [induction ... using] タクティックは、このように標準的でない
      帰納法の原理を取る際に便利です。
  *)
@@ -2272,18 +2272,18 @@ Qed.
     プログラムであり、それこそが Coq の「信頼できるコンピューティング基盤」と
     なっています。その「信頼性が必要となる一部のコード」は正確に動き、また
     十分に小さいのです。
-
+    
     型チェッカの役割とはなんでしょうか？その一番の役割は、各々の関数の適用で、
     予想された型と実際の型が一致していることを確認することです。つまり、
      [match] の各枝の式が、帰納的な型のコンストラクタと対応しており、すべてが
      同じ型を返すようになっているか、などです。
-
+    
     しかしこれには若干の弱点もあります。
 
     - Coq の型はそれ自身が式となっているため、その型チェッカがそれらを比較する前際に、変換ルールに基づいて正規化しなければならない。
 
     - 型チェッカは、 [match] の式が「尽くされている（_exhaustive_ ）ことを確認しなければならない。つまり、その型ににあるコンストラクタに対応する枝をすべて持っていなければならい。その理由は、次に提示された証明オブジェクトについて考えればわかるはずです。
-
+      
 [[
       Definition or_bogus : forall P Q, P \/ Q -> P :=
         fun (P Q : Prop) (A : P \/ Q) =>
@@ -2317,3 +2317,5 @@ Qed.
     １から検証しなおします。型チェッカを通過した補題のみ、その後の証明の
     構築に使える定理となることができるのです。
  *)
+
+
