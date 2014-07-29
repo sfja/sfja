@@ -1036,8 +1036,8 @@ Proof.
 (** **** 練習問題: ★★★, optional (not_exists_dist) *)
 (*  The other direction requires the classical "law of the excluded
     middle": *)
-(** 一方、古典論理の「排中律（law of the excluded middle）」が必要とされる
-    場合もあります。 *)
+(** 反対の向きは、古典論理の「排中律（law of the excluded middle）」が
+    必要です。 *)
 
 Theorem not_exists_dist :
   excluded_middle ->
