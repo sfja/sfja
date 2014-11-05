@@ -234,7 +234,7 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     things would we be willing to accept as evidence that particular
     propositions are true? *)
 (** 次の疑問は"証明とはなにか？"です。
-    すなわち、ある命題が真であるという根拠として使えるものは、どようなものでしょうか？ *)
+    すなわち、ある命題が真であるという根拠として使えるものは、どのようなものでしょうか？ *)
 
 (* ##################################################### *)
 (* ** Inductively Defined Propositions *)
