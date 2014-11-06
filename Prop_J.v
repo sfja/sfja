@@ -168,7 +168,7 @@ Definition teen : nat->Prop := between 13 19.
 
 (* We can even pass propositions -- including parameterized
     propositions -- as arguments to functions: *)
-(** 他の関数に、引数として命題（パラーメータ化された命題も含む）を渡すことすらできます。 *)
+(** 他の関数に、引数として命題（パラメータ化された命題も含む）を渡すことすらできます。 *)
 
 Definition true_for_zero (P:nat->Prop) : Prop :=
   P 0.
