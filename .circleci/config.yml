@@ -1,0 +1,16 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: /tmp/sfja
+    docker:
+      - image: eldesh/coq:8.3
+    steps:
+      - checkout
+      - run: make
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
