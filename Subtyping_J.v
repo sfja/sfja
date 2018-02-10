@@ -741,6 +741,10 @@ Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
       tm_if (subst s x t1) (subst s x t2) (subst s x t3)
   | tm_unit =>
       tm_unit
+  | tm_pair t1 t2 =>
+    tm_pair (subst s x t1) (subst s x t2)
+  | tm_fst t1 => tm_fst (subst s x t1)
+  | tm_snd t2 => tm_snd (subst s x t2)
   end.
 
 (* ################################### *)
