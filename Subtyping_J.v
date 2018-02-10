@@ -703,6 +703,9 @@ Inductive tm : Type :=
   | tm_false : tm
   | tm_if : tm -> tm -> tm -> tm
   | tm_unit : tm
+  | tm_pair : tm -> tm -> tm
+  | tm_fst : tm -> tm -> tm
+  | tm_snd : tm -> tm -> tm
 .
 
 Tactic Notation "tm_cases" tactic(first) ident(c) :=
@@ -711,6 +714,7 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   | Case_aux c "tm_abs" | Case_aux c "tm_true"
   | Case_aux c "tm_false" | Case_aux c "tm_if"
   | Case_aux c "tm_unit"
+  | Case_aux c "tm_pair" | Case_aux c "tm_fst" | Case_aux c "tm_snd"
   ].
 
 (* ################################### *)
