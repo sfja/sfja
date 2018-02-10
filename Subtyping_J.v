@@ -1898,17 +1898,29 @@ Proof with eauto.
   destruct IHHtyp as [T1 [T2 [Ht1 [Ht2 HSub]]]]... exists T1, T2. now eauto.
 Qed.
 
-Lemma typing_inversion_fst : forall Gamma t T,
-  has_type Gamma (tm_fst t) T ->
-    exists T1 T2, has_type Gamma t T1 /\ has_type Gamma t2 T2 /\ subtype (ty_Prod T1 T2) T.
+Lemma typing_inversion_fst : forall Gamma t T1,
+  has_type Gamma (tm_fst t) T1 ->
+  exists T2,
+    has_type Gamma t (ty_Prod T1 T2).
 Proof with eauto.
-  intros Gamma t1 t2 T Htyp. remember (tm_fst t) as tfst.
+  intros Gamma t T Htyp. remember (tm_fst t) as tfst.
   has_type_cases (induction Htyp) Case;
-    inversion Heqtpair; subst; intros...
+    inversion Heqtfst; subst; intros...
   Case "T_Sub".
-  destruct IHHtyp as [T1 [T2 [Ht1 [Ht2 HSub]]]]... exists T1, T2. now eauto.
+  destruct IHHtyp...
 Qed.
 
+Lemma typing_inversion_snd : forall Gamma t T2,
+  has_type Gamma (tm_snd t) T2 ->
+  exists T1,
+    has_type Gamma t (ty_Prod T1 T2).
+Proof with eauto.
+  intros Gamma t T Htyp. remember (tm_snd t) as tsnd.
+  has_type_cases (induction Htyp) Case;
+    inversion Heqtsnd; subst; intros...
+  Case "T_Sub".
+  destruct IHHtyp...
+Qed.
 
 (* The inversion lemmas for typing and for subtyping between arrow
     types can be packaged up as a useful "combination lemma" telling
