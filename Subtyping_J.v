@@ -684,6 +684,7 @@ Inductive ty : Type :=
   | ty_base  : id -> ty
   | ty_arrow : ty -> ty -> ty
   | ty_Unit  : ty
+  | ty_Prod  : ty -> ty -> ty
 .
 
 Tactic Notation "ty_cases" tactic(first) ident(c) :=
@@ -691,6 +692,7 @@ Tactic Notation "ty_cases" tactic(first) ident(c) :=
   [ Case_aux c "ty_Top" | Case_aux c "ty_Bool"
   | Case_aux c "ty_base" | Case_aux c "ty_arrow"
   | Case_aux c "ty_Unit" |
+  | Case_aux c "ty_Prod"
   ].
 
 Inductive tm : Type :=
