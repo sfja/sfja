@@ -1889,13 +1889,24 @@ Qed.
 
 Lemma typing_inversion_pair : forall Gamma t1 t2 T,
   has_type Gamma (tm_pair t1 t2) T ->
-    exists T1 T2, subtype (ty_Prod T1 T2) T.
+    exists T1 T2, has_type Gamma t1 T1 /\ has_type Gamma t2 T2 /\ subtype (ty_Prod T1 T2) T.
 Proof with eauto.
   intros Gamma t1 t2 T Htyp. remember (tm_pair t1 t2) as tpair.
   has_type_cases (induction Htyp) Case;
     inversion Heqtpair; subst; intros...
   Case "T_Sub".
-  destruct IHHtyp as [T1 [T2 HSub]]...
+  destruct IHHtyp as [T1 [T2 [Ht1 [Ht2 HSub]]]]... exists T1, T2. now eauto.
+Qed.
+
+Lemma typing_inversion_fst : forall Gamma t T,
+  has_type Gamma (tm_fst t) T ->
+    exists T1 T2, has_type Gamma t T1 /\ has_type Gamma t2 T2 /\ subtype (ty_Prod T1 T2) T.
+Proof with eauto.
+  intros Gamma t1 t2 T Htyp. remember (tm_fst t) as tfst.
+  has_type_cases (induction Htyp) Case;
+    inversion Heqtpair; subst; intros...
+  Case "T_Sub".
+  destruct IHHtyp as [T1 [T2 [Ht1 [Ht2 HSub]]]]... exists T1, T2. now eauto.
 Qed.
 
 
