@@ -1556,6 +1556,16 @@ Proof with eauto.
     subst. apply sub_inversion_Bool in H. subst...
 Qed.
 
+Lemma canonical_forms_of_Pair : forall Gamma s T1 T2,
+  has_type Gamma s (ty_Prod T1 T2) ->
+  value s ->
+  (exists v1 v2, value v1 /\ value v2 /\ s = tm_pair v1 v2).
+Proof with eauto.
+  intros Gamma s T1 T2 Hty Hv.
+  has_type_cases (induction Hty) Case; try solve by inversion.
+(*TODO*)
+Admitted.
+
 
 (* ########################################## *)
 (* ** Progress *)
