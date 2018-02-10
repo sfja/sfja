@@ -1355,7 +1355,19 @@ Inductive has_type : context -> tm -> ty -> Prop :=
   | T_Sub : forall Gamma t S T,
       has_type Gamma t S ->
       subtype S T ->
-      has_type Gamma t T.
+      has_type Gamma t T
+  (* 演習4 *)
+  | T_Pair : forall Gamma t1 t2 T1 T2,
+      has_type Gamma t1 T1 ->
+      has_type Gamma t2 T2 ->
+      has_type Gamma (tm_pair t1 t2) (ty_Prod T1 T2)
+  | T_Fst : forall Gamma t T1 T2,
+      has_type Gamma t (ty_Prod T1 T2) ->
+      has_type Gamma (tm_fst t) T1
+  | T_Snd : forall Gamma t T1 T2,
+      has_type Gamma t (ty_Prod T1 T2) ->
+      has_type Gamma (tm_snd t) T2
+.
 
 Hint Constructors has_type.
 
@@ -1365,7 +1377,9 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   | Case_aux c "T_App" | Case_aux c "T_True"
   | Case_aux c "T_False" | Case_aux c "T_If"
   | Case_aux c "T_Unit"
-  | Case_aux c "T_Sub" ].
+  | Case_aux c "T_Sub"
+  | Case_aux c "T_Pair" | Case_aux c "T_Fst" | Case_aux c "T_Snd"
+  ].
 
 (* ############################################### *)
 (* ** Typing examples *)
