@@ -812,6 +812,9 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
   [ Case_aux c "ST_AppAbs" | Case_aux c "ST_App1"
   | Case_aux c "ST_App2" | Case_aux c "ST_IfTrue"
   | Case_aux c "ST_IfFalse" | Case_aux c "ST_If"
+  | Case_aux c "ST_Pair1" | Case_aux c "ST_Pair2"
+  | Case_aux c "ST_FstPair" | Case_aux c "ST_Fst"
+  | Case_aux c "ST_SndPair" | Case_aux c "ST_Snd"
   ].
 
 Hint Constructors step.
