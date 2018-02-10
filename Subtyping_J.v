@@ -849,6 +849,15 @@ Inductive subtype : ty -> ty -> Prop :=
     subtype T1 S1 ->
     subtype S2 T2 ->
     subtype (ty_arrow S1 S2) (ty_arrow T1 T2)
+(*
+                        S1 <: T1     S2 <: T2
+                        ---------------------                     (Sub_Prod)
+                          S1 * S2 <: T1 * T2
+*)
+  | S_Prod : forall S1 S2 T1 T2,
+      subtype S1 T1 ->
+      subtype S2 T2 ->
+      subtype (ty_Prod S1 S2) (ty_Prod T1 T2)
 .
 
 (* Note that we don't need any special rules for base types: they are
@@ -864,6 +873,7 @@ Tactic Notation "subtype_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "S_Refl" | Case_aux c "S_Trans"
   | Case_aux c "S_Top" | Case_aux c "S_Arrow"
+  | Case_aux c "S_Prod"
   ].
 
 (* ############################################### *)
