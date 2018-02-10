@@ -794,7 +794,7 @@ Inductive step : tm -> tm -> Prop :=
   | ST_Pair2 : forall v1 t2 t2', (*左側から優先的に評価する*)
       value v1 ->
       t2 ==> t2' ->
-      tm_pair v1 t2 ==> tm_pair v1 t2
+      tm_pair v1 t2 ==> tm_pair v1 t2'
   | ST_FstPair : forall t1 t2,
       tm_fst (tm_pair t1 t2) ==> t1
   | ST_Fst : forall t1 t1',
