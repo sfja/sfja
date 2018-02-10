@@ -1950,6 +1950,10 @@ Inductive appears_free_in : id -> tm -> Prop :=
       appears_free_in x t1 -> appears_free_in x (tm_pair t1 t2)
   | afi_pair2 : forall x t1 t2,
       appears_free_in x t2 -> appears_free_in x (tm_pair t1 t2)
+  | afi_fst : forall x t,
+      appears_free_in x t -> appears_free_in x (tm_fst t)
+  | afi_snd : forall x t,
+      appears_free_in x t -> appears_free_in x (tm_snd t)
 .
 
 Hint Constructors appears_free_in.
