@@ -2044,7 +2044,7 @@ Proof with eauto.
   intros Gamma x U v t S Htypt Htypv.
   generalize dependent S. generalize dependent Gamma.
   tm_cases (induction t) Case; intros; simpl.
-  Case "tm_var".
+  -Case "tm_var".
     rename i into y.
     destruct (typing_inversion_var _ _ _ Htypt)
         as [T [Hctx Hsub]].
@@ -2058,11 +2058,11 @@ Proof with eauto.
       destruct (free_in_context _ _ S empty Hcontra)
           as [T' HT']...
       inversion HT'.
-  Case "tm_app".
+  -Case "tm_app".
     destruct (typing_inversion_app _ _ _ _ Htypt)
         as [T1 [Htypt1 Htypt2]].
     eapply T_App...
-  Case "tm_abs".
+  -Case "tm_abs".
     rename i into y. rename t into T1.
     destruct (typing_inversion_abs _ _ _ _ _ Htypt)
       as [T2 [Hsub Htypt2]].
@@ -2079,13 +2079,13 @@ Proof with eauto.
       remember (beq_id y z) as e0. destruct e0...
       apply beq_id_eq in Heqe0. subst.
       rewrite <- Heqe...
-  Case "tm_true".
+  -Case "tm_true".
       assert (subtype ty_Bool S)
         by apply (typing_inversion_true _ _  Htypt)...
-  Case "tm_false".
+  -Case "tm_false".
       assert (subtype ty_Bool S)
         by apply (typing_inversion_false _ _  Htypt)...
-  Case "tm_if".
+  -Case "tm_if".
     assert (has_type (extend Gamma x U) t1 ty_Bool
             /\ has_type (extend Gamma x U) t2 S
             /\ has_type (extend Gamma x U) t3 S)
@@ -2093,9 +2093,18 @@ Proof with eauto.
     destruct H as [H1 [H2 H3]].
     apply IHt1 in H1. apply IHt2 in H2. apply IHt3 in H3.
     auto.
-  Case "tm_unit".
+  -Case "tm_unit".
     assert (subtype ty_Unit S)
       by apply (typing_inversion_unit _ _  Htypt)...
+  -Case "tm_pair".
+   destruct (typing_inversion_pair _ _ _ _ Htypt) as [S1 [S2 [Hty1 [Hty2 HSub] ]]].
+   apply T_Sub with (ty_Prod S1 S2)...
+  -Case "tm_fst".
+   destruct (typing_inversion_fst _ _ _ Htypt) as [S2 Hty_Prod].
+   apply T_Fst with S2. now apply IHt.
+  -Case "tm_snd".
+   destruct (typing_inversion_snd _ _ _ Htypt) as [S1 Hty_Prod].
+   apply T_Snd with S1. now apply IHt.
 Qed.
 
 (* ########################################## *)
