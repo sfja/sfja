@@ -1976,7 +1976,13 @@ Proof with eauto.
     apply T_App with T1...
   Case "T_If".
     apply T_If...
-
+  -Case "T_Pair".
+    apply T_Pair.
+    + SCase "t1 : T1".
+      apply IHhas_type1. intros x Happear. apply Heqv. now constructor.
+    + SCase "t2 : T2".
+      apply IHhas_type2. intros x Happear. apply Heqv. now apply afi_pair2.
+  (*Case "T_Fst", "T_Snd" は自動証明される*)
 Qed.
 
 Lemma free_in_context : forall x t T Gamma,
