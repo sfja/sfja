@@ -704,8 +704,8 @@ Inductive tm : Type :=
   | tm_if : tm -> tm -> tm -> tm
   | tm_unit : tm
   | tm_pair : tm -> tm -> tm
-  | tm_fst : tm -> tm -> tm
-  | tm_snd : tm -> tm -> tm
+  | tm_fst : tm -> tm
+  | tm_snd : tm -> tm
 .
 
 Tactic Notation "tm_cases" tactic(first) ident(c) :=
