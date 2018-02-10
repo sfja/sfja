@@ -788,6 +788,23 @@ Inductive step : tm -> tm -> Prop :=
   | ST_If : forall t1 t1' t2 t3,
       t1 ==> t1' ->
       (tm_if t1 t2 t3) ==> (tm_if t1' t2 t3)
+  | ST_Pair1 : forall t1 t1' t2, (*左側から優先的に評価する*)
+      t1 ==> t1' ->
+      tm_pair t1 t2 ==> tm_pair t1' t2
+  | ST_Pair2 : forall v1 t2 t2', (*左側から優先的に評価する*)
+      value v1 ->
+      t2 ==> t2' ->
+      tm_pair v1 t2 ==> tm_pair v1 t2
+  | ST_FstPair : forall t1 t2,
+      tm_fst (tm_pair t1 t2) ==> t1
+  | ST_Fst : forall t1 t1',
+      t1 ==> t1' ->
+      tm_fst t1 ==> tm_fst t1'
+  | ST_SndPair : forall t1 t2,
+      tm_snd (tm_pair t1 t2) ==> t2
+  | ST_Snd : forall t1 t1',
+      t1 ==> t1' ->
+      tm_snd t1 ==> tm_snd t1'
 where "t1 '==>' t2" := (step t1 t2).
 
 Tactic Notation "step_cases" tactic(first) ident(c) :=
