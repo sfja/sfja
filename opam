@@ -1,0 +1,19 @@
+opam-version: "1.2"
+name: "sfja"
+version: "0.0.1"
+maintainer: "yoshihiro503 <yoshihiro503@proofcafe.org>"
+author: "yoshihiro503 <yoshihiro503@proofcafe.org>"
+homepage: "https://github.com/yoshihiro503/sfja"
+bug-reports: "https://github.com/yoshihiro503/sfja/issues"
+license: "Apache License, Version 2.0"
+dev-repo: "https://github.com/yoshihiro503/sfja.git"
+
+available: [ocaml-version = "4.01.0"]
+
+build: [
+  ["make"]
+]
+
+depends: [
+  "coq"     {= "8.3"}
+]
