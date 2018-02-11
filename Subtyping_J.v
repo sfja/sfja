@@ -1481,6 +1481,22 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 
 
+Lemma sub_inversion_pair : forall U V1 V2,
+     subtype U (ty_Prod V1 V2) ->
+     exists U1, exists U2,
+       U = (ty_Prod U1 U2) /\ (subtype U1 V1) /\ (subtype U2 V2).
+Proof with eauto.
+  intros U V1 V2 Hs.
+  remember (ty_Prod V1 V2) as V.
+  generalize dependent V2. generalize dependent V1.
+  subtype_cases (induction Hs) Case; intros; try solve by inversion...
+  - Case "S_Trans".
+    destruct (IHHs2 V1 V2) as [U1 [U2 [Ueq [USub1 USub2]]]]...
+    destruct (IHHs1 U1 U2) as [S1 [S2 [Seq [SSub1 SSub2]]]]...
+    exists S1, S2. now eauto.
+  - Case "S_Prod".
+    injection HeqV as Heq2 Heq1. subst. exists S1, S2. now eauto.
+Qed.
 (** [] *)
 
 (* ########################################## *)
