@@ -149,7 +149,7 @@ html: $(GLOBFILES) $(VFILES)
 	--no-lib-name --lib-subtitles -toc -html $(COQDOCLIBS) -d html $(VFILES)
 	cp index.html coqdoc.css toc.html html/
 	cp deps_J.html deps_J.png html/
-	tar zcvf html/sfja.tar.gz *.v *.css *.html Makefile README LICENSE *.png
+	tar zcvf html/sfja.tar.gz *.v *.css *.html Makefile README.md LICENSE *.png
 
 gallinahtml: $(GLOBFILES) $(VFILES)
 	- mkdir -p html
