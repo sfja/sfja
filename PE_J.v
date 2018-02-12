@@ -155,7 +155,7 @@ Definition empty_pe_state : pe_state := [].
 
 Tactic Notation "compare" ident(i) ident(j) ident(c) :=
   let H := fresh "Heq" i j in
-  destruct (beq_id i j) as [|]_eqn:H;
+  destruct (beq_id i j) as [|]eqn:H;
   [ Case_aux c "equal"; symmetry in H; apply beq_id_eq in H; subst j
   | Case_aux c "not equal" ].
 
