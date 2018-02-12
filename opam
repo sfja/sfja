@@ -8,12 +8,12 @@ bug-reports: "https://github.com/yoshihiro503/sfja/issues"
 license: "Apache License, Version 2.0"
 dev-repo: "https://github.com/yoshihiro503/sfja.git"
 
-available: [ocaml-version = "4.01.0"]
+available: [ocaml-version = "4.04.2"]
 
 build: [
   ["make"]
 ]
 
 depends: [
-  "coq"     {= "8.3"}
+  "coq"     {= "8.4.6"}
 ]
