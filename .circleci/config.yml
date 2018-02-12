@@ -1,0 +1,35 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: /tmp/sfja
+    docker:
+      - image: eldesh/coq:8.3
+    steps:
+      - checkout
+      - run:
+          name: compile .v
+          command: |
+            source ~/.profile
+            make
+  doc:
+    working_directory: /tmp/sfja
+    docker:
+      - image: eldesh/coq:8.3
+    steps:
+      - checkout
+      - run:
+          name: generate documents
+          command: |
+            source ~/.profile
+            make html
+      - store_artifacts:
+          path: /tmp/sfja/html
+          destination: sfja
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - doc
