@@ -319,7 +319,7 @@ Proof.
 (** **** 練習問題: ★ (iff_properties) *)
 (*  Using the above proof that [<->] is symmetric ([iff_sym]) as
     a guide, prove that it is also reflexive and transitive. *)
-(** 上の、 [<->] が対称であることを示す証明 ([iff_sym]) を使い、それが反射的で
+(** 上の、 [<->] が対称であることを示す証明 ([iff_sym]) を参考に、それが反射的で
     あること、推移的であることを証明しなさい。
  *)
 
@@ -564,7 +564,7 @@ Inductive False : Prop := .
 (*  **** Exercise: 1 star (False_ind_principle) *)
 (** **** 練習問題: ★ (False_ind_principle) *)
 (*  Can you predict the induction principle for falsehood? *)
-(** 「偽」に関する帰納的な公理を何か思いつくことができますか？ *)
+(** 「偽」に関する帰納法の原理を何か思いつくことができますか？ *)
 
 (* Check False_ind. *)
 (** [] *)
@@ -645,8 +645,8 @@ Proof.
     to start with the induction principle and work backwards to the
     inductive definition.) *)
 (** [True] を、帰納的な命題として定義しなさい。あなたの定義に対してCoqはどのような
-    帰納的原理を生成してくれるでしょうか。 （直観的には [True] はただ当たり前のように
-    根拠を示される命題であるべきです。代わりに、帰納的原理から帰納的な定義を逆に
+    帰納法の原理を生成してくれるでしょうか。 （直観的には [True] はただ当たり前のように
+    根拠を示される命題であるべきです。代わりに、帰納法の原理から帰納的な定義を逆に
     たどっていくほうが近道だと気づくかもしれません。）
  *)
 
