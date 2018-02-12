@@ -1,3 +1,13 @@
+# Sfja - Software Foundations (ja)
+
+
+## Build status
+
+[![CircleCI](https://circleci.com/gh/sfja/sfja.svg?style=svg)](https://circleci.com/gh/sfja/sfja)
+
+
+## Contributions
+
 発起人の片山です。4章までの翻訳を行いました。
 
 以下は、梅村氏との質疑で出た、現状の翻訳方針です。
