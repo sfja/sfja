@@ -2244,6 +2244,14 @@ Proof with eauto.
     SCase "ST_AppAbs".
       destruct (abs_arrow _ _ _ _ _ HT1) as [HA1 HA2].
       apply substitution_preserves_typing with T...
+  -Case "T_Fst".
+    destruct (typing_inversion_pair _ _ _ _ HT) as [S1 [S2 [HtyS1 [HtyS2 HSub]]]].
+    destruct (sub_inversion_pair _ _ _ HSub) as [U1 [U2 [Heq [HSub1 HSub2]]]].
+    apply T_Sub with U1... injection Heq as _ Heq1. now subst.
+  -Case "T_Snd".
+    destruct (typing_inversion_pair _ _ _ _ HT) as [S1 [S2 [HtyS1 [HtyS2 HSub]]]].
+    destruct (sub_inversion_pair _ _ _ HSub) as [U1 [U2 [Heq [HSub1 HSub2]]]].
+    apply T_Sub with U2... injection Heq as Heq2 _. now subst.
 Qed.
 
 (* ###################################################### *)
