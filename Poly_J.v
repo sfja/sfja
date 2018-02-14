@@ -3,7 +3,7 @@
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
 
 Require Export Lists_J.
-
+Set Asymmetric Patterns.
 
 
 (** * ポリモルフィズム（多相性） *)

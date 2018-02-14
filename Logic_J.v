@@ -3,7 +3,7 @@
 
 (* $Date: 2011-06-22 10:06:32 -0400 (Wed, 22 Jun 2011) $ *)
 
-Require Export "Prop_J".
+Require Export Prop_J.
 
 (* Coq's built-in logic is extremely small: [Inductive] definitions,
     universal quantification ([forall]), and implication ([->]) are
