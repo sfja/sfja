@@ -11,7 +11,7 @@
 
 (** * Coq スタンダードライブラリから *)
 
-Require Omega.   (* needed for using the [omega] tactic *)
+Require Export Omega.   (* needed for using the [omega] tactic *)
 Require Export Bool.
 Require Export List.
 Require Export Arith.
