@@ -168,7 +168,7 @@ Definition teen : nat->Prop := between 13 19.
 
 (* We can even pass propositions -- including parameterized
     propositions -- as arguments to functions: *)
-(** 他の関数に、引数として命題（パラーメータ化された命題も含む）を渡すことすらできます。 *)
+(** 他の関数に、引数として命題（パラメータ化された命題も含む）を渡すことすらできます。 *)
 
 Definition true_for_zero (P:nat->Prop) : Prop :=
   P 0.
@@ -234,7 +234,7 @@ Definition our_nat_induction (P:nat->Prop) : Prop :=
     things would we be willing to accept as evidence that particular
     propositions are true? *)
 (** 次の疑問は"証明とはなにか？"です。
-    すなわち、ある命題が真であるという根拠として使えるものは、どようなものでしょうか？ *)
+    すなわち、ある命題が真であるという根拠として使えるものは、どのようなものでしょうか？ *)
 
 (* ##################################################### *)
 (* ** Inductively Defined Propositions *)
