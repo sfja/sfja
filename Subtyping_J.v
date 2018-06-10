@@ -1582,9 +1582,16 @@ Lemma canonical_forms_of_Pair : forall Gamma s T1 T2,
   (exists v1 v2, value v1 /\ value v2 /\ s = tm_pair v1 v2).
 Proof with eauto.
   intros Gamma s T1 T2 Hty Hv.
-  has_type_cases (induction Hty) Case; try solve by inversion.
-(*TODO*)
-Admitted.
+  remember (ty_Prod _ _) as T. (*rememberは '_' つかえるぜ *)
+  revert T1 T2 HeqT.
+  has_type_cases (induction Hty) Case; intros T1' T2' Teq; try solve by inversion...
+  - Case "T_Sub".
+    subst T. destruct (sub_inversion_pair _ _ _ H) as [S1 [S2 [S_eq [Hsub1 Hsub2]]]].
+    now apply IHHty with S1 S2.
+  - Case "T_Pair".
+    inversion Hv as [| | | |t1' t2' Hvalue1 Hvalue2 [Heq1 Heq2]].
+    exists t1, t2. tauto.
+Qed.
 
 
 (* ########################################## *)
