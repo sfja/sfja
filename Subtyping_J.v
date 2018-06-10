@@ -1709,22 +1709,22 @@ Proof with eauto.
   revert HeqGamma.
   has_type_cases (induction Ht) Case;
     intros HeqGamma; subst...
-  Case "T_Var".
+  -Case "T_Var".
     inversion H.
-  Case "T_App".
+  -Case "T_App".
     right.
     destruct IHHt1; subst...
-    SCase "t1 is a value".
+    +SCase "t1 is a value".
       destruct IHHt2; subst...
-      SSCase "t2 is a value".
+      *SSCase "t2 is a value".
         destruct (canonical_forms_of_arrow_types empty t1 T1 T2)
           as [x [S1 [t12 Heqt1]]]...
         subst. exists (subst t2 x t12)...
-      SSCase "t2 steps".
+      *SSCase "t2 steps".
         destruct H0 as [t2' Hstp]. exists (tm_app t1 t2')...
-    SCase "t1 steps".
+    +SCase "t1 steps".
       destruct H as [t1' Hstp]. exists (tm_app t1' t2)...
-  Case "T_If".
+  -Case "T_If".
     right.
     destruct IHHt1.
     SCase "t1 is a value"...
