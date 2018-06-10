@@ -1730,7 +1730,8 @@ Proof with eauto.
     SCase "t1 is a value"...
       assert (t1 = tm_true \/ t1 = tm_false)
         by (eapply canonical_forms_of_Bool; eauto).
-      inversion H0; subst...
+      inversion H0; subst; now eexists.
+      SCase "t1 is not a value".
       destruct H. rename x into t1'. eauto.
   -Case "T_Pair".
      destruct IHHt1 as [| [t1' Ht1_step]]...
