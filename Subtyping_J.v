@@ -684,6 +684,7 @@ Inductive ty : Type :=
   | ty_base  : id -> ty
   | ty_arrow : ty -> ty -> ty
   | ty_Unit  : ty
+  | ty_Prod  : ty -> ty -> ty
 .
 
 Tactic Notation "ty_cases" tactic(first) ident(c) :=
@@ -691,6 +692,7 @@ Tactic Notation "ty_cases" tactic(first) ident(c) :=
   [ Case_aux c "ty_Top" | Case_aux c "ty_Bool"
   | Case_aux c "ty_base" | Case_aux c "ty_arrow"
   | Case_aux c "ty_Unit" |
+  | Case_aux c "ty_Prod"
   ].
 
 Inductive tm : Type :=
@@ -701,6 +703,9 @@ Inductive tm : Type :=
   | tm_false : tm
   | tm_if : tm -> tm -> tm -> tm
   | tm_unit : tm
+  | tm_pair : tm -> tm -> tm
+  | tm_fst : tm -> tm
+  | tm_snd : tm -> tm
 .
 
 Tactic Notation "tm_cases" tactic(first) ident(c) :=
@@ -709,6 +714,7 @@ Tactic Notation "tm_cases" tactic(first) ident(c) :=
   | Case_aux c "tm_abs" | Case_aux c "tm_true"
   | Case_aux c "tm_false" | Case_aux c "tm_if"
   | Case_aux c "tm_unit"
+  | Case_aux c "tm_pair" | Case_aux c "tm_fst" | Case_aux c "tm_snd"
   ].
 
 (* ################################### *)
@@ -735,6 +741,10 @@ Fixpoint subst (s:tm) (x:id) (t:tm) : tm :=
       tm_if (subst s x t1) (subst s x t2) (subst s x t3)
   | tm_unit =>
       tm_unit
+  | tm_pair t1 t2 =>
+    tm_pair (subst s x t1) (subst s x t2)
+  | tm_fst t1 => tm_fst (subst s x t1)
+  | tm_snd t2 => tm_snd (subst s x t2)
   end.
 
 (* ################################### *)
@@ -754,6 +764,10 @@ Inductive value : tm -> Prop :=
       value tm_false
   | v_unit :
       value tm_unit
+  | v_pair : forall x y,
+      value x ->
+      value y ->
+      value (tm_pair x y)
 .
 
 Hint Constructors value.
@@ -778,6 +792,23 @@ Inductive step : tm -> tm -> Prop :=
   | ST_If : forall t1 t1' t2 t3,
       t1 ==> t1' ->
       (tm_if t1 t2 t3) ==> (tm_if t1' t2 t3)
+  | ST_Pair1 : forall t1 t1' t2, (*左側から優先的に評価する*)
+      t1 ==> t1' ->
+      tm_pair t1 t2 ==> tm_pair t1' t2
+  | ST_Pair2 : forall v1 t2 t2', (*左側から優先的に評価する*)
+      value v1 ->
+      t2 ==> t2' ->
+      tm_pair v1 t2 ==> tm_pair v1 t2'
+  | ST_FstPair : forall t1 t2,
+      tm_fst (tm_pair t1 t2) ==> t1
+  | ST_Fst : forall t1 t1',
+      t1 ==> t1' ->
+      tm_fst t1 ==> tm_fst t1'
+  | ST_SndPair : forall t1 t2,
+      tm_snd (tm_pair t1 t2) ==> t2
+  | ST_Snd : forall t1 t1',
+      t1 ==> t1' ->
+      tm_snd t1 ==> tm_snd t1'
 where "t1 '==>' t2" := (step t1 t2).
 
 Tactic Notation "step_cases" tactic(first) ident(c) :=
@@ -785,6 +816,9 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
   [ Case_aux c "ST_AppAbs" | Case_aux c "ST_App1"
   | Case_aux c "ST_App2" | Case_aux c "ST_IfTrue"
   | Case_aux c "ST_IfFalse" | Case_aux c "ST_If"
+  | Case_aux c "ST_Pair1" | Case_aux c "ST_Pair2"
+  | Case_aux c "ST_FstPair" | Case_aux c "ST_Fst"
+  | Case_aux c "ST_SndPair" | Case_aux c "ST_Snd"
   ].
 
 Hint Constructors step.
@@ -819,6 +853,15 @@ Inductive subtype : ty -> ty -> Prop :=
     subtype T1 S1 ->
     subtype S2 T2 ->
     subtype (ty_arrow S1 S2) (ty_arrow T1 T2)
+(*
+                        S1 <: T1     S2 <: T2
+                        ---------------------                     (Sub_Prod)
+                          S1 * S2 <: T1 * T2
+*)
+  | S_Prod : forall S1 S2 T1 T2,
+      subtype S1 T1 ->
+      subtype S2 T2 ->
+      subtype (ty_Prod S1 S2) (ty_Prod T1 T2)
 .
 
 (* Note that we don't need any special rules for base types: they are
@@ -834,6 +877,7 @@ Tactic Notation "subtype_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "S_Refl" | Case_aux c "S_Trans"
   | Case_aux c "S_Top" | Case_aux c "S_Arrow"
+  | Case_aux c "S_Prod"
   ].
 
 (* ############################################### *)
@@ -1315,7 +1359,19 @@ Inductive has_type : context -> tm -> ty -> Prop :=
   | T_Sub : forall Gamma t S T,
       has_type Gamma t S ->
       subtype S T ->
-      has_type Gamma t T.
+      has_type Gamma t T
+  (* 演習4 *)
+  | T_Pair : forall Gamma t1 t2 T1 T2,
+      has_type Gamma t1 T1 ->
+      has_type Gamma t2 T2 ->
+      has_type Gamma (tm_pair t1 t2) (ty_Prod T1 T2)
+  | T_Fst : forall Gamma t T1 T2,
+      has_type Gamma t (ty_Prod T1 T2) ->
+      has_type Gamma (tm_fst t) T1
+  | T_Snd : forall Gamma t T1 T2,
+      has_type Gamma t (ty_Prod T1 T2) ->
+      has_type Gamma (tm_snd t) T2
+.
 
 Hint Constructors has_type.
 
@@ -1325,7 +1381,9 @@ Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   | Case_aux c "T_App" | Case_aux c "T_True"
   | Case_aux c "T_False" | Case_aux c "T_If"
   | Case_aux c "T_Unit"
-  | Case_aux c "T_Sub" ].
+  | Case_aux c "T_Sub"
+  | Case_aux c "T_Pair" | Case_aux c "T_Fst" | Case_aux c "T_Snd"
+  ].
 
 (* ############################################### *)
 (* ** Typing examples *)
@@ -1427,6 +1485,22 @@ Proof with eauto.
   (* FILL IN HERE *) Admitted.
 
 
+Lemma sub_inversion_pair : forall U V1 V2,
+     subtype U (ty_Prod V1 V2) ->
+     exists U1, exists U2,
+       U = (ty_Prod U1 U2) /\ (subtype U1 V1) /\ (subtype U2 V2).
+Proof with eauto.
+  intros U V1 V2 Hs.
+  remember (ty_Prod V1 V2) as V.
+  generalize dependent V2. generalize dependent V1.
+  subtype_cases (induction Hs) Case; intros; try solve by inversion...
+  - Case "S_Trans".
+    destruct (IHHs2 V1 V2) as [U1 [U2 [Ueq [USub1 USub2]]]]...
+    destruct (IHHs1 U1 U2) as [S1 [S2 [Seq [SSub1 SSub2]]]]...
+    exists S1, S2. now eauto.
+  - Case "S_Prod".
+    injection HeqV as Heq2 Heq1. subst. exists S1, S2. now eauto.
+Qed.
 (** [] *)
 
 (* ########################################## *)
@@ -1500,6 +1574,23 @@ Proof with eauto.
   has_type_cases (induction Hty) Case; try solve by inversion...
   Case "T_Sub".
     subst. apply sub_inversion_Bool in H. subst...
+Qed.
+
+Lemma canonical_forms_of_Pair : forall Gamma s T1 T2,
+  has_type Gamma s (ty_Prod T1 T2) ->
+  value s ->
+  (exists v1 v2, value v1 /\ value v2 /\ s = tm_pair v1 v2).
+Proof with eauto.
+  intros Gamma s T1 T2 Hty Hv.
+  remember (ty_Prod _ _) as T. (*rememberは '_' つかえるぜ *)
+  revert T1 T2 HeqT.
+  has_type_cases (induction Hty) Case; intros T1' T2' Teq; try solve by inversion...
+  - Case "T_Sub".
+    subst T. destruct (sub_inversion_pair _ _ _ H) as [S1 [S2 [S_eq [Hsub1 Hsub2]]]].
+    now apply IHHty with S1 S2.
+  - Case "T_Pair".
+    inversion Hv as [| | | |t1' t2' Hvalue1 Hvalue2 [Heq1 Heq2]].
+    exists t1, t2. tauto.
 Qed.
 
 
@@ -1618,30 +1709,44 @@ Proof with eauto.
   revert HeqGamma.
   has_type_cases (induction Ht) Case;
     intros HeqGamma; subst...
-  Case "T_Var".
+  -Case "T_Var".
     inversion H.
-  Case "T_App".
+  -Case "T_App".
     right.
     destruct IHHt1; subst...
-    SCase "t1 is a value".
+    +SCase "t1 is a value".
       destruct IHHt2; subst...
-      SSCase "t2 is a value".
+      *SSCase "t2 is a value".
         destruct (canonical_forms_of_arrow_types empty t1 T1 T2)
           as [x [S1 [t12 Heqt1]]]...
         subst. exists (subst t2 x t12)...
-      SSCase "t2 steps".
+      *SSCase "t2 steps".
         destruct H0 as [t2' Hstp]. exists (tm_app t1 t2')...
-    SCase "t1 steps".
+    +SCase "t1 steps".
       destruct H as [t1' Hstp]. exists (tm_app t1' t2)...
-  Case "T_If".
+  -Case "T_If".
     right.
     destruct IHHt1.
     SCase "t1 is a value"...
       assert (t1 = tm_true \/ t1 = tm_false)
         by (eapply canonical_forms_of_Bool; eauto).
-      inversion H0; subst...
+      inversion H0; subst; now eexists.
+      SCase "t1 is not a value".
       destruct H. rename x into t1'. eauto.
-
+  -Case "T_Pair".
+     destruct IHHt1 as [| [t1' Ht1_step]]...
+     destruct IHHt2 as [ |[t2' Ht2_step]]...
+     (* t1, t2共にvalue *)
+  -Case "T_Fst".
+     right. destruct IHHt as [| [t' Ht']]...
+     (* t が value *)
+     destruct (canonical_forms_of_Pair empty t T1 T2) as [t1 [t2 [Hv1 [Hv2 Heq]]]]...
+     exists t1. now rewrite Heq.
+  -Case "T_Snd".
+     right. destruct IHHt as [| [t' Ht']]...
+     (* t が value *)
+     destruct (canonical_forms_of_Pair empty t T1 T2) as [t1 [t2 [Hv1 [Hv2 Heq]]]]...
+     exists t2. now rewrite Heq.
 Qed.
 
 (* ########################################## *)
@@ -1809,6 +1914,40 @@ Proof with eauto.
     inversion Heqtu; subst; intros...
 Qed.
 
+Lemma typing_inversion_pair : forall Gamma t1 t2 T,
+  has_type Gamma (tm_pair t1 t2) T ->
+    exists T1 T2, has_type Gamma t1 T1 /\ has_type Gamma t2 T2 /\ subtype (ty_Prod T1 T2) T.
+Proof with eauto.
+  intros Gamma t1 t2 T Htyp. remember (tm_pair t1 t2) as tpair.
+  has_type_cases (induction Htyp) Case;
+    inversion Heqtpair; subst; intros...
+  Case "T_Sub".
+  destruct IHHtyp as [T1 [T2 [Ht1 [Ht2 HSub]]]]... exists T1, T2. now eauto.
+Qed.
+
+Lemma typing_inversion_fst : forall Gamma t T1,
+  has_type Gamma (tm_fst t) T1 ->
+  exists T2,
+    has_type Gamma t (ty_Prod T1 T2).
+Proof with eauto.
+  intros Gamma t T Htyp. remember (tm_fst t) as tfst.
+  has_type_cases (induction Htyp) Case;
+    inversion Heqtfst; subst; intros...
+  Case "T_Sub".
+  destruct IHHtyp...
+Qed.
+
+Lemma typing_inversion_snd : forall Gamma t T2,
+  has_type Gamma (tm_snd t) T2 ->
+  exists T1,
+    has_type Gamma t (ty_Prod T1 T2).
+Proof with eauto.
+  intros Gamma t T Htyp. remember (tm_snd t) as tsnd.
+  has_type_cases (induction Htyp) Case;
+    inversion Heqtsnd; subst; intros...
+  Case "T_Sub".
+  destruct IHHtyp...
+Qed.
 
 (* The inversion lemmas for typing and for subtyping between arrow
     types can be packaged up as a useful "combination lemma" telling
@@ -1857,6 +1996,14 @@ Inductive appears_free_in : id -> tm -> Prop :=
   | afi_if3 : forall x t1 t2 t3,
       appears_free_in x t3 ->
       appears_free_in x (tm_if t1 t2 t3)
+  | afi_pair1 : forall x t1 t2,
+      appears_free_in x t1 -> appears_free_in x (tm_pair t1 t2)
+  | afi_pair2 : forall x t1 t2,
+      appears_free_in x t2 -> appears_free_in x (tm_pair t1 t2)
+  | afi_fst : forall x t,
+      appears_free_in x t -> appears_free_in x (tm_fst t)
+  | afi_snd : forall x t,
+      appears_free_in x t -> appears_free_in x (tm_snd t)
 .
 
 Hint Constructors appears_free_in.
@@ -1879,7 +2026,13 @@ Proof with eauto.
     apply T_App with T1...
   Case "T_If".
     apply T_If...
-
+  -Case "T_Pair".
+    apply T_Pair.
+    + SCase "t1 : T1".
+      apply IHhas_type1. intros x Happear. apply Heqv. now constructor.
+    + SCase "t2 : T2".
+      apply IHhas_type2. intros x Happear. apply Heqv. now apply afi_pair2.
+  (*Case "T_Fst", "T_Snd" は自動証明される*)
 Qed.
 
 Lemma free_in_context : forall x t T Gamma,
@@ -1918,7 +2071,7 @@ Proof with eauto.
   intros Gamma x U v t S Htypt Htypv.
   generalize dependent S. generalize dependent Gamma.
   tm_cases (induction t) Case; intros; simpl.
-  Case "tm_var".
+  -Case "tm_var".
     rename i into y.
     destruct (typing_inversion_var _ _ _ Htypt)
         as [T [Hctx Hsub]].
@@ -1932,11 +2085,11 @@ Proof with eauto.
       destruct (free_in_context _ _ S empty Hcontra)
           as [T' HT']...
       inversion HT'.
-  Case "tm_app".
+  -Case "tm_app".
     destruct (typing_inversion_app _ _ _ _ Htypt)
         as [T1 [Htypt1 Htypt2]].
     eapply T_App...
-  Case "tm_abs".
+  -Case "tm_abs".
     rename i into y. rename t into T1.
     destruct (typing_inversion_abs _ _ _ _ _ Htypt)
       as [T2 [Hsub Htypt2]].
@@ -1953,13 +2106,13 @@ Proof with eauto.
       remember (beq_id y z) as e0. destruct e0...
       apply beq_id_eq in Heqe0. subst.
       rewrite <- Heqe...
-  Case "tm_true".
+  -Case "tm_true".
       assert (subtype ty_Bool S)
         by apply (typing_inversion_true _ _  Htypt)...
-  Case "tm_false".
+  -Case "tm_false".
       assert (subtype ty_Bool S)
         by apply (typing_inversion_false _ _  Htypt)...
-  Case "tm_if".
+  -Case "tm_if".
     assert (has_type (extend Gamma x U) t1 ty_Bool
             /\ has_type (extend Gamma x U) t2 S
             /\ has_type (extend Gamma x U) t3 S)
@@ -1967,9 +2120,18 @@ Proof with eauto.
     destruct H as [H1 [H2 H3]].
     apply IHt1 in H1. apply IHt2 in H2. apply IHt3 in H3.
     auto.
-  Case "tm_unit".
+  -Case "tm_unit".
     assert (subtype ty_Unit S)
       by apply (typing_inversion_unit _ _  Htypt)...
+  -Case "tm_pair".
+   destruct (typing_inversion_pair _ _ _ _ Htypt) as [S1 [S2 [Hty1 [Hty2 HSub] ]]].
+   apply T_Sub with (ty_Prod S1 S2)...
+  -Case "tm_fst".
+   destruct (typing_inversion_fst _ _ _ Htypt) as [S2 Hty_Prod].
+   apply T_Fst with S2. now apply IHt.
+  -Case "tm_snd".
+   destruct (typing_inversion_snd _ _ _ Htypt) as [S1 Hty_Prod].
+   apply T_Snd with S1. now apply IHt.
 Qed.
 
 (* ########################################## *)
@@ -2093,6 +2255,14 @@ Proof with eauto.
     SCase "ST_AppAbs".
       destruct (abs_arrow _ _ _ _ _ HT1) as [HA1 HA2].
       apply substitution_preserves_typing with T...
+  -Case "T_Fst".
+    destruct (typing_inversion_pair _ _ _ _ HT) as [S1 [S2 [HtyS1 [HtyS2 HSub]]]].
+    destruct (sub_inversion_pair _ _ _ HSub) as [U1 [U2 [Heq [HSub1 HSub2]]]].
+    apply T_Sub with U1... injection Heq as _ Heq1. now subst.
+  -Case "T_Snd".
+    destruct (typing_inversion_pair _ _ _ _ HT) as [S1 [S2 [HtyS1 [HtyS2 HSub]]]].
+    destruct (sub_inversion_pair _ _ _ HSub) as [U1 [U2 [Heq [HSub1 HSub2]]]].
+    apply T_Sub with U2... injection Heq as Heq2 _. now subst.
 Qed.
 
 (* ###################################################### *)
