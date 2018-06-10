@@ -764,6 +764,10 @@ Inductive value : tm -> Prop :=
       value tm_false
   | v_unit :
       value tm_unit
+  | v_pair : forall x y,
+      value x ->
+      value y ->
+      value (tm_pair x y)
 .
 
 Hint Constructors value.
