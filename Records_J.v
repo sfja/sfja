@@ -19,7 +19,7 @@ Require Import Relations.
     first-class citizens of the language.
 
     Recall the informal definitions we gave before: *)
-(** [MoreStlc_J.v]で、レコードを、直積を入れ子で利用するための構文糖衣として扱う方法を見ました。
+(** 私たちは[MoreStlc_J.v]で、レコードをどのようにして、直積の入れ子での利用に対しての構文糖衣として扱うことができるかを見ました。
     これは簡単な例にはよいです。しかし、エンコードは非形式的です。
     (現実的に、もしこの方法でレコードを本当に扱うならパーサ内で実行されることになりますが、
     パーサはここでは省いています。)
