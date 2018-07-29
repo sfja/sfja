@@ -1472,19 +1472,15 @@ Proof.
 
    Theorem: For any [nat]s [n] [m], [beq_nat n m = beq_nat m n].
 
-   Proof:
-   (* FILL IN HERE *)
-[]
- *)
+   Proof: *)
 (** **** 練習問題: ★★★, recommended (beq_nat_sym_informal) *)
 (** 以下の補題について上の証明と対応する非形式的な証明を書きなさい。
 
    定理: 任意の [nat] [n] [m] について、 [beq_nat n m = beq_nat m n]。
 
-   証明:
-   (* FILL IN HERE *)
-[]
- *)
+   証明: *)
+   (** FILL IN HERE *)
+(** [] *)
 
 End NatList.
 
