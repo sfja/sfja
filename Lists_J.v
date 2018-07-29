@@ -504,16 +504,13 @@ Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
     with a theorem which is true, but whose proof requires techniques
     you haven't learned yet.  Feel free to ask for help if you get
     stuck!
-
-(* FILL IN HERE *)
-[]
  *)
 (**
    [count] や [add] を使ったバッグに関する面白い定理を書き、それを証明しなさい。この問題はいわゆる自由課題で、真になることがわかっていても、証明にはまだ習っていない技を使わなければならない定理を思いついてしまうこともあります。証明に行き詰まってしまったら気軽に質問してください。
-
-(* FILL IN HERE *)
-[]
  *)
+
+(** FILL IN HERE *)
+(** [] *)
 
 
 (* * Reasoning About Lists *)
