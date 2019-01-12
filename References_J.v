@@ -3,7 +3,7 @@
 
 (* $Date: 2011-06-03 13:58:55 -0400 (Fri, 03 Jun 2011) $ *)
 
-
+Require Import Omega.
 Require Export Smallstep_J.
 
 (* So far, we have considered a variety of _pure_ language features,

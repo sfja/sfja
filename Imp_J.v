@@ -53,6 +53,7 @@
     関係する定理を探すのを容易にするためです。 *)
 
 Require Export SfLib_J.
+Require Import Omega.
 
 (* ####################################################### *)
 (* * Arithmetic and Boolean Expressions *)

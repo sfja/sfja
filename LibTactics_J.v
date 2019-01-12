@@ -510,7 +510,7 @@ Ltac fast_rm_inside E :=
     自然数として構文解析される可能性と相対値として構文解析される可能性があります。
     タクティックが引数を自然数に変換するために、変換タクティックを提供します。 *)
 
-Require Coq.NArith.BinPos Coq.ZArith.BinInt.
+Require Coq.PArith.BinPos Coq.ZArith.BinInt.
 
 Definition ltac_nat_from_int (x:BinInt.Z) : nat :=
   match x with
@@ -758,7 +758,7 @@ Definition eq' := @eq.
 Hint Unfold eq'.
 
 Notation "x '='' y" := (@eq' _ x y)
-  (at level 70, arguments at next level).
+  (at level 70).
 
 
 
