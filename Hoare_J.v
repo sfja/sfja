@@ -25,6 +25,7 @@
    以下のファイルにある。
    /underconstruction/PilkiewiczFormalizedDecorated.v *)
    
+Require Import Omega.
 Require Export ImpList_J.
 
 (* We've begun applying the mathematical tools developed in the

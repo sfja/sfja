@@ -124,10 +124,6 @@ VFILES:=Symbols_J.v\
   Subtyping_J.v\
   RecordSub_J.v\
   Norm_J.v\
-  UseTactics_J.v\
-  UseAuto_J.v\
-  LibTactics_J.v\
-  PE_J.v\
   Postscript_J.v
 
 VOFILES:=$(VFILES:.v=.vo)

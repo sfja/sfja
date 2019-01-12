@@ -47,8 +47,8 @@ Check (cons nat 2 (cons nat 1 (nil nat))).
 
 Fixpoint length (X:Type) (l:list X) : nat :=
   match l with
-  | nil      => 0
-  | cons h t => S (length X t)
+  | nil _     => 0
+  | cons _ h t => S (length X t)
   end.
 
 (** ここで、[match]に使われている[nil]や[cons]に型修飾がついていないことに注意してください。我々はすでにリスト[l]が型[X]の要素を持っていることを知っていますが、それはパターンマッチに[X]を含める理由になりません。さらに形式的には、[X]はリスト定義全体での型であって、個々のコンストラクタの型ではないのです。
@@ -70,20 +70,20 @@ Proof. reflexivity.  Qed.
 Fixpoint app (X : Type) (l1 l2 : list X)
                 : (list X) :=
   match l1 with
-  | nil      => l2
-  | cons h t => cons X h (app X t l2)
+  | nil _     => l2
+  | cons _ h t => cons X h (app X t l2)
   end.
 
 Fixpoint snoc (X:Type) (l:list X) (v:X) : (list X) :=
   match l with
-  | nil      => cons X v (nil X)
-  | cons h t => cons X h (snoc X t v)
+  | nil _     => cons X v (nil X)
+  | cons _ h t => cons X h (snoc X t v)
   end.
 
 Fixpoint rev (X:Type) (l:list X) : list X :=
   match l with
-  | nil      => nil X
-  | cons h t => snoc X (rev X t) h
+  | nil _     => nil X
+  | cons _ h t => snoc X (rev X t) h
   end.
 
 Example test_rev1 :
@@ -102,8 +102,8 @@ Proof. reflexivity.  Qed.
 
 Fixpoint app' X l1 l2 : list X :=
   match l1 with
-  | nil      => l2
-  | cons h t => cons X h (app' X t l2)
+  | nil _     => l2
+  | cons _ h t => cons X h (app' X t l2)
   end.
 
 (** うまくいったようです。Coqが[app']にどのような型を設定したのか確認してみましょう。 *)
@@ -137,8 +137,8 @@ Check app.
 
 Fixpoint length' (X:Type) (l:list X) : nat :=
   match l with
-  | nil      => 0
-  | cons h t => S (length' _ t)
+  | nil _     => 0
+  | cons _ h t => S (length' _ t)
   end.
 
 (** この例では、[X]を[_]に省略することをあまりしていません。しかし多くの場合、この違いは重要です。例えば、[1],[2],[3]といった数値を保持するリストを書きたい場合、以下のように書く代わりに... *)
