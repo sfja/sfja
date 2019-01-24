@@ -1433,7 +1433,7 @@ Proof.
     remember (fold_constants_bexp b1) as b1'.
     remember (fold_constants_bexp b2) as b2'.
     rewrite IHb1. rewrite IHb2.
-    destruct b1'; destruct b2'; reflexivity.  Qed.
+    destruct b1'; destruct b2'; reflexivity. Admitted.
 (** [] *)
 
 (* **** Exercise: 3 stars (fold_constants_com_sound) *)
