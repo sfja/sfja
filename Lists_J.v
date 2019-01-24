@@ -1168,7 +1168,7 @@ Proof. reflexivity.  Qed.
 Fixpoint index' (n:nat) (l:natlist) : natoption :=
   match l with
   | nil => None
-  | a :: l' => if beq_nat n O then Some a else index (pred n) l'
+  | a :: l' => if beq_nat n O then Some a else index' (pred n) l'
   end.
 
 (* Coq's conditionals are exactly like those found in any other
